@@ -1,0 +1,9 @@
+[submodule "lib/MsxAudio"]
+	path = lib/MsxAudio
+	url = https://github.com/wagenheimer/MsxAudio.git
+[submodule "lib/MonoGameHelper"]
+	path = lib/MonoGameHelper
+	url = https://github.com/wagenheimer/MonoGameHelper.git
+[submodule "lib/Nez"]
+	path = lib/Nez
+	url = https://github.com/prime31/Nez.git

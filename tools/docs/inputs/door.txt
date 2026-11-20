@@ -1,0 +1,4 @@
+# Stage 2, sala 1: porta giratória em (160,72), que nasce na fase 3 (girada) — empurra-se pelo
+# lado DIREITO. O Vick começa em (176,80), encostado nela, e segura a esquerda.
+0-6    .
+7-110  L

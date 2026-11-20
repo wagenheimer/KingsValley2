@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ComponentSave xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Controls/GameGoalCard</Name>
+  <BaseType>Container</BaseType>
+  <State>
+    <Name>Default</Name>
+    <Variable Type="ButtonCategory" Name="ButtonCategoryState" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="int" Name="Completed.Blue" SetsValue="true">
+      <Value xsi:type="xsd:int">45</Value>
+    </Variable>
+    <Variable Type="string" Name="Completed.Font" SetsValue="true">
+      <Value xsi:type="xsd:string">Berlin Sans FB Demi</Value>
+    </Variable>
+    <Variable Type="int" Name="Completed.FontSize" SetsValue="true">
+      <Value xsi:type="xsd:int">19</Value>
+    </Variable>
+    <Variable Type="int" Name="Completed.Green" SetsValue="true">
+      <Value xsi:type="xsd:int">218</Value>
+    </Variable>
+    <Variable Type="float" Name="Completed.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">26.76</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Completed.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Completed.HorizontalAlignment" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Completed.Red" SetsValue="true">
+      <Value xsi:type="xsd:int">173</Value>
+    </Variable>
+    <Variable Type="string" Name="Completed.Text" SetsValue="true">
+      <Value xsi:type="xsd:string"></Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Completed.VerticalAlignment" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="bool" Name="Completed.Visible" SetsValue="true">
+      <Value xsi:type="xsd:boolean">false</Value>
+    </Variable>
+    <Variable Type="float" Name="Completed.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">85.7</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Completed.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Completed.X" SetsValue="true">
+      <Value xsi:type="xsd:float">2.08</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Completed.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Completed.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Completed.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">46.79</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Completed.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Completed.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Flowers.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">34</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Flowers.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Flowers.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Flowers.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Flowers.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">33</Value>
+    </Variable>
+    <Variable Type="int" Name="Flowers.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">427</Value>
+    </Variable>
+    <Variable Type="int" Name="Flowers.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">600</Value>
+    </Variable>
+    <Variable Type="int" Name="Flowers.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">106</Value>
+    </Variable>
+    <Variable Type="float" Name="Flowers.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">106</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Flowers.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Flowers.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Flowers.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Flowers.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Flowers.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">44.82</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Flowers.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Flowers.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Frame.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">121</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Frame.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Frame.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Frame.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Frame.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">121</Value>
+    </Variable>
+    <Variable Type="int" Name="Frame.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">565</Value>
+    </Variable>
+    <Variable Type="int" Name="Frame.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">534</Value>
+    </Variable>
+    <Variable Type="int" Name="Frame.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">102</Value>
+    </Variable>
+    <Variable Type="float" Name="Frame.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">102</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Frame.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Frame.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Frame.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Frame.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Frame.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Frame.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Frame.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Height" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="int" Name="Progress.Blue" SetsValue="true">
+      <Value xsi:type="xsd:int">184</Value>
+    </Variable>
+    <Variable Type="string" Name="Progress.Font" SetsValue="true">
+      <Value xsi:type="xsd:string">Berlin Sans FB Demi</Value>
+    </Variable>
+    <Variable Type="int" Name="Progress.FontSize" SetsValue="true">
+      <Value xsi:type="xsd:int">27</Value>
+    </Variable>
+    <Variable Type="int" Name="Progress.Green" SetsValue="true">
+      <Value xsi:type="xsd:int">239</Value>
+    </Variable>
+    <Variable Type="float" Name="Progress.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">26.76</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Progress.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Progress.HorizontalAlignment" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Progress.Red" SetsValue="true">
+      <Value xsi:type="xsd:int">255</Value>
+    </Variable>
+    <Variable Type="string" Name="Progress.Text" SetsValue="true">
+      <Value xsi:type="xsd:string"></Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Progress.VerticalAlignment" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="float" Name="Progress.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">95.84</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Progress.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Progress.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Progress.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Progress.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Progress.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">46.79</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Progress.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Progress.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="State" Name="State" Category="States and Visibility" SetsValue="false">
+      <Value xsi:type="xsd:string">Default</Value>
+    </Variable>
+    <Variable Type="float" Name="Token.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">65.05</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Token.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Token.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Token.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Token.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">74</Value>
+    </Variable>
+    <Variable Type="int" Name="Token.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">751</Value>
+    </Variable>
+    <Variable Type="int" Name="Token.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">627</Value>
+    </Variable>
+    <Variable Type="int" Name="Token.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">59</Value>
+    </Variable>
+    <Variable Type="float" Name="Token.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">71.3</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Token.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Token.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Token.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Token.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Token.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">-0.42</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Token.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Token.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="bool" Name="TokenMask.ClipsChildren" SetsValue="true">
+      <Value xsi:type="xsd:boolean">true</Value>
+    </Variable>
+    <Variable Type="float" Name="TokenMask.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">70.88</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="TokenMask.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="string" Name="TokenMask.Parent" SetsValue="true">
+      <Value xsi:type="xsd:string"></Value>
+    </Variable>
+    <Variable Type="float" Name="TokenMask.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">80.01</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="TokenMask.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="TokenMask.X" SetsValue="true">
+      <Value xsi:type="xsd:float">-37.5</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="TokenMask.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="TokenMask.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="TokenMask.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">-46.35</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="TokenMask.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="TokenMask.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Width" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+  </State>
+  <Instance Name="Frame" BaseType="Sprite" />
+  <Instance Name="Flowers" BaseType="Sprite" />
+  <Instance Name="TokenMask" BaseType="Container" />
+  <Instance Name="Token" BaseType="Sprite" />
+  <Instance Name="Progress" BaseType="Text" />
+  <Instance Name="Completed" BaseType="Text" />
+  <Behaviors />
+  <VariablesHiddenFromInstances>
+    <string>ContainedType</string>
+    <string>ChildrenLayout</string>
+    <string>ClipsChildren</string>
+    <string>IsRenderTarget</string>
+    <string>ExposeChildrenEvents</string>
+  </VariablesHiddenFromInstances>
+</ComponentSave>

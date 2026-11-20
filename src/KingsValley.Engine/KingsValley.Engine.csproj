@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KingsValley.Core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KingsValley.Core\KingsValley.Core.csproj" />
+    <ProjectReference Include="..\..\lib\Nez\Nez.Portable\Nez.MG38.csproj" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="Exists('K:\Games\Open Source\MsxAudio\src\Wagenheimer.MsxAudio.MonoGame\Wagenheimer.MsxAudio.MonoGame.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="K:\Games\Open Source\MsxAudio\src\Wagenheimer.MsxAudio.MonoGame\Wagenheimer.MsxAudio.MonoGame.csproj" />
+        <ProjectReference Include="K:\Games\Open Source\MonoGameHelper\src\Wagenheimer.MonoGameHelper\Wagenheimer.MonoGameHelper.csproj" />
+      </ItemGroup>
+    </When>
+    <When Condition="Exists('..\..\lib\MsxAudio\src\Wagenheimer.MsxAudio.MonoGame\Wagenheimer.MsxAudio.MonoGame.csproj')">
+      <ItemGroup>
+        <ProjectReference Include="..\..\lib\MsxAudio\src\Wagenheimer.MsxAudio.MonoGame\Wagenheimer.MsxAudio.MonoGame.csproj" />
+        <ProjectReference Include="..\..\lib\MonoGameHelper\src\Wagenheimer.MonoGameHelper\Wagenheimer.MonoGameHelper.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\MsxAudio\src\Wagenheimer.MsxAudio.MonoGame\Wagenheimer.MsxAudio.MonoGame.csproj" />
+        <ProjectReference Include="..\..\..\MonoGameHelper\src\Wagenheimer.MonoGameHelper\Wagenheimer.MonoGameHelper.csproj" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
+  <ItemGroup>
+    <PackageReference Include="Gum.MonoGame" Version="2026.9.2.1" />
+    <PackageReference Include="Gum.Shapes.MonoGame" Version="2026.9.2.1" />
+    <PackageReference Include="KernSmith.MonoGameGum" Version="2026.9.2.1" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Perfil de extração do áudio (endereços e ids do driver, sem conteúdo da ROM). -->
+    <EmbeddedResource Include="Assets\kingsvalley2.json" />
+  </ItemGroup>
+</Project>
+

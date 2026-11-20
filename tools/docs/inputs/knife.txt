@@ -1,0 +1,7 @@
+# Stage 1: pega a faca em (160,160) e arremessa.
+# O Vick começa em (128,160); anda 9 ticks (~18 px) e o item entra na caixa dele.
+0-3   .
+4-13  R
+14-19 .
+20    A
+21-70 .

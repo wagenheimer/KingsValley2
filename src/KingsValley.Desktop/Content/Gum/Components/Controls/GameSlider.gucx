@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ComponentSave xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Controls/GameSlider</Name>
+  <BaseType>Container</BaseType>
+  <State>
+    <Name>Default</Name>
+    <Variable Type="float" Name="FillInstance.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">16</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="FillInstance.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="string" Name="FillInstance.Parent" SetsValue="true">
+      <Value xsi:type="xsd:string">TrackInstance</Value>
+    </Variable>
+    <Variable Type="string" Name="FillInstance.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/dialogs.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="FillInstance.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="FillInstance.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">16</Value>
+    </Variable>
+    <Variable Type="int" Name="FillInstance.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">659</Value>
+    </Variable>
+    <Variable Type="int" Name="FillInstance.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">38</Value>
+    </Variable>
+    <Variable Type="int" Name="FillInstance.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">317</Value>
+    </Variable>
+    <Variable Type="float" Name="FillInstance.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="FillInstance.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="FillInstance.X" SetsValue="true">
+      <Value xsi:type="xsd:float">-129.5</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="FillInstance.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="FillInstance.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="FillInstance.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="FillInstance.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="FillInstance.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Height" SetsValue="true">
+      <Value xsi:type="xsd:float">36</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="SliderCategory" Name="SliderCategoryState" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="State" Name="State" Category="States and Visibility" SetsValue="false">
+      <Value xsi:type="xsd:string">Default</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbArt.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="ThumbArt.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="string" Name="ThumbArt.Parent" SetsValue="true">
+      <Value xsi:type="xsd:string">ThumbInstance</Value>
+    </Variable>
+    <Variable Type="string" Name="ThumbArt.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/dialogs.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="ThumbArt.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="ThumbArt.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">38</Value>
+    </Variable>
+    <Variable Type="int" Name="ThumbArt.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">947</Value>
+    </Variable>
+    <Variable Type="int" Name="ThumbArt.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">101</Value>
+    </Variable>
+    <Variable Type="int" Name="ThumbArt.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">37</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbArt.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="ThumbArt.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbArt.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="ThumbArt.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="ThumbArt.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbArt.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="ThumbArt.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="ThumbArt.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">38</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="ThumbInstance.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="string" Name="ThumbInstance.Parent" SetsValue="true">
+      <Value xsi:type="xsd:string">TrackInstance</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">37</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="ThumbInstance.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbInstance.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="ThumbInstance.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="ThumbInstance.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="float" Name="ThumbInstance.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="ThumbInstance.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="ThumbInstance.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackBackground.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="TrackBackground.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="string" Name="TrackBackground.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/dialogs.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="TrackBackground.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="TrackBackground.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">36</Value>
+    </Variable>
+    <Variable Type="int" Name="TrackBackground.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">659</Value>
+    </Variable>
+    <Variable Type="int" Name="TrackBackground.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="int" Name="TrackBackground.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">332</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackBackground.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="TrackBackground.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackBackground.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="TrackBackground.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="TrackBackground.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackBackground.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="TrackBackground.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="TrackBackground.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackInstance.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="TrackInstance.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackInstance.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">-37</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="TrackInstance.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">2</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackInstance.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="TrackInstance.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="TrackInstance.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="TrackInstance.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="TrackInstance.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="TrackInstance.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Width" SetsValue="true">
+      <Value xsi:type="xsd:float">332</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+  </State>
+  <Category>
+    <Name>SliderCategory</Name>
+    <State>
+      <Name>Enabled</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">38</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">37</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Disabled</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">38</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">37</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>DisabledFocused</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">38</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">37</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Focused</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">38</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">37</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Highlighted</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">41</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">40</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>HighlightedFocused</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">41</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">40</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Pushed</Name>
+      <Variable Type="int" Name="FillInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="ThumbInstance.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Height" SetsValue="true">
+        <Value xsi:type="xsd:float">35</Value>
+      </Variable>
+      <Variable Type="float" Name="ThumbInstance.Width" SetsValue="true">
+        <Value xsi:type="xsd:float">34</Value>
+      </Variable>
+      <Variable Type="int" Name="TrackBackground.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+  </Category>
+  <Instance Name="TrackBackground" BaseType="Sprite" />
+  <Instance Name="TrackInstance" BaseType="Container" />
+  <Instance Name="FillInstance" BaseType="Sprite" />
+  <Instance Name="ThumbInstance" BaseType="Container" />
+  <Instance Name="ThumbArt" BaseType="Sprite" />
+  <Behaviors>
+    <ElementBehaviorReference>
+      <BehaviorName>SliderBehavior</BehaviorName>
+    </ElementBehaviorReference>
+  </Behaviors>
+  <VariablesHiddenFromInstances>
+    <string>SliderCategoryState</string>
+    <string>ContainedType</string>
+    <string>ChildrenLayout</string>
+    <string>ClipsChildren</string>
+    <string>IsRenderTarget</string>
+    <string>ExposeChildrenEvents</string>
+  </VariablesHiddenFromInstances>
+</ComponentSave>

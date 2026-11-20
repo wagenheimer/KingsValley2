@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ComponentSave xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Controls/GamePowerUpSlot</Name>
+  <BaseType>Container</BaseType>
+  <State>
+    <Name>Default</Name>
+    <Variable Type="float" Name="Badge.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">26</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Badge.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Badge.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Badge.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Badge.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">26</Value>
+    </Variable>
+    <Variable Type="int" Name="Badge.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">760</Value>
+    </Variable>
+    <Variable Type="int" Name="Badge.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">97</Value>
+    </Variable>
+    <Variable Type="int" Name="Badge.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">24</Value>
+    </Variable>
+    <Variable Type="float" Name="Badge.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">24</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Badge.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Badge.X" SetsValue="true">
+      <Value xsi:type="xsd:float">-30.5</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Badge.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Badge.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Badge.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">27.4</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Badge.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Badge.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="int" Name="BadgeLabel.Blue" SetsValue="true">
+      <Value xsi:type="xsd:int">255</Value>
+    </Variable>
+    <Variable Type="string" Name="BadgeLabel.Font" SetsValue="true">
+      <Value xsi:type="xsd:string">Berlin Sans FB Demi</Value>
+    </Variable>
+    <Variable Type="int" Name="BadgeLabel.FontSize" SetsValue="true">
+      <Value xsi:type="xsd:int">19</Value>
+    </Variable>
+    <Variable Type="int" Name="BadgeLabel.Green" SetsValue="true">
+      <Value xsi:type="xsd:int">255</Value>
+    </Variable>
+    <Variable Type="float" Name="BadgeLabel.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">26</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="BadgeLabel.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="BadgeLabel.HorizontalAlignment" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="BadgeLabel.Red" SetsValue="true">
+      <Value xsi:type="xsd:int">255</Value>
+    </Variable>
+    <Variable Type="string" Name="BadgeLabel.Text" SetsValue="true">
+      <Value xsi:type="xsd:string"></Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="BadgeLabel.VerticalAlignment" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="float" Name="BadgeLabel.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">24</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="BadgeLabel.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="BadgeLabel.X" SetsValue="true">
+      <Value xsi:type="xsd:float">-30.5</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="BadgeLabel.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="BadgeLabel.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="BadgeLabel.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">27.4</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="BadgeLabel.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="BadgeLabel.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="ButtonCategory" Name="ButtonCategoryState" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Fill.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">63</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Fill.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Fill.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Fill.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Fill.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">63</Value>
+    </Variable>
+    <Variable Type="int" Name="Fill.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">683</Value>
+    </Variable>
+    <Variable Type="int" Name="Fill.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">709</Value>
+    </Variable>
+    <Variable Type="int" Name="Fill.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">63</Value>
+    </Variable>
+    <Variable Type="float" Name="Fill.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">63</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Fill.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Fill.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Fill.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Fill.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Fill.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Fill.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Fill.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Height" SetsValue="true">
+      <Value xsi:type="xsd:float">100</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Icon.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">74</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Icon.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Icon.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Icon.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Icon.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">74</Value>
+    </Variable>
+    <Variable Type="int" Name="Icon.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">751</Value>
+    </Variable>
+    <Variable Type="int" Name="Icon.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">627</Value>
+    </Variable>
+    <Variable Type="int" Name="Icon.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">59</Value>
+    </Variable>
+    <Variable Type="float" Name="Icon.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">59</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Icon.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Icon.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Icon.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Icon.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Icon.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Icon.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Icon.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Lock.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">50</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Lock.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Lock.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Lock.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Lock.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">87</Value>
+    </Variable>
+    <Variable Type="int" Name="Lock.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">729</Value>
+    </Variable>
+    <Variable Type="int" Name="Lock.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">263</Value>
+    </Variable>
+    <Variable Type="int" Name="Lock.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">82</Value>
+    </Variable>
+    <Variable Type="float" Name="Lock.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">50</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Lock.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Lock.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Lock.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Lock.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Lock.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Lock.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Lock.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="float" Name="Slot.Height" SetsValue="true">
+      <Value xsi:type="xsd:float">81</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Slot.HeightUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable IsFile="true" Type="string" Name="Slot.SourceFile" SetsValue="true">
+      <Value xsi:type="xsd:string">../Atlases/levelhud.png</Value>
+    </Variable>
+    <Variable Type="TextureAddress" Name="Slot.TextureAddress" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="int" Name="Slot.TextureHeight" SetsValue="true">
+      <Value xsi:type="xsd:int">81</Value>
+    </Variable>
+    <Variable Type="int" Name="Slot.TextureLeft" SetsValue="true">
+      <Value xsi:type="xsd:int">729</Value>
+    </Variable>
+    <Variable Type="int" Name="Slot.TextureTop" SetsValue="true">
+      <Value xsi:type="xsd:int">352</Value>
+    </Variable>
+    <Variable Type="int" Name="Slot.TextureWidth" SetsValue="true">
+      <Value xsi:type="xsd:int">81</Value>
+    </Variable>
+    <Variable Type="float" Name="Slot.Width" SetsValue="true">
+      <Value xsi:type="xsd:float">81</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="Slot.WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="Slot.X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="Slot.XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Slot.XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Slot.Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="Slot.YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="Slot.YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+    <Variable Type="State" Name="State" Category="States and Visibility" SetsValue="false">
+      <Value xsi:type="xsd:string">Default</Value>
+    </Variable>
+    <Variable Type="float" Name="Width" SetsValue="true">
+      <Value xsi:type="xsd:float">100</Value>
+    </Variable>
+    <Variable Type="DimensionUnitType" Name="WidthUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">0</Value>
+    </Variable>
+    <Variable Type="float" Name="X" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="HorizontalAlignment" Name="XOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="XUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">6</Value>
+    </Variable>
+    <Variable Type="float" Name="Y" SetsValue="true">
+      <Value xsi:type="xsd:float">0</Value>
+    </Variable>
+    <Variable Type="VerticalAlignment" Name="YOrigin" SetsValue="true">
+      <Value xsi:type="xsd:int">1</Value>
+    </Variable>
+    <Variable Type="PositionUnitType" Name="YUnits" SetsValue="true">
+      <Value xsi:type="xsd:int">7</Value>
+    </Variable>
+  </State>
+  <Category>
+    <Name>ButtonCategory</Name>
+    <State>
+      <Name>Enabled</Name>
+      <Variable Type="int" Name="Badge.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="BadgeLabel.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Fill.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Icon.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Lock.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Slot.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Highlighted</Name>
+      <Variable Type="int" Name="Badge.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="BadgeLabel.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Fill.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Icon.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Lock.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Slot.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Pushed</Name>
+      <Variable Type="int" Name="Badge.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="BadgeLabel.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Fill.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Icon.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Lock.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Slot.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Focused</Name>
+      <Variable Type="int" Name="Badge.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="BadgeLabel.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Fill.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Icon.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Lock.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Slot.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>HighlightedFocused</Name>
+      <Variable Type="int" Name="Badge.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="BadgeLabel.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Fill.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Icon.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Lock.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+      <Variable Type="int" Name="Slot.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">255</Value>
+      </Variable>
+    </State>
+    <State>
+      <Name>Disabled</Name>
+      <Variable Type="int" Name="Badge.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="BadgeLabel.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="Fill.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="Icon.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="Lock.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+      <Variable Type="int" Name="Slot.Alpha" SetsValue="true">
+        <Value xsi:type="xsd:int">130</Value>
+      </Variable>
+    </State>
+  </Category>
+  <Instance Name="Slot" BaseType="Sprite" />
+  <Instance Name="Fill" BaseType="Sprite" />
+  <Instance Name="Icon" BaseType="Sprite" />
+  <Instance Name="Lock" BaseType="Sprite" />
+  <Instance Name="Badge" BaseType="Sprite" />
+  <Instance Name="BadgeLabel" BaseType="Text" />
+  <Behaviors>
+    <ElementBehaviorReference>
+      <BehaviorName>ButtonBehavior</BehaviorName>
+    </ElementBehaviorReference>
+  </Behaviors>
+  <VariablesHiddenFromInstances>
+    <string>ContainedType</string>
+    <string>ChildrenLayout</string>
+    <string>ClipsChildren</string>
+    <string>IsRenderTarget</string>
+    <string>ExposeChildrenEvents</string>
+  </VariablesHiddenFromInstances>
+</ComponentSave>

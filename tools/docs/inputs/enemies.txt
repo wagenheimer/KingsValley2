@@ -1,0 +1,3 @@
+# Stage 3, sala 2: Pyoncy em (160,104) e Rock Roll (o bloco que desce) em (160,16).
+# O Vick fica parado e os dois atores andam sozinhos.
+0-200 .

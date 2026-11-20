@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/lib/" />
+  <Folder Name="/lib/Nez/" />
+  <Folder Name="/lib/Nez/Nez.Portable/">
+    <Project Path="lib/Nez/Nez.Portable/Nez.MG38.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/KingsValley.Core/KingsValley.Core.csproj" />
+    <Project Path="src/KingsValley.Engine/KingsValley.Engine.csproj" />
+    <Project Path="src/KingsValley.Desktop/KingsValley.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KingsValley.Core.Tests/KingsValley.Core.Tests.csproj" />
+  </Folder>
+</Solution>
