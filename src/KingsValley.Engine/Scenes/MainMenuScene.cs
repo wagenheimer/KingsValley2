@@ -117,6 +117,9 @@ public class MainMenuScene : SceneBase
 
         public void Update()
         {
+            if (UI.SystemMenu.IsOpen)
+                return;
+
             CheckPointerMoved();
 
             bool anyInput = Confirm() || Cancel() || _pointerMoved
@@ -158,7 +161,7 @@ public class MainMenuScene : SceneBase
             {
                 if (_page == Page.Title)
                 {
-                    Nez.Core.Scene = new FirstRunScene();
+                    // ESC is handled by SystemMenu to open the System Menu.
                     return;
                 }
                 _page = _page == Page.Password ? Page.StartSelect : Page.Title;

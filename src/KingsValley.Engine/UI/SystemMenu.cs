@@ -234,8 +234,14 @@ public static class SystemMenu
         return false;
     }
 
-    /// <summary>The menu opens during gameplay.</summary>
-    private static bool CanOpen() => Nez.Core.Scene is Scenes.GameScene;
+    /// <summary>The menu can open on any scene, except during active extraction in FirstRunScene.</summary>
+    private static bool CanOpen()
+    {
+        if (Nez.Core.Scene is Scenes.FirstRunScene fr && fr.IsExtracting)
+            return false;
+
+        return true;
+    }
 
     private static void Move(int direction)
     {
@@ -309,7 +315,7 @@ public static class SystemMenu
     private sealed class View : RenderableComponent, IUpdatable
     {
         private const int PanelWidth = 216;
-        private const int PanelHeight = 184;
+        private const int PanelHeight = 192;
         private const int RowHeightMain = 10;
         private const int FirstRowYMain = 18;
         private const int RowHeightSlot = 12;
@@ -343,78 +349,88 @@ public static class SystemMenu
 
         public View()
         {
-            _mainItems = new[]
+            bool isGameplay = Nez.Core.Scene is Scenes.GameScene;
+            var items = new List<Item>
             {
                 new Item
                 {
                     Label = "CONTINUE",
                     Activate = Close,
-                },
-                new Item
+                }
+            };
+
+            if (isGameplay)
+            {
+                items.Add(new Item
                 {
                     Label = "SAVE STATE",
                     Activate = () => SwitchToPage(MenuPage.SaveState),
-                },
-                new Item
+                });
+                items.Add(new Item
                 {
                     Label = "LOAD STATE",
                     Activate = () => SwitchToPage(MenuPage.LoadState),
-                },
-                new Item
+                });
+                items.Add(new Item
                 {
                     Label = "RETRY STAGE",
                     Activate = RestartStage,
-                },
-                new Item
-                {
-                    Label = "MUSIC",
-                    Value = () => GameAudio.MusicEnabled ? "ON" : "OFF",
-                    Change = _ => ToggleMusic(),
-                    Activate = ToggleMusic,
-                },
-                new Item
-                {
-                    Label = "SOUND",
-                    Value = () => GameAudio.SoundEnabled ? "ON" : "OFF",
-                    Change = _ => ToggleSound(),
-                    Activate = ToggleSound,
-                },
-                new Item
-                {
-                    Label = "AUDIO",
-                    Value = () => GameAudio.Profile.Name.ToUpperInvariant(),
-                    Change = CycleProfile,
-                    Activate = () => CycleProfile(+1),
-                },
-                new Item
-                {
-                    Label = "GRAPHICS",
-                    Value = () => GfxVariant.Current.Name,
-                    Change = CycleGraphics,
-                    Activate = () => CycleGraphics(+1),
-                },
-                new Item
-                {
-                    Label = "BACKDROP",
-                    Value = () => RomContent.Msx1OpaqueBackdrop ? "BLACK" : "BORDER",
-                    Change = _ => ToggleMsx1Backdrop(),
-                    Activate = ToggleMsx1Backdrop,
-                },
-                new Item
-                {
-                    Label = "SCREEN",
-                    Value = () => IsFullScreen ? "FULL" : "WINDOW",
-                    Change = _ => ToggleFullScreen(),
-                    Activate = ToggleFullScreen,
-                },
-                new Item
-                {
-                    Label = "TITLE LOGO",
-                    Value = () => RomContent.TitleArtLanguage == TitleLanguage.Japanese ? "JP" : "EN",
-                    Change = _ => ToggleTitleLanguage(),
-                    Activate = ToggleTitleLanguage,
-                },
-                new Item
+                });
+            }
+
+            items.Add(new Item
+            {
+                Label = "MUSIC",
+                Value = () => GameAudio.MusicEnabled ? "ON" : "OFF",
+                Change = _ => ToggleMusic(),
+                Activate = ToggleMusic,
+            });
+            items.Add(new Item
+            {
+                Label = "SOUND",
+                Value = () => GameAudio.SoundEnabled ? "ON" : "OFF",
+                Change = _ => ToggleSound(),
+                Activate = ToggleSound,
+            });
+            items.Add(new Item
+            {
+                Label = "AUDIO",
+                Value = () => GameAudio.Profile.Name.ToUpperInvariant(),
+                Change = CycleProfile,
+                Activate = () => CycleProfile(+1),
+            });
+            items.Add(new Item
+            {
+                Label = "GRAPHICS",
+                Value = () => GfxVariant.Current.Name,
+                Change = CycleGraphics,
+                Activate = () => CycleGraphics(+1),
+            });
+            items.Add(new Item
+            {
+                Label = "BACKDROP",
+                Value = () => RomContent.Msx1OpaqueBackdrop ? "BLACK" : "BORDER",
+                Change = _ => ToggleMsx1Backdrop(),
+                Activate = ToggleMsx1Backdrop,
+            });
+            items.Add(new Item
+            {
+                Label = "SCREEN",
+                Value = () => IsFullScreen ? "FULL" : "WINDOW",
+                Change = _ => ToggleFullScreen(),
+                Activate = ToggleFullScreen,
+            });
+            items.Add(new Item
+            {
+                Label = "TITLE LOGO",
+                Value = () => RomContent.TitleArtLanguage == TitleLanguage.Japanese ? "JP" : "EN",
+                Change = _ => ToggleTitleLanguage(),
+                Activate = ToggleTitleLanguage,
+            });
+
+            if (Nez.Core.Scene is not Scenes.FirstRunScene)
+            {
+                items.Add(new Item
                 {
                     Label = "ROM SETUP",
                     Activate = () =>
@@ -422,25 +438,42 @@ public static class SystemMenu
                         Close();
                         Nez.Core.Scene = new Scenes.FirstRunScene();
                     },
-                },
-                new Item
+                });
+            }
+
+            items.Add(new Item
+            {
+                Label = "RESET DATA",
+                Activate = () =>
                 {
-                    Label = "RESET DATA",
-                    Activate = () =>
-                    {
-                        Close();
-                        Extraction.RomFolderManager.PurgeExtractedContent();
-                        RomContent.Initialize();
-                        GameAssets.Unload();
-                        Nez.Core.Scene = new Scenes.FirstRunScene("EXTRACTED DATA RESET. SELECT A ROM TO EXTRACT.");
-                    },
+                    Close();
+                    Extraction.RomFolderManager.PurgeExtractedContent();
+                    RomContent.Initialize();
+                    GameAssets.Unload();
+                    Nez.Core.Scene = new Scenes.FirstRunScene("EXTRACTED DATA RESET. SELECT A ROM TO EXTRACT.");
                 },
-                new Item
+            });
+
+            if (Nez.Core.Scene is not Scenes.MainMenuScene)
+            {
+                items.Add(new Item
                 {
                     Label = "MAIN MENU",
                     Activate = QuitToTitle,
+                });
+            }
+
+            items.Add(new Item
+            {
+                Label = "QUIT GAME",
+                Activate = () =>
+                {
+                    Close();
+                    Nez.Core.Exit();
                 },
-            };
+            });
+
+            _mainItems = items.ToArray();
         }
 
         public MenuPage Page => _page;

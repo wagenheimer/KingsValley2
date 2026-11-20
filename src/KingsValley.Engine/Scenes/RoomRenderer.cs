@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -100,9 +100,10 @@ public sealed class RoomRenderer : RenderableComponent
         {
             if (c.Position.Room == s.CurrentRoom && c.Kind is EnemyKind.Mummy or EnemyKind.GoldMummy)
             {
-                if (RomContent.Flavor == ArtFlavor.Msx1 && RomContent.Msx1OpaqueBackdrop)
-                    MsxScreen.Fill(batcher, new Rectangle(c.Position.X, c.Position.Y - CoffinRise, 16, 24), Color.Black);
-                MsxScreen.Draw(batcher, CoffinSprite(c.Look, p), c.Position.X, c.Position.Y - CoffinRise);
+                // In MSX1 SCREEN 2 room dumps, the closed coffin is already in the background.
+                // We only need to draw dynamic coffin overlays when opening or open (or in MSX2 mode).
+                if ((int)c.Look > 0 || RomContent.Flavor != ArtFlavor.Msx1)
+                    MsxScreen.Draw(batcher, CoffinSprite(c.Look, p), c.Position.X, c.Position.Y - CoffinRise);
             }
         }
 
@@ -110,8 +111,6 @@ public sealed class RoomRenderer : RenderableComponent
         {
             if (item.Room == s.CurrentRoom)
             {
-                if (RomContent.Flavor == ArtFlavor.Msx1 && RomContent.Msx1OpaqueBackdrop)
-                    MsxScreen.Fill(batcher, new Rectangle(item.X, item.Y, 16, 16), Color.Black);
                 MsxScreen.Draw(batcher, ItemSprite(item.Kind), item.X, item.Y);
             }
         }
@@ -120,8 +119,6 @@ public sealed class RoomRenderer : RenderableComponent
         {
             if (stone.Room == s.CurrentRoom)
             {
-                if (RomContent.Flavor == ArtFlavor.Msx1 && RomContent.Msx1OpaqueBackdrop)
-                    MsxScreen.Fill(batcher, new Rectangle(stone.X, stone.Y, 16, 16), Color.Black);
                 MsxScreen.Draw(batcher, $"soulstone_p{p}", stone.X, stone.Y);
             }
         }
@@ -261,10 +258,11 @@ public sealed class RoomRenderer : RenderableComponent
         if (door.Room != s.CurrentRoom)
             return;
 
-        if (RomContent.Flavor == ArtFlavor.Msx1 && RomContent.Msx1OpaqueBackdrop)
-            MsxScreen.Fill(batcher, new Rectangle(door.X, door.Y, 32, 32), Color.Black);
+        // In MSX1 SCREEN 2 room dumps, the closed door (frame 0) is already part of the background.
+        // We only draw the dynamic door when opening or open (frame > 0), or in MSX2 mode.
+        if (s.DoorFrame > 0 || RomContent.Flavor != ArtFlavor.Msx1)
+            MsxScreen.Draw(batcher, $"door_f{s.DoorFrame}_p{pyramid}", door.X, door.Y);
 
-        MsxScreen.Draw(batcher, $"door_f{s.DoorFrame}_p{pyramid}", door.X, door.Y);
         var layout = DoorStudLayouts.For(s.SoulStoneTotal);
         for (int i = 0; i < s.DoorStuds && i < layout.Length; i++)
         {

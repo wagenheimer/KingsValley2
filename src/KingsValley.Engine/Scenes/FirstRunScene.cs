@@ -22,6 +22,9 @@ namespace KingsValley.Engine.Scenes;
 public class FirstRunScene : SceneBase
 {
     private readonly string? _initialNotice;
+    private FirstRunView? _view;
+
+    public bool IsExtracting => _view?.IsExtracting ?? false;
 
     public FirstRunScene(string? initialNotice = null)
     {
@@ -30,7 +33,9 @@ public class FirstRunScene : SceneBase
 
     protected override void OnInitialize()
     {
-        AddEntity(new Entity("first-run")).AddComponent(new FirstRunView(_initialNotice));
+        GameAudio.StopMusic();
+        _view = new FirstRunView(_initialNotice);
+        AddEntity(new Entity("first-run")).AddComponent(_view);
     }
 
     private sealed class FirstRunView : RenderableComponent, IUpdatable
@@ -67,9 +72,14 @@ public class FirstRunScene : SceneBase
         private volatile bool _lastExtractionSucceeded;
         private string? _targetRomPath;
         private float _autoPlayCountdown = -1f;
+        private float _displayProgress;
+        private float _escHoldTimer;
+
+        public bool IsExtracting => _isExtracting;
 
         public FirstRunView(string? initialNotice)
         {
+            GameAudio.StopMusic();
             SetNotice(initialNotice ?? string.Empty, 12f);
 
             RomFolderManager.EnsureDirectories();
@@ -113,6 +123,9 @@ public class FirstRunScene : SceneBase
 
         void IUpdatable.Update()
         {
+            if (UI.SystemMenu.IsOpen)
+                return;
+
             if (_noticeTimer > 0)
                 _noticeTimer -= Nez.Time.DeltaTime;
 
@@ -128,11 +141,22 @@ public class FirstRunScene : SceneBase
 
             if (_isExtracting)
             {
-                if (Nez.Input.IsKeyPressed(Keys.Escape))
+                _displayProgress = MathHelper.Lerp(_displayProgress, (float)AudioBootstrap.Progress, 0.15f);
+
+                if (Nez.Input.IsKeyDown(Keys.Escape))
                 {
-                    AudioBootstrap.Cancel();
-                    FinishExtraction(false, "EXTRACTION CANCELLED.");
-                    return;
+                    _escHoldTimer += Nez.Time.DeltaTime;
+                    if (_escHoldTimer >= 1.5f)
+                    {
+                        AudioBootstrap.Cancel();
+                        FinishExtraction(false, "EXTRACTION CANCELLED.");
+                        _escHoldTimer = 0f;
+                        return;
+                    }
+                }
+                else
+                {
+                    _escHoldTimer = 0f;
                 }
 
                 // Completed(success) is raised on the worker thread; IsRunning tells us when it is safe
@@ -175,13 +199,7 @@ public class FirstRunScene : SceneBase
 
             if (Nez.Input.IsKeyPressed(Keys.Escape))
             {
-                if (RomContent.CanPlayAny)
-                {
-                    LaunchGame();
-                    return;
-                }
-
-                Nez.Core.Exit();
+                // ESC opens System Menu! SystemMenu.Update() handles opening.
                 return;
             }
 
@@ -227,6 +245,7 @@ public class FirstRunScene : SceneBase
         private void FinishExtraction(bool succeeded, string? cancelledNotice)
         {
             _isExtracting = false;
+            _escHoldTimer = 0f;
             RomContent.Initialize();
             RefreshRomList();
 
@@ -236,7 +255,7 @@ public class FirstRunScene : SceneBase
             }
             else if (succeeded && RomContent.CanPlayAny)
             {
-                SetNotice("EXTRACTION COMPLETE! READY TO PLAY.", 6f);
+                SetNotice("EXTRACTION COMPLETE! PRESS ENTER OR PLAY TO START.", 12f);
                 FocusPlay();
             }
             else if (succeeded)
@@ -324,6 +343,9 @@ public class FirstRunScene : SceneBase
 
         private void HandleMouse(Vector2 mouse)
         {
+            if (_isExtracting)
+                return;
+
             int px = (int)mouse.X;
             int py = (int)mouse.Y;
             var buttonRects = FirstRunLayout.GetButtonRects();
@@ -423,10 +445,17 @@ public class FirstRunScene : SceneBase
         {
             if (_isExtracting) return;
 
+            GameAudio.StopMusic();
+            GameAudio.Unload();
             bool purged = RomFolderManager.PurgeExtractedContent();
             RomContent.Initialize();
             RefreshRomList();
             GameAssets.Unload();
+            if (!RomContent.CanPlayAny)
+            {
+                _selectedButton = 0; // SELECT
+                _focus = FocusArea.Buttons;
+            }
             if (purged)
                 SetNotice("EXTRACTED DATA RESET. SELECT A ROM TO EXTRACT AGAIN.", 5f);
             else
@@ -507,10 +536,18 @@ public class FirstRunScene : SceneBase
             else
                 RenderRomsList(batcher);
 
-            for (int i = 0; i < FirstRunLayout.FooterLines.Length; i++)
+            if (_isExtracting)
             {
-                DrawCentered(batcher, FirstRunLayout.FooterLines[i], FirstRunLayout.Footer,
-                    FirstRunLayout.Footer.Y + i * MsxScreen.MiniLineHeight, HintColor);
+                DrawCentered(batcher, "[ EXTRACTION IN PROGRESS - SYSTEM LOCKED ]", FirstRunLayout.Footer,
+                    FirstRunLayout.Footer.Y + 2, YellowReadyColor);
+            }
+            else
+            {
+                for (int i = 0; i < FirstRunLayout.FooterLines.Length; i++)
+                {
+                    DrawCentered(batcher, FirstRunLayout.FooterLines[i], FirstRunLayout.Footer,
+                        FirstRunLayout.Footer.Y + i * MsxScreen.MiniLineHeight, HintColor);
+                }
             }
         }
 
@@ -536,15 +573,18 @@ public class FirstRunScene : SceneBase
             bool hasMsx1Rom = _scannedRoms.Exists(r => r.Flavor == ScannedRomFlavor.Msx1);
             bool hasMsx2Rom = _scannedRoms.Exists(r => r.Flavor == ScannedRomFlavor.Msx2);
 
+            bool msx1Extracted = File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Screens", "title.bin"));
             string msx1Tag = RomContent.IsMsx1Available
-                ? "[ INCLUDED / READY ]"
+                ? (msx1Extracted ? "[ EXTRACTED / OK ]" : "[ INCLUDED / OK ]")
                 : hasMsx1Rom ? "[ READY IN FOLDER ]" : "[ NOT EXTRACTED ]";
             Color msx1Color = RomContent.IsMsx1Available
                 ? GreenOkColor
                 : hasMsx1Rom ? YellowReadyColor : RedMissingColor;
 
+            bool msx2Extracted = File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Art", "kv2.atlas")) &&
+                                 File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Rooms", "murals.json"));
             string msx2Tag = RomContent.IsMsx2Available
-                ? "[ INCLUDED / READY ]"
+                ? (msx2Extracted ? "[ EXTRACTED / OK ]" : "[ INCLUDED / OK ]")
                 : hasMsx2Rom ? "[ READY IN FOLDER ]" : "[ NOT EXTRACTED ]";
             Color msx2Color = RomContent.IsMsx2Available
                 ? GreenOkColor
@@ -552,7 +592,7 @@ public class FirstRunScene : SceneBase
 
             bool audioReady = RomContent.IsAudioAvailable && RomContent.AreStagesAvailable;
             string audioTag = audioReady
-                ? "[ AUDIO + 60 STAGES OK ]"
+                ? (File.Exists(AudioBootstrap.ExtractedPackagePath) ? "[ AUDIO + 60 STAGES OK ]" : "[ INCLUDED / OK ]")
                 : hasMsx1Rom ? "[ READY TO EXTRACT ]" : "[ NEED MSX1 RC-760 ]";
             Color audioColor = audioReady ? GreenOkColor : hasMsx1Rom ? YellowReadyColor : RedMissingColor;
 
@@ -576,8 +616,8 @@ public class FirstRunScene : SceneBase
                 LayoutRect r = rects[i];
                 bool isPlay = i == FirstRunLayout.PlayButtonIndex;
                 bool isFocused = _focus == FocusArea.Buttons && _selectedButton == i;
-                bool enabled = !isPlay || playable;
-                bool primary = isPlay && playable;
+                bool enabled = !_isExtracting && (!isPlay || playable);
+                bool primary = isPlay && playable && !_isExtracting;
 
                 Color fill = !enabled ? DisabledFillColor
                     : primary ? (isFocused ? PrimaryFocusFillColor : PrimaryFillColor)
@@ -693,27 +733,93 @@ public class FirstRunScene : SceneBase
             var band = FirstRunLayout.RomList;
             DrawBox(batcher, band, new Color(0, 0, 48), TitleColor);
 
-            DrawCentered(batcher, FirstRunLayout.ExtractionTitle, band, band.Y + 8, TitleColor);
+            char[] spinners = { '|', '/', '-', '\\' };
+            char spinChar = spinners[(int)(Nez.Time.TotalTime * 8f) % spinners.Length];
 
-            double progress = AudioBootstrap.Progress;
-            var bar = new Rectangle(band.X + 10, band.Y + 22, band.Width - 20, 10);
+            DrawCentered(batcher, $"EXTRACTING DATA FROM CARTRIDGE [{spinChar}]", band, band.Y + 7, TitleColor);
+
+            float prog = Math.Clamp(_displayProgress, 0f, 1f);
+            var bar = new Rectangle(band.X + 10, band.Y + 19, band.Width - 20, 11);
             MsxScreen.Fill(batcher, bar, new Color(16, 16, 40));
-            MsxScreen.Fill(batcher,
-                new Rectangle(bar.X, bar.Y, (int)(bar.Width * Math.Clamp(progress, 0, 1)), bar.Height),
-                TitleColor);
 
-            DrawRight(batcher, $"{(int)(progress * 100)}%", band, band.Y + 8, GreenOkColor, 10);
-
-            DrawWrapped(batcher, AudioBootstrap.Status, band, band.Y + 36, Color.White,
-                MsxScreen.MiniLineHeight, 2, center: true);
-
-            for (int i = 0; i < FirstRunLayout.ExtractionBullets.Length; i++)
+            int filled = (int)(bar.Width * prog);
+            if (filled > 0)
             {
-                DrawLeft(batcher, FirstRunLayout.ExtractionBullets[i], band,
-                    band.Y + 52 + i * 10, HintColor, 10);
+                // Base progress fill
+                MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Y, filled, bar.Height), TitleColor);
+
+                // Animated moving barber-pole diagonal stripes
+                int animOffset = (int)(Nez.Time.TotalTime * 24f) % 12;
+                for (int px = 0; px < filled; px++)
+                {
+                    if ((px + animOffset) % 12 < 5)
+                        MsxScreen.Fill(batcher, new Rectangle(bar.X + px, bar.Y, 1, bar.Height), new Color(255, 240, 160));
+                }
             }
 
-            DrawCentered(batcher, FirstRunLayout.ExtractionCancelHint, band, band.Y + 94, RedMissingColor);
+            // Outline of the progress bar
+            MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Y, bar.Width, 1), SubBorderColor);
+            MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Bottom - 1, bar.Width, 1), SubBorderColor);
+            MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Y, 1, bar.Height), SubBorderColor);
+            MsxScreen.Fill(batcher, new Rectangle(bar.Right - 1, bar.Y, 1, bar.Height), SubBorderColor);
+
+            DrawRight(batcher, $"{(int)(prog * 100)}%", band, band.Y + 7, GreenOkColor, 10);
+
+            // Sub-status text box (pill)
+            var statusBox = new Rectangle(band.X + 10, band.Y + 33, band.Width - 20, 12);
+            MsxScreen.Fill(batcher, statusBox, new Color(10, 20, 60));
+            DrawCentered(batcher, AudioBootstrap.Status.ToUpperInvariant(), band, band.Y + 36, Color.White);
+
+            // Live 4-stage checklist
+            string[] stages =
+            {
+                "PSG & SCC AUDIO DRIVER TRACKS",
+                "60 STAGE LAYOUTS, ITEMS & DOORS",
+                "FIXED SCREENS, PALETTES & MURALS",
+                "GAMEPLAY ROOM DUMPS (SCREEN 2)",
+            };
+
+            int activeStage = prog < 0.40f ? 0 : prog < 0.60f ? 1 : prog < 0.75f ? 2 : 3;
+
+            for (int i = 0; i < stages.Length; i++)
+            {
+                int y = band.Y + 49 + i * 11;
+                string tag;
+                Color tagColor;
+                Color textColor;
+
+                if (i < activeStage)
+                {
+                    tag = "[ OK ]";
+                    tagColor = GreenOkColor;
+                    textColor = Color.White;
+                }
+                else if (i == activeStage)
+                {
+                    tag = $"[ {spinChar} ]";
+                    tagColor = YellowReadyColor;
+                    textColor = TitleColor;
+                }
+                else
+                {
+                    tag = "[ .. ]";
+                    tagColor = DisabledTextColor;
+                    textColor = HintColor;
+                }
+
+                DrawLeft(batcher, "* " + stages[i], band, y, textColor, 12);
+                DrawRight(batcher, tag, band, y, tagColor, 12);
+            }
+
+            // Cancel hint or countdown
+            if (_escHoldTimer > 0)
+            {
+                DrawCentered(batcher, $"CANCELLING IN {(1.5f - _escHoldTimer):0.0}S ...", band, band.Y + 98, Color.Orange);
+            }
+            else
+            {
+                DrawCentered(batcher, "EXTRACTION IN PROGRESS - HOLD ESC (1.5S) TO CANCEL", band, band.Y + 98, RedMissingColor);
+            }
         }
 
         // ── text/fill helpers (every string is measured before it is drawn) ────────

@@ -66,6 +66,19 @@ public static class RomRoomDumps
 
         MiniMsx machine = BootToGameplay(rom, cancellationToken);
 
+        // Extract clean 64x32 mural tables (murals.bin) directly from the MSX1 ROM segment 14
+        try
+        {
+            log?.Invoke("murals: extracting clean mural tables");
+            byte[] murals = GenerateMuralsBin(machine, rom, cancellationToken);
+            File.WriteAllBytes(Path.Combine(extractedDirectory, "Rooms", "murals.bin"), murals);
+            log?.Invoke("murals: 6 pyramids extracted (6144 bytes)");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RomRoomDumps] murals extraction: {ex.Message}");
+        }
+
         for (int stage = 1; stage <= stages; stage++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -182,5 +195,69 @@ public static class RomRoomDumps
             palette[i] = new ScreenColor(tms[i].R, tms[i].G, tms[i].B);
 
         return palette;
+    }
+
+    private static readonly int[] PyrOffsets = { 0x1C104, 0x1C144, 0x1C184, 0x1C1A4, 0x1C204, 0x1C244 };
+
+    /// <summary>
+    /// Generates the 6144-byte murals.bin containing the clean 64x32 4bpp bitmap for all 6 pyramids
+    /// decoded directly from MSX1 ROM segment 14 and VRAM pattern tables.
+    /// </summary>
+    public static byte[] GenerateMuralsBin(MiniMsx machine, byte[] rom, CancellationToken token)
+    {
+        byte[] outData = new byte[6 * 1024];
+
+        for (int pyr = 1; pyr <= 6; pyr++)
+        {
+            token.ThrowIfCancellationRequested();
+            int stage = (pyr - 1) * 10 + 1;
+
+            // Load room 1 of this pyramid's first stage so VRAM contains its pattern/color tables
+            machine.Write(PyramidVariable, (byte)pyr);
+            machine.Write(StageVariable, (byte)stage);
+            machine.Write(RoomVariable, 1);
+            machine.CallAddress(LoadRoomAddress, 2_000_000);
+            RunFrames(machine, 60, token);
+
+            byte[] vram = machine.Vram;
+            byte[] regs = machine.VdpRegisters;
+
+            int patBase = regs.Length > 4 ? (regs[4] & 0x3C) << 11 : 0x2000;
+            int colBase = regs.Length > 3 ? (regs[3] & 0x80) << 6 : 0x0000;
+
+            int off = PyrOffsets[pyr - 1];
+            if (off + 32 > rom.Length) continue;
+
+            byte[] pixels = new byte[64 * 32];
+            for (int row = 0; row < 4; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    int code = rom[off + row * 8 + col];
+                    for (int r = 0; r < 8; r++)
+                    {
+                        byte pat = vram[(patBase + code * 8 + r) & 0x3FFF];
+                        byte colB = vram[(colBase + code * 8 + r) & 0x3FFF];
+                        byte fg = (byte)((colB >> 4) & 0x0F);
+                        byte bg = (byte)(colB & 0x0F);
+                        for (int c = 0; c < 8; c++)
+                        {
+                            bool bit = ((pat >> (7 - c)) & 1) != 0;
+                            pixels[(row * 8 + r) * 64 + (col * 8 + c)] = bit ? fg : bg;
+                        }
+                    }
+                }
+            }
+
+            int destOffset = (pyr - 1) * 1024;
+            for (int i = 0; i < 1024; i++)
+            {
+                byte hi = (byte)(pixels[i * 2] & 0x0F);
+                byte lo = (byte)(pixels[i * 2 + 1] & 0x0F);
+                outData[destOffset + i] = (byte)((hi << 4) | lo);
+            }
+        }
+
+        return outData;
     }
 }

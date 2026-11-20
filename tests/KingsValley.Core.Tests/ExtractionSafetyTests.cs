@@ -64,7 +64,8 @@ public class ExtractionSafetyTests
         Assert.False(AudioBootstrap.IsRunning, $"Extraction timed out: status={AudioBootstrap.Status}");
         Assert.True(File.Exists(AudioBootstrap.ExtractedPackagePath), $"audio.msxaudio not created: status={AudioBootstrap.Status}");
 
-        string jsonContent = File.ReadAllText(stage01Path);
+        string extractedStage01 = Path.Combine(AudioBootstrap.ExtractedDirectory, "Levels", "stage01.json");
+        string jsonContent = File.ReadAllText(extractedStage01);
         Assert.Contains("\"coffins\": [", jsonContent);
     }
 }

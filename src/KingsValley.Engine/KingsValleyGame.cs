@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Nez;
@@ -110,6 +111,18 @@ public class KingsValleyGame : Nez.Core
         Window.Title = GameConstants.GameTitle;
         ExitOnEscapeKeypress = false;
         Nez.Core.ExitOnEscapeKeypress = false;
+
+        if (OperatingSystem.IsWindows() && Window.Handle != IntPtr.Zero)
+        {
+            try
+            {
+                ShowWindow(Window.Handle, 9); // SW_RESTORE
+                SetForegroundWindow(Window.Handle);
+            }
+            catch
+            {
+            }
+        }
 
         // 0. Resolution model: defines the design space and starts following the back buffer.
         DesignViewport.Configure(GameConstants.DesignWidth, GameConstants.DesignHeight);
@@ -338,6 +351,9 @@ public class KingsValleyGame : Nez.Core
         switch (requested)
         {
             case "firstrun":
+            case "first_run":
+            case "setup":
+            case "rom":
                 string? notice = Environment.GetEnvironmentVariable("KINGSVALLEY_FIRSTRUN_NOTICE");
                 Nez.Core.Scene = new Scenes.FirstRunScene(notice);
                 break;
@@ -410,7 +426,7 @@ public class KingsValleyGame : Nez.Core
         // Diagnostics: KINGSVALLEY_SYSMENU=1 opens the system menu at frame 60 (screenshot/CI gate);
         // "demo" also navigates through it, proving the menu logic without a human at the keyboard.
         string? sysMenu = Environment.GetEnvironmentVariable("KINGSVALLEY_SYSMENU");
-        if (sysMenu != null && Nez.Core.Scene is Scenes.GameScene)
+        if (sysMenu != null)
         {
             if (Time.FrameCount == 60)
                 UI.SystemMenu.Open();
@@ -660,4 +676,10 @@ public class KingsValleyGame : Nez.Core
         // regenerates the regular font and the material disappears.
         GumFontMaterials.ReapplyAll();
     }
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
 }

@@ -24,15 +24,24 @@ catch
 
 Console.WriteLine($"[Program] Start: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 
-using var game = new KingsValley.Engine.KingsValleyGame();
+try
+{
+    using var game = new KingsValley.Engine.KingsValleyGame();
 
-// SDL sets the window icon from Icon.bmp and macOS propagates it to the Dock. Re-apply the
-// bundle's transparent AppIcon.icns after the window exists so the Dock tile keeps its alpha.
-// The component is a no-op outside macOS and fails silently if AppKit is unavailable.
-if (OperatingSystem.IsMacOS())
-    game.Components.Add(new MacDockIconComponent(game));
+    // SDL sets the window icon from Icon.bmp and macOS propagates it to the Dock. Re-apply the
+    // bundle's transparent AppIcon.icns after the window exists so the Dock tile keeps its alpha.
+    // The component is a no-op outside macOS and fails silently if AppKit is unavailable.
+    if (OperatingSystem.IsMacOS())
+        game.Components.Add(new MacDockIconComponent(game));
 
-game.Run();
+    game.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"[Program] FATAL EXCEPTION: {ex}");
+    logFile?.Flush();
+    throw;
+}
 
 Console.WriteLine($"[Program] Fim: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 logFile?.Flush();

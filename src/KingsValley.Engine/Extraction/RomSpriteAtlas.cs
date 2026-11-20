@@ -342,40 +342,18 @@ public static class RomSpriteAtlas
         }
 
         // Coffins (16x24), Doors (32x32), Studs (8x8), Soulstones (16x16), Terrain (8x8)
-        int[] woodColors = { 10, 12, 6, 8, 13, 11 };
-        int[] soulstoneColors = { 15, 10, 3, 9, 13, 14 };
-
-        int[] coffinClosed = { 155, 156, 157, 158, 159, 160 };
-        int[] coffinAjar = { 161, 162, 163, 164, 165, 166 };
-        int[] coffinOpen = { 167, 168, 169, 170, 171, 172 };
-
-        int[] doorF0 = { 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114 };
-        int[] doorF1 = { 100, 88, 89, 101, 104, 90, 91, 105, 108, 92, 93, 109, 112, 120, 120, 113 };
-        int[] doorF2 = { 115, 88, 89, 116, 117, 90, 91, 118, 117, 92, 93, 118, 119, 120, 120, 121 };
-
         for (int p = 1; p <= 6; p++)
         {
-            int wood = woodColors[(p - 1) % 6];
-            int stone = soulstoneColors[(p - 1) % 6];
+            sprites.Add(new Sprite($"soulstone_p{p}", 16, 16, DrawSoulstone(p)));
 
-            sprites.Add(new Sprite($"soulstone_p{p}", 16, 16,
-                ExtractSprite16(vram, spriteBase, 40, stone)));
+            sprites.Add(new Sprite($"coffin_p{p}", 16, 24, DrawCoffin(0, p)));
+            sprites.Add(new Sprite($"coffin_ajar_p{p}", 16, 24, DrawCoffin(1, p)));
+            sprites.Add(new Sprite($"coffin_open_p{p}", 16, 24, DrawCoffin(2, p)));
 
-            sprites.Add(new Sprite($"coffin_p{p}", 16, 24,
-                ExtractTileBlock(vram, middleBank, coffinClosed, 2, 3, wood)));
-            sprites.Add(new Sprite($"coffin_ajar_p{p}", 16, 24,
-                ExtractTileBlock(vram, middleBank, coffinAjar, 2, 3, wood)));
-            sprites.Add(new Sprite($"coffin_open_p{p}", 16, 24,
-                ExtractTileBlock(vram, middleBank, coffinOpen, 2, 3, wood)));
-
-            sprites.Add(new Sprite($"door_f0_p{p}", 32, 32,
-                ExtractTileBlock(vram, middleBank, doorF0, 4, 4, wood)));
-            sprites.Add(new Sprite($"door_f1_p{p}", 32, 32,
-                ExtractTileBlock(vram, middleBank, doorF1, 4, 4, wood)));
-            sprites.Add(new Sprite($"door_f2_p{p}", 32, 32,
-                ExtractTileBlock(vram, middleBank, doorF2, 4, 4, wood)));
-            sprites.Add(new Sprite($"door_stud_p{p}", 8, 8,
-                ExtractTile8(vram, middleBank, 0xAE, wood)));
+            sprites.Add(new Sprite($"door_f0_p{p}", 32, 32, DrawDoor(0, p)));
+            sprites.Add(new Sprite($"door_f1_p{p}", 32, 32, DrawDoor(1, p)));
+            sprites.Add(new Sprite($"door_f2_p{p}", 32, 32, DrawDoor(2, p)));
+            sprites.Add(new Sprite($"door_stud_p{p}", 8, 8, DrawStud(p)));
 
             sprites.Add(new Sprite($"ladder_p{p}", 8, 8, DrawLadder(p)));
             for (int v = 0; v < 4; v++)
@@ -642,12 +620,50 @@ public static class RomSpriteAtlas
     private static byte[] DrawSoulstone(int pyramid)
     {
         var c = new Canvas(16, 16);
-        int gem = new[] { 4, 12, 3, 6, 13, 7 }[(pyramid - 1) % 6];
-        c.Disc(8, 8, 6, gem);
-        c.Line(8, 2, 8, 14, 15);
-        c.Line(2, 8, 14, 8, 15);
-        c.Put(6, 5, 15);
-        c.Put(5, 6, 15);
+        int gem = new[] { 7, 10, 3, 8, 13, 5 }[(pyramid - 1) % 6];
+        int shadow = new[] { 4, 9, 2, 6, 1, 4 }[(pyramid - 1) % 6];
+        int border = 1;
+        int shine = 15;
+
+        int[] lefts  = { 5, 3, 2, 1, 1, 1, 1, 1, 1, 2, 3, 5 };
+        int[] rights = { 10, 12, 13, 14, 14, 14, 14, 14, 14, 13, 12, 10 };
+
+        for (int i = 0; i < lefts.Length; i++)
+        {
+            int y = i + 2;
+            int l = lefts[i];
+            int r = rights[i];
+            c.Put(l, y, border);
+            c.Put(r, y, border);
+            for (int x = l + 1; x < r; x++)
+            {
+                if (x >= 11 || y >= 11)
+                    c.Put(x, y, shadow);
+                else
+                    c.Put(x, y, gem);
+            }
+        }
+        for (int x = 5; x <= 10; x++)
+        {
+            c.Put(x, 1, border);
+            c.Put(x, 14, border);
+        }
+
+        c.Line(5, 4, 10, 4, border);
+        c.Line(3, 8, 12, 8, border);
+        c.Line(5, 4, 3, 8, border);
+        c.Line(10, 4, 12, 8, border);
+        c.Line(7, 8, 8, 13, border);
+
+        c.Put(4, 3, shine);
+        c.Put(5, 3, shine);
+        c.Put(6, 3, shine);
+        c.Put(4, 5, shine);
+        c.Put(5, 5, shine);
+        c.Put(3, 6, shine);
+        c.Put(4, 6, shine);
+        c.Put(5, 6, shine);
+
         return c.Data;
     }
 

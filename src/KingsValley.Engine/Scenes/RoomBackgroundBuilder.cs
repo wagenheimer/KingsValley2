@@ -159,6 +159,11 @@ public sealed class RoomBackgroundBuilder
         if (_msx1Murals is null)
         {
             var muralsPath = RomContent.RoomSupportPath("murals.bin");
+            if (!File.Exists(muralsPath))
+                muralsPath = Path.Combine(AudioBootstrap.ExtractedDirectory, "Rooms", "murals.bin");
+            if (!File.Exists(muralsPath))
+                muralsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content", "RomMsx1", "Rooms", "murals.bin");
+
             if (File.Exists(muralsPath))
             {
                 var rawMurals = File.ReadAllBytes(muralsPath);

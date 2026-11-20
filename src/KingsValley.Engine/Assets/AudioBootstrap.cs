@@ -256,42 +256,70 @@ public static class AudioBootstrap
                 },
                 progress: (index, count) =>
                 {
-                    lock (Gate) _progress = Math.Min(1.0, 0.5 + 0.5 * index / (double)Math.Max(1, count));
+                    // Audio extraction covers 0% .. 40% of overall bootstrap progress
+                    lock (Gate) _progress = Math.Min(0.40, 0.40 * index / (double)Math.Max(1, count));
                 });
 
             token.ThrowIfCancellationRequested();
 
             byte[] rom = File.ReadAllBytes(options.RomPath);
 
-            // The levels come from the same cartridge: write them right after, so a cancellation never
-            // leaves the audio without the maps (the levels are the fast part: ~20 s for the 60).
+            // The levels come from the same cartridge: write them right after (40% .. 60%)
             int stageLimit = int.TryParse(Environment.GetEnvironmentVariable("KINGSVALLEY_EXTRACT_STAGES"), out int sLimit) ? sLimit : 60;
             RomStageJson.WriteAll(rom,
                 Path.Combine(ExtractedDirectory, "Levels"),
                 (stage, total) =>
                 {
-                    lock (Gate) _status = $"level {stage}/{total}";
+                    lock (Gate)
+                    {
+                        _status = $"level {stage}/{total}";
+                        _progress = 0.40 + 0.20 * (stage / (double)Math.Max(1, total));
+                    }
                 },
                 maxStages: stageLimit);
 
             token.ThrowIfCancellationRequested();
 
-            // The fixed screens come from the same run of the cartridge: the game draws them into the
-            // VDP, and the machine's VRAM is decoded into the port's native screen format.
-            lock (Gate) _status = "screens";
+            // The fixed screens come from the same run of the cartridge: (60% .. 75%)
+            lock (Gate)
+            {
+                _status = "screens & palettes";
+                _progress = 0.60;
+            }
             RomScreens.WriteAll(rom, ExtractedDirectory,
-                line => { lock (Gate) _status = line; });
+                line =>
+                {
+                    lock (Gate)
+                    {
+                        _status = line;
+                        _progress = Math.Min(0.75, _progress + 0.02);
+                    }
+                });
 
             token.ThrowIfCancellationRequested();
 
-            // MSX1 gameplay rooms are SCREEN 2 dumps, never PNGs. They use the same native encoding as the
-            // screens and are what makes the free build playable without the MSX2 art pack.
+            // MSX1 gameplay rooms are SCREEN 2 dumps, never PNGs (75% .. 98%)
             try
             {
-                lock (Gate) _status = "rooms";
+                lock (Gate)
+                {
+                    _status = "rooms & murals";
+                    _progress = 0.75;
+                }
                 int roomStages = int.TryParse(Environment.GetEnvironmentVariable("KINGSVALLEY_EXTRACT_STAGES"), out int rLimit) ? rLimit : 60;
                 RomRoomDumps.WriteAll(rom, Path.Combine(ExtractedDirectory, "Levels"), ExtractedDirectory,
-                    line => { lock (Gate) _status = line; }, token, stages: roomStages);
+                    line =>
+                    {
+                        lock (Gate)
+                        {
+                            _status = line;
+                            if (line.StartsWith("room ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Parse room progress if possible
+                                _progress = Math.Min(0.98, _progress + 0.003);
+                            }
+                        }
+                    }, token, stages: roomStages);
             }
             catch (OperationCanceledException)
             {
@@ -303,6 +331,7 @@ public static class AudioBootstrap
             }
 
             token.ThrowIfCancellationRequested();
+            lock (Gate) _progress = 1.0;
 
             // Write to a temp name and move, so an interrupted run never leaves a broken package.
             string temp = ExtractedPackagePath + ".tmp";

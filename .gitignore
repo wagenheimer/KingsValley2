@@ -555,8 +555,8 @@ src/KingsValley.Desktop/Content/Rom/Art/Backgrounds/
 
 
 # --- Conteudo derivado da ROM da Konami: NUNCA versionar (a versao free extrai em runtime) ---
-src/KingsValley.Desktop/Content/Rom/
-src/KingsValley.Desktop/Content/RomMsx1/
+src/KingsValley.Desktop/Content/Rom/Audio/Vgm/
+src/KingsValley.Desktop/Content/Rom/Audio/audio.msxaudio
 tools/kv2-extract/out/
 scratch/
 tools/kv2-extract/work/dump/

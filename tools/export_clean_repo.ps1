@@ -25,7 +25,7 @@ Write-Host "[1/3] Mirroring tracked project files with robocopy..." -ForegroundC
 
 $excludeDirs = @(
     ".git", "bin", "obj", ".vs", "TestResults", "FontCache",
-    "work", "dist", "packages", "Rom", "RomMsx1"
+    "work", "dist", "packages", "Rom", "RomMsx1", "scratch"
 )
 
 $excludeFiles = @(
@@ -35,7 +35,7 @@ $excludeFiles = @(
 
 robocopy $sourceRoot $targetRoot /MIR /XD $excludeDirs /XF $excludeFiles /R:1 /W:1 /NJH /NJS /NDL /NC /NS
 
-# Ensure Content Rom and RomMsx1 directories are completely removed if left behind
+# Ensure Content Rom, RomMsx1, and scratch directories are completely removed if left behind
 $romDir = Join-Path $targetRoot "src\KingsValley.Desktop\Content\Rom"
 if (Test-Path $romDir) {
     Remove-Item $romDir -Recurse -Force -ErrorAction SilentlyContinue
@@ -44,6 +44,11 @@ $romMsx1Dir = Join-Path $targetRoot "src\KingsValley.Desktop\Content\RomMsx1"
 if (Test-Path $romMsx1Dir) {
     Remove-Item $romMsx1Dir -Recurse -Force -ErrorAction SilentlyContinue
 }
+$scratchDir = Join-Path $targetRoot "scratch"
+if (Test-Path $scratchDir) {
+    Remove-Item $scratchDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+Get-ChildItem -Path $targetRoot -Recurse -Directory -Include "bin", "obj" | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "[2/3] Verifying no prohibited proprietary files leaked..." -ForegroundColor Yellow
 
