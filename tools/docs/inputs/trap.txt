@@ -1,0 +1,7 @@
+# Stage 7, sala 2: armadilha (barra 4x1) em (112,144). O Vick começa em cima dela (112,128).
+# 1a saída (arma e desarma uma vez), volta, e a 2a saída dispara a barra.
+0-5    .
+6-45   R
+46-90  L
+91-135 R
+136-200 .

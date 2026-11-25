@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "monogame-input": {
+      "source": "alca259/monogame-skills",
+      "sourceType": "github",
+      "skillPath": "skills/monogame-input/SKILL.md",
+      "computedHash": "306c513ce59e8ebaff68d1df6dfc3dd976b9f0ebdcbd6e7ef5b07068e095f84e"
+    }
+  }
+}

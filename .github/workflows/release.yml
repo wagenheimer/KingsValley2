@@ -1,0 +1,202 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build & Package (${{ matrix.target.name }})
+    runs-on: ${{ matrix.target.os }}
+
+    # macOS notarization secrets. All are optional: without them the bundle is
+    # still ad-hoc signed and un-quarantined (runs locally, Gatekeeper warning).
+    env:
+      MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+      MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+      MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+      MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+      APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { os: windows-latest, rid: win-x64, name: Windows-x64, archive: zip }
+          - { os: ubuntu-latest, rid: linux-x64, name: Linux-x64, archive: tar.gz }
+          - { os: macos-latest, rid: osx-x64, name: macOS-x64, archive: zip }
+          - { os: macos-latest, rid: osx-arm64, name: macOS-AppleSilicon, archive: zip }
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          include-prerelease: true
+
+      - name: Restore local tools
+        run: dotnet tool restore
+
+      - name: Restore solution
+        run: dotnet restore KingsValley.slnx
+
+      - name: Publish game (${{ matrix.target.rid }})
+        run: |
+          dotnet publish src/KingsValley.Desktop -c Release -r ${{ matrix.target.rid }} --self-contained true -o ./publish/${{ matrix.target.rid }}
+
+      - name: Import macOS signing certificate
+        if: runner.os == 'macOS' && env.MACOS_SIGN_IDENTITY != '' && env.MACOS_CERT_P12 != ''
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/kv2-signing.keychain-db"
+          P12_PATH="$RUNNER_TEMP/kv2-signing.p12"
+
+          security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo "$MACOS_CERT_P12" | base64 --decode > "$P12_PATH"
+          security import "$P12_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$MACOS_CERT_PASSWORD" \
+            -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s \
+            -k "$MACOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          rm -f "$P12_PATH"
+
+      - name: Package and sign macOS .app Bundle
+        if: runner.os == 'macOS'
+        run: |
+          chmod +x tools/macos/package_app.sh
+          tools/macos/package_app.sh ${{ matrix.target.rid }}
+
+      - name: Create archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ver = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}" } else { "${{ github.event.inputs.tag }}" }
+          $pkgName = "KingsValley2-$ver-${{ matrix.target.name }}.zip"
+          Compress-Archive -Path ./publish/${{ matrix.target.rid }}/* -DestinationPath ./$pkgName
+          echo "PACKAGE_PATH=$pkgName" >> $env:GITHUB_ENV
+
+      - name: Create archive (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          VER="${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.tag }}"
+          PKG_NAME="KingsValley2-${VER}-${{ matrix.target.name }}.zip"
+          APP="./publish/${{ matrix.target.rid }}/KingsValley2.app"
+          ditto -c -k --keepParent "$APP" "$PKG_NAME"
+          echo "PACKAGE_PATH=${PKG_NAME}" >> $GITHUB_ENV
+
+      - name: Notarize macOS app (App Store Connect API key)
+        if: runner.os == 'macOS' && env.MACOS_SIGN_IDENTITY != '' && env.APPLE_API_KEY != ''
+        run: |
+          set -euo pipefail
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
+          echo "$APPLE_API_KEY" | base64 --decode > "$KEY_PATH"
+
+          xcrun notarytool submit "$PACKAGE_PATH" \
+            --key "$KEY_PATH" \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait --verbose
+
+          APP="./publish/${{ matrix.target.rid }}/KingsValley2.app"
+          xcrun stapler staple "$APP"
+          ditto -c -k --keepParent "$APP" "$PACKAGE_PATH"
+          rm -f "$KEY_PATH"
+
+      - name: Notarize macOS app (Apple ID + app password)
+        if: runner.os == 'macOS' && env.MACOS_SIGN_IDENTITY != '' && env.APPLE_API_KEY == '' && env.APPLE_ID != ''
+        run: |
+          set -euo pipefail
+          xcrun notarytool submit "$PACKAGE_PATH" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --wait --verbose
+
+          APP="./publish/${{ matrix.target.rid }}/KingsValley2.app"
+          xcrun stapler staple "$APP"
+          ditto -c -k --keepParent "$APP" "$PACKAGE_PATH"
+
+      - name: Verify macOS artifact
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          APP="./publish/${{ matrix.target.rid }}/KingsValley2.app"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
+            spctl -a -vvv -t exec "$APP"
+          fi
+
+      - name: Create archive (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          VER="${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.tag }}"
+          PKG_NAME="KingsValley2-${VER}-${{ matrix.target.name }}.tar.gz"
+          chmod +x "./publish/${{ matrix.target.rid }}/KingsValley2"
+          tar -czvf "${PKG_NAME}" -C "./publish/${{ matrix.target.rid }}" .
+          echo "PACKAGE_PATH=${PKG_NAME}" >> $GITHUB_ENV
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target.name }}
+          path: ${{ env.PACKAGE_PATH }}
+          if-no-files-found: error
+
+  create-release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release-artifacts
+          merge-multiple: true
+
+      - name: Determine Tag Name
+        id: vars
+        run: |
+          TAG="${{ github.ref_type == 'tag' && github.ref_name || github.event.inputs.tag }}"
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: "King's Valley II ${{ steps.vars.outputs.tag }}"
+          draft: false
+          prerelease: false
+          body_path: RELEASE_NOTES.md
+          overwrite_files: true
+          files: ./release-artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

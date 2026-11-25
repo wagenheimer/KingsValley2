@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GumProjectSave xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <CustomProperties />
+  <FontRanges>32-126,160-255</FontRanges>
+  <FontSpacingVertical>1</FontSpacingVertical>
+  <FontSpacingHorizontal>1</FontSpacingHorizontal>
+  <UseFontCharacterFile>false</UseFontCharacterFile>
+  <AutoSizeFontOutputs>false</AutoSizeFontOutputs>
+  <Version>4</Version>
+  <DefaultCanvasWidth>1430</DefaultCanvasWidth>
+  <DefaultCanvasHeight>768</DefaultCanvasHeight>
+  <CustomCanvasSizes>
+    <CustomCanvasSize>
+      <Width xsi:nil="true" />
+      <Height xsi:nil="true" />
+      <FriendlyName>Project Default</FriendlyName>
+    </CustomCanvasSize>
+    <CustomCanvasSize>
+      <Width>640</Width>
+      <Height>480</Height>
+      <FriendlyName>480p</FriendlyName>
+    </CustomCanvasSize>
+    <CustomCanvasSize>
+      <Width>1280</Width>
+      <Height>720</Height>
+      <FriendlyName>720p</FriendlyName>
+    </CustomCanvasSize>
+    <CustomCanvasSize>
+      <Width>1280</Width>
+      <Height>800</Height>
+      <FriendlyName>Steam Deck</FriendlyName>
+    </CustomCanvasSize>
+    <CustomCanvasSize>
+      <Width>1920</Width>
+      <Height>1080</Height>
+      <FriendlyName>1080p</FriendlyName>
+    </CustomCanvasSize>
+    <CustomCanvasSize>
+      <Width>3840</Width>
+      <Height>2160</Height>
+      <FriendlyName>4k</FriendlyName>
+    </CustomCanvasSize>
+  </CustomCanvasSizes>
+  <ShowOutlines>false</ShowOutlines>
+  <ShowCanvasOutline>true</ShowCanvasOutline>
+  <ShowRuler>true</ShowRuler>
+  <ShowCheckerBackground>true</ShowCheckerBackground>
+  <TextureFilter>Point</TextureFilter>
+  <ConvertVariablesOnUnitTypeChange>false</ConvertVariablesOnUnitTypeChange>
+  <RestrictToUnitValues>true</RestrictToUnitValues>
+  <SnapToGrid>false</SnapToGrid>
+  <GridSize>16</GridSize>
+  <RestrictFileNamesForAndroid>false</RestrictFileNamesForAndroid>
+  <Guides />
+  <ParentProjectRoot>../</ParentProjectRoot>
+  <ShowLocalizationInGum>true</ShowLocalizationInGum>
+  <CurrentLanguageIndex>0</CurrentLanguageIndex>
+  <ScreenReference Name="MainMenu" />
+  <ComponentReference Name="Controls/ButtonClose" />
+  <ComponentReference Name="Controls/ButtonConfirm" />
+  <ComponentReference Name="Controls/ButtonDeny" />
+  <ComponentReference Name="Controls/ButtonIcon" />
+  <ComponentReference Name="Controls/ButtonStandard" />
+  <ComponentReference Name="Controls/ButtonStandardIcon" />
+  <ComponentReference Name="Controls/ButtonTab" />
+  <ComponentReference Name="Controls/BuyPowerUpSlot" />
+  <ComponentReference Name="Controls/CheckBox" />
+  <ComponentReference Name="Controls/ColorPickerStandard" />
+  <ComponentReference Name="Controls/ComboBox" />
+  <ComponentReference Name="Controls/DialogBox" />
+  <ComponentReference Name="Controls/ExpanderStandard" />
+  <ComponentReference Name="Controls/GameButton" />
+  <ComponentReference Name="Controls/GameCheckBox" />
+  <ComponentReference Name="Controls/GameGoalCard" />
+  <ComponentReference Name="Controls/GameHitArea" />
+  <ComponentReference Name="Controls/GameIconButton" />
+  <ComponentReference Name="Controls/GameMenuButton" />
+  <ComponentReference Name="Controls/GameMessage" />
+  <ComponentReference Name="Controls/GamePowerUpSlot" />
+  <ComponentReference Name="Controls/GameRadio" />
+  <ComponentReference Name="Controls/GameSlider" />
+  <ComponentReference Name="Controls/GameSlot" />
+  <ComponentReference Name="Controls/ItemsControl" />
+  <ComponentReference Name="Controls/Keyboard" />
+  <ComponentReference Name="Controls/KeyboardKey" />
+  <ComponentReference Name="Controls/Label" />
+  <ComponentReference Name="Controls/ListBox" />
+  <ComponentReference Name="Controls/ListBoxItem" />
+  <ComponentReference Name="Controls/Menu" />
+  <ComponentReference Name="Controls/MenuItem" />
+  <ComponentReference Name="Controls/Panel" />
+  <ComponentReference Name="Controls/PasswordBox" />
+  <ComponentReference Name="Controls/RadioButton" />
+  <ComponentReference Name="Controls/ScrollBar" />
+  <ComponentReference Name="Controls/ScrollViewer" />
+  <ComponentReference Name="Controls/SettingsView" />
+  <ComponentReference Name="Controls/Slider" />
+  <ComponentReference Name="Controls/SplitterStandard" />
+  <ComponentReference Name="Controls/StackPanel" />
+  <ComponentReference Name="Controls/TextBox" />
+  <ComponentReference Name="Controls/Toast" />
+  <ComponentReference Name="Controls/TreeView" />
+  <ComponentReference Name="Controls/TreeViewItem" />
+  <ComponentReference Name="Controls/TreeViewToggle" />
+  <ComponentReference Name="Controls/UserControl" />
+  <ComponentReference Name="Controls/Window" />
+  <ComponentReference Name="Elements/CautionLines" />
+  <ComponentReference Name="Elements/DividerHorizontal" />
+  <ComponentReference Name="Elements/DividerVertical" />
+  <ComponentReference Name="Elements/Icon" />
+  <ComponentReference Name="Elements/PercentBar" />
+  <ComponentReference Name="Elements/PercentBarIcon" />
+  <ComponentReference Name="Elements/VerticalLines" />
+  <ComponentReference Name="Styles" />
+  <StandardElementReference Name="Circle" />
+  <StandardElementReference Name="Component" />
+  <StandardElementReference Name="Container" />
+  <StandardElementReference Name="NineSlice" />
+  <StandardElementReference Name="Polygon" />
+  <StandardElementReference Name="Rectangle" />
+  <StandardElementReference Name="Sprite" />
+  <StandardElementReference Name="Text" />
+  <BehaviorReference Name="ButtonBehavior" SourcePath="../FormsBehaviors/ButtonBehavior.behx" />
+  <BehaviorReference Name="CheckBoxBehavior" SourcePath="../FormsBehaviors/CheckBoxBehavior.behx" />
+  <BehaviorReference Name="ColorPickerBehavior" SourcePath="../FormsBehaviors/ColorPickerBehavior.behx" />
+  <BehaviorReference Name="ComboBoxBehavior" SourcePath="../FormsBehaviors/ComboBoxBehavior.behx" />
+  <BehaviorReference Name="DialogBoxBehavior" SourcePath="../FormsBehaviors/DialogBoxBehavior.behx" />
+  <BehaviorReference Name="ExpanderBehavior" SourcePath="../FormsBehaviors/ExpanderBehavior.behx" />
+  <BehaviorReference Name="InputDeviceSelectionItemBehavior" />
+  <BehaviorReference Name="InputDeviceSelectorBehavior" />
+  <BehaviorReference Name="ItemsControlBehavior" SourcePath="../FormsBehaviors/ItemsControlBehavior.behx" />
+  <BehaviorReference Name="LabelBehavior" SourcePath="../FormsBehaviors/LabelBehavior.behx" />
+  <BehaviorReference Name="ListBoxBehavior" SourcePath="../FormsBehaviors/ListBoxBehavior.behx" />
+  <BehaviorReference Name="ListBoxItemBehavior" SourcePath="../FormsBehaviors/ListBoxItemBehavior.behx" />
+  <BehaviorReference Name="MenuBehavior" SourcePath="../FormsBehaviors/MenuBehavior.behx" />
+  <BehaviorReference Name="MenuItemBehavior" SourcePath="../FormsBehaviors/MenuItemBehavior.behx" />
+  <BehaviorReference Name="OnScreenKeyboardBehavior" SourcePath="../FormsBehaviors/OnScreenKeyboardBehavior.behx" />
+  <BehaviorReference Name="PanelBehavior" SourcePath="../FormsBehaviors/PanelBehavior.behx" />
+  <BehaviorReference Name="PasswordBoxBehavior" SourcePath="../FormsBehaviors/PasswordBoxBehavior.behx" />
+  <BehaviorReference Name="PlayerJoinViewBehavior" />
+  <BehaviorReference Name="PlayerJoinViewItemBehavior" />
+  <BehaviorReference Name="RadioButtonBehavior" SourcePath="../FormsBehaviors/RadioButtonBehavior.behx" />
+  <BehaviorReference Name="ScrollBarBehavior" SourcePath="../FormsBehaviors/ScrollBarBehavior.behx" />
+  <BehaviorReference Name="ScrollViewerBehavior" SourcePath="../FormsBehaviors/ScrollViewerBehavior.behx" />
+  <BehaviorReference Name="SettingsViewBehavior" />
+  <BehaviorReference Name="SliderBehavior" SourcePath="../FormsBehaviors/SliderBehavior.behx" />
+  <BehaviorReference Name="SplitterBehavior" SourcePath="../FormsBehaviors/SplitterBehavior.behx" />
+  <BehaviorReference Name="StackPanelBehavior" SourcePath="../FormsBehaviors/StackPanelBehavior.behx" />
+  <BehaviorReference Name="TextBoxBehavior" SourcePath="../FormsBehaviors/TextBoxBehavior.behx" />
+  <BehaviorReference Name="ToastBehavior" SourcePath="../FormsBehaviors/ToastBehavior.behx" />
+  <BehaviorReference Name="ToggleBehavior" SourcePath="../FormsBehaviors/ToggleBehavior.behx" />
+  <BehaviorReference Name="TreeViewBehavior" />
+  <BehaviorReference Name="TreeViewItemBehavior" />
+  <BehaviorReference Name="UserControlBehavior" SourcePath="../FormsBehaviors/UserControlBehavior.behx" />
+  <BehaviorReference Name="WindowBehavior" SourcePath="../FormsBehaviors/WindowBehavior.behx" />
+  <SinglePixelTextureTop xsi:nil="true" />
+  <SinglePixelTextureLeft xsi:nil="true" />
+  <SinglePixelTextureRight xsi:nil="true" />
+  <SinglePixelTextureBottom xsi:nil="true" />
+</GumProjectSave>

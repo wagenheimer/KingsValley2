@@ -1,0 +1,67 @@
+﻿{
+    "_comment":  "Gerado por tools/gen_gum_atlas_bindings.ps1 a partir do atlas. atlasBindings = arte livre de contexto (runtime + preview). fileBindings = arte contextual (preview). Ver AGENTS.md.",
+    "atlasBindings":  {
+                          "dialogs":  {
+                                          "Frame":  "frame_small",
+                                          "FrameBig":  "frame_big",
+                                          "TitleBand":  "frame_title",
+                                          "FrameTitle":  "frame_title",
+                                          "Background":  "frame_big",
+                                          "NameField":  "profile_name_field",
+                                          "Normal":  "btn_med",
+                                          "Focused":  "btn_med.focused",
+                                          "Disabled":  "btn_med.disabled",
+                                          "Box":  "checkbox",
+                                          "Check":  "check",
+                                          "ThumbArt":  "volume_handler",
+                                          "TrackBackground":  "volume_frame",
+                                          "FillInstance":  "volume_bar",
+                                          "Slot":  "profile_slot",
+                                          "Selected":  "profile_selected",
+                                          "TooltipFrame":  "frame_small"
+                                      },
+                          "levelhud":  {
+                                           "Banner":  "orderstart",
+                                           "CoinField":  "field_toptoolbar",
+                                           "DiamondField":  "field_toptoolbar",
+                                           "MovesField":  "field_toptoolbar",
+                                           "TimeField":  "field_toptoolbar",
+                                           "OrderField":  "field_toptoolbar",
+                                           "WaterField":  "field_toptoolbar",
+                                           "DiamondIcon":  "diamond_icon",
+                                           "GoldIcon":  "gold_icon_big",
+                                           "Infinity":  "infinity",
+                                           "Frame":  "goal_toolbar",
+                                           "Flowers":  "goal_toolbar_flowers",
+                                           "Fill":  "powerup_sphere",
+                                           "Lock":  "lock",
+                                           "Slot":  "powerup_slot"
+                                       },
+                          "menu":  {
+
+                                   }
+                      },
+    "fileBindings":  {
+                         "GameGoalCard.gucx":  {
+                                                   "Token":  "levelhud/shovel"
+                                               },
+                         "GameIconButton.gucx":  {
+                                                     "Disabled":  "levelhud/btn_ingame_menu",
+                                                     "Focused":  "levelhud/btn_ingame_menu.focused",
+                                                     "Normal":  "levelhud/btn_ingame_menu"
+                                                 },
+                         "GameMenuButton.gucx":  {
+                                                     "Focused":  "menu/btn_quit.focused",
+                                                     "Normal":  "menu/btn_quit"
+                                                 },
+                         "GamePowerUpSlot.gucx":  {
+                                                      "Badge":  "levelhud/powerup_more",
+                                                      "Icon":  "levelhud/shovel"
+                                                  },
+                         "LevelPowerUpBar.gusx":  {
+                                                      "slotShovel.Icon":  "levelhud/shovel",
+                                                      "slotWheelbarrow.Icon":  "levelhud/wheelbarrow_big",
+                                                      "slotWhirlwind.Icon":  "levelhud/whirlwind_big"
+                                                  }
+                     }
+}

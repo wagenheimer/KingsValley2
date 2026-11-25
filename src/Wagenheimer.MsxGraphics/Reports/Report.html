@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>@@TITLE@@</title>
+<style>
+:root{--paper:#f5f2e9;--ink:#18352f;--muted:#5e6b60;--line:#d5d9ca;--gold:#8a5625;--soft:#e7ebdf;--warn:#f5e9d1;color-scheme:light;font-family:"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:90px}body{margin:0}a{color:inherit;text-underline-offset:4px}button,input,select{font:inherit}:focus-visible{outline:3px solid var(--gold);outline-offset:5px}.skip{position:absolute;top:-80px;left:20px;padding:12px;background:var(--ink);color:white;z-index:5}.skip:focus{top:10px}
+.masthead{border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;background:var(--paper)}.mast-inner{max-width:1440px;margin:auto;display:flex;justify-content:space-between;gap:30px;align-items:center;padding:20px 5%}.brand{font-family:Georgia,serif;font-weight:700;font-size:20px;letter-spacing:-.6px}.brand span{font-family:Consolas,monospace;font-size:14px;letter-spacing:2px;display:block;margin-top:4px;color:var(--muted)}nav{display:flex;gap:25px;font-size:14px;font-weight:600}nav a{text-decoration:none}nav a:hover{color:var(--gold)}main{max-width:1440px;margin:auto;padding:0 5%}.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:8%;padding:74px 0 56px;align-items:center}.eyebrow{font:14px/1.5 Consolas,monospace;letter-spacing:2px;color:var(--gold);font-weight:700;margin:0 0 18px}h1,h2{font-family:"Palatino Linotype","Book Antiqua",Georgia,serif;font-weight:400;letter-spacing:-2px}h1{font-size:clamp(48px,6vw,84px);line-height:1.04;margin:0 0 22px}h2{font-size:clamp(29px,3vw,42px);line-height:1.13;margin:0 0 20px;letter-spacing:-1px}h3{font-size:16px;font-weight:600;margin:0 0 5px}.lede{max-width:480px;font-size:17px;line-height:1.8;color:var(--muted)}.status{display:inline-flex;margin-top:14px;border:1px solid var(--ink);border-radius:3px;padding:12px 16px;font-size:14px;font-weight:700}.identity{border-left:1px solid var(--line);padding:30px 0 30px 32px;min-width:0}.edition{display:inline-block;background:var(--ink);color:var(--paper);padding:18px 26px;font:700 25px Consolas,monospace;letter-spacing:2px;margin-bottom:16px}.identity p{font-size:14px;line-height:1.7;color:var(--muted)}.identity strong{font-size:14px;overflow-wrap:anywhere;line-height:1.7}.identity small{font-size:14px;color:var(--muted)}.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}.metrics article{padding:24px 20px 26px;border-right:1px solid var(--line)}.metrics article:last-child{border:0}.metrics strong{display:block;font:48px/1.1 "Palatino Linotype",Georgia,serif;letter-spacing:-2px}.metrics span{display:block;color:var(--muted);font-size:14px;margin-top:9px}.notices{margin-top:26px;background:var(--warn);border-left:3px solid var(--gold);padding:20px 26px}.notices h2{font:600 15px "Segoe UI",sans-serif;letter-spacing:0;margin:0 0 10px}.notices ul{padding-left:19px;margin:0;font-size:14px;line-height:1.8}.notices li+li{margin-top:6px}.overview{padding:64px 0;display:grid;grid-template-columns:1fr 1fr;gap:6%;border-bottom:1px solid var(--line)}dl{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:25px}dt{font-size:14px;color:var(--muted);margin:0 0 9px}dd{margin:0;font-size:17px;overflow-wrap:anywhere}.section-title{display:flex;justify-content:space-between;gap:30px;align-items:end;margin:60px 0 28px}.section-title p:not(.eyebrow){font-size:14px;line-height:1.8;color:var(--muted);margin:0 0 20px}.gallery-group,.file-list{border-top:1px solid var(--line)}summary{cursor:pointer;padding:21px 0;font-size:14px;font-weight:600}summary span{font-weight:400;font-size:14px;color:var(--muted);margin-left:14px}summary::marker{color:var(--gold)}.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;padding:0 0 30px}.gallery figure{margin:0;min-width:0;background:#eeeee5;border:1px solid var(--line);border-radius:3px;overflow:hidden}.gallery figure[data-wide=true]{grid-column:span 2}.gallery figure[data-wide=true] .pixel-stage{height:236px}.pixel-stage{height:190px;display:flex;justify-content:center;align-items:center;background-color:#d9ded3;background-image:conic-gradient(#cdd4c8 25%,transparent 0 50%,#cdd4c8 0 75%,transparent 0);background-size:16px 16px;padding:10px}.pixel-stage canvas{image-rendering:pixelated;max-width:100%;max-height:100%;object-fit:contain;width:auto;height:auto}.pixel-stage canvas[data-small=true]{height:128px;max-width:90%;width:auto}figcaption{padding:13px 15px;display:grid;gap:7px}figcaption strong{font:14px/1.5 Consolas,monospace;overflow-wrap:anywhere}figcaption span{font-size:14px;color:var(--muted)}.preview-issue{padding:12px;background:var(--warn);color:var(--gold);line-height:1.6}.empty{padding:28px;border:1px dashed var(--line);line-height:1.7;color:var(--muted)}.audio-search{display:flex;gap:20px;align-items:end;padding:20px 0 26px}label{font-size:14px;font-weight:600;display:grid;gap:9px}input,select{background:transparent;border:1px solid #a6b3a4;border-radius:3px;color:var(--ink);padding:11px 13px;font-size:14px}input{width:290px;max-width:100%}.audio-search .field{display:grid;gap:9px}.audio-search p{font-size:14px;color:var(--muted);margin-left:auto}.sounds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.sound{border:1px solid var(--line);padding:24px;border-radius:3px;background:#faf8f1;min-width:0}.sound-heading{display:flex;gap:17px;align-items:center;margin-bottom:17px}.track-id{font:16px Consolas,monospace;color:var(--gold);border-right:1px solid var(--line);padding:8px 15px 8px 8px}.sound-heading div>span{font-size:14px;color:var(--muted)}audio{width:100%;height:35px}.sound-info summary{font-size:14px;font-weight:400;padding:14px 0 2px}.sound-info dl{margin-top:18px;gap:16px}.sound-info dd{font-size:14px;line-height:1.6}.sound-info dt{font-size:14px;margin-bottom:4px}.sound-info dl>div:last-child{grid-column:1/-1}.media-unavailable{font-size:14px;color:var(--muted)}.table-scroll{overflow:auto;max-height:650px;margin-bottom:30px}table{width:100%;border-collapse:collapse;text-align:left;font-size:14px}th,td{padding:14px 12px;border-bottom:1px solid var(--line);vertical-align:top}thead th{background:var(--soft);position:sticky;top:0}tbody th{font:14px/1.6 Consolas,monospace;overflow-wrap:anywhere;max-width:380px}td summary{padding:0;font-size:14px;font-weight:400}.nowrap{white-space:nowrap}.hash{font:14px/1.8 Consolas,monospace;overflow-wrap:anywhere}.technical{margin:60px 0;border-top:1px solid var(--line);padding-top:38px}.technical>p:not(.eyebrow){max-width:700px;font-size:14px;color:var(--muted);line-height:1.8}.technical dl{padding-bottom:20px}.technical dd{font-size:14px;line-height:1.7}footer{max-width:1440px;margin:auto;padding:24px 5% 40px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:14px}[hidden]{display:none!important}
+@media(max-width:760px){.mast-inner{align-items:start;padding:16px 5%;gap:16px}.brand{font-size:16px}nav{gap:12px;flex-wrap:wrap;font-size:14px;justify-content:end}.hero{grid-template-columns:1fr;padding:38px 0;gap:20px}.identity{border-left:0;border-top:1px solid var(--line);padding:22px 0 0}.edition{float:right;padding:12px 16px;font-size:20px}.metrics{grid-template-columns:repeat(2,1fr)}.metrics article{padding:20px!important;border-bottom:1px solid var(--line)}.metrics strong{font-size:38px}.overview{grid-template-columns:1fr;padding:40px 0;gap:12px}.section-title{display:block;margin-top:40px}.sounds{grid-template-columns:1fr}.audio-search{flex-wrap:wrap;gap:14px}.audio-search .field{display:grid;gap:9px}.audio-search p{margin:0}.audio-search label:first-child{flex:1;min-width:180px}.audio-search input{width:100%}.gallery{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.pixel-stage{height:160px}footer{flex-direction:column}}
+@media(max-width:380px){.gallery figure[data-wide=true]{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{.masthead{position:static}nav,.audio-search,audio{display:none}.hero{padding-top:25px}body{background:white}.sound{break-inside:avoid}.table-scroll{max-height:none}footer{margin-top:30px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#overview">Skip to content</a>
+<div class="masthead"><div class="mast-inner"><div class="brand">MSX / Archive<span>EXTRACTION REPORT</span></div><nav aria-label="Report sections"><a href="#overview">Overview</a><a href="#graphics">Graphics</a><a href="#audio">Audio</a><a href="#files">Files</a><a href="#details">Source</a></nav></div></div>
+<main>@@CONTENT@@</main>
+<footer><span>A local record of your cartridge's content.</span><span>No external services · no file uploads</span></footer>
+<script id="report-data" type="application/json">@@DATA@@</script>
+<script>
+(() => {
+  const data = JSON.parse(document.getElementById('report-data').textContent);
+  const sheets = new Map(data.Sheets.map(sheet => [sheet.Id, new Promise(resolve => {
+    const image = new Image(); image.onload = () => resolve(image); image.onerror = () => resolve(null); image.src = sheet.PngDataUri;
+  })]));
+  async function draw(canvas) {
+    const picture = data.Pictures[Number(canvas.dataset.preview)];
+    const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+    if (picture.Width <= 32 && picture.Height <= 64) canvas.dataset.small = 'true';
+    if (picture.SheetId) {
+      const image = await sheets.get(picture.SheetId);
+      if (image) ctx.drawImage(image, picture.X, picture.Y, picture.Width, picture.Height, 0, 0, picture.Width, picture.Height);
+    } else if (picture.PackedPixels && picture.PaletteRgba) {
+      const packed = Uint8Array.from(atob(picture.PackedPixels), c => c.charCodeAt(0));
+      const palette = Uint8Array.from(atob(picture.PaletteRgba), c => c.charCodeAt(0));
+      const image = ctx.createImageData(picture.Width, picture.Height);
+      for (let i = 0; i < picture.Width * picture.Height; i++) {
+        const index = ((i & 1) ? packed[i >> 1] & 15 : packed[i >> 1] >> 4) * 4;
+        image.data.set(palette.subarray(index, index + 4), i * 4);
+      }
+      ctx.putImageData(image, 0, 0);
+    }
+  }
+  const canvases = document.querySelectorAll('canvas[data-preview]');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { draw(entry.target); observer.unobserve(entry.target); } }), {rootMargin:'240px'});
+    canvases.forEach(canvas => observer.observe(canvas));
+  } else canvases.forEach(draw);
+  const graphicsQuery = document.getElementById('graphics-query'), graphicsKind = document.getElementById('graphics-kind');
+  function filterGraphics() {
+    let count = 0;
+    const query = graphicsQuery.value.toLowerCase().trim(), reviewing = graphicsKind.value === 'review';
+    document.querySelectorAll('.gallery-group').forEach(group => {
+      let matches = 0;
+      group.querySelectorAll('figure').forEach(figure => {
+        figure.hidden = !figure.dataset.search.toLowerCase().includes(query) || (reviewing && figure.dataset.issue !== 'true');
+        if (!figure.hidden) matches++;
+      });
+      group.hidden = matches === 0;
+      if (query || reviewing) group.open = matches > 0;
+      count += matches;
+    });
+    document.getElementById('graphics-count').textContent = count + (count === 1 ? ' graphic' : ' graphics');
+  }
+  graphicsQuery.addEventListener('input', filterGraphics); graphicsKind.addEventListener('change', filterGraphics); filterGraphics();
+  const query = document.getElementById('sound-query'), kind = document.getElementById('sound-kind');
+  function filter() {
+    let count = 0;
+    document.querySelectorAll('.sound').forEach(card => {
+      card.hidden = !(kind.value === 'all' || card.dataset.kind === kind.value) || !card.dataset.search.toLocaleLowerCase('en').includes(query.value.toLocaleLowerCase('en'));
+      if (!card.hidden) count++;
+    });
+    document.getElementById('sound-count').textContent = count + (count === 1 ? ' sound in this catalog' : ' sounds in this catalog');
+  }
+  query.addEventListener('input', filter); kind.addEventListener('change', filter); filter();
+  document.querySelectorAll('audio').forEach(audio => audio.addEventListener('play', () => document.querySelectorAll('audio').forEach(other => {if (other !== audio) other.pause();})));
+})();
+</script>
+</body>
+</html>
