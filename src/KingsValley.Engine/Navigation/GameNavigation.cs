@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using Nez;
@@ -57,6 +57,7 @@ public static class GameNavigation
     {
         SplashScene => GameSceneId.Splash,
         MainMenuScene => GameSceneId.MainMenu,
+        CampaignSelectionScene => GameSceneId.MainMenu,
         LoadingScene => GameSceneId.Loading,
         GameScene => GameSceneId.Level,
         WorldMapScene => GameSceneId.WorldMap,
@@ -109,7 +110,7 @@ public static class GameNavigation
     public static Scene CreateScene(GameSceneId id) => id switch
     {
         GameSceneId.Splash => new SplashScene(),
-        GameSceneId.MainMenu => new MainMenuScene(),
+        GameSceneId.MainMenu => Assets.RomContent.IsContest?new CampaignSelectionScene(stages:true):new MainMenuScene(),
         GameSceneId.Loading => new LoadingScene(),
         GameSceneId.Level => new GameScene(),
         GameSceneId.WorldMap => new WorldMapScene(Core.Gameplay.GameRun.New(0)),

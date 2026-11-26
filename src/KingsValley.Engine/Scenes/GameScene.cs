@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +46,7 @@ public class GameScene : SceneBase
 
     private readonly GameRun? _requested;
     private RoomBackgroundBuilder? _roomBackgrounds;
-    private GameRun _run = GameRun.New(0);
+    private GameRun _run = RomContent.NewRun(0);
     private StageSession? _session;
 
     /// <summary>State of the run in progress (used by the graphics toggle when recreating the scene).</summary>
@@ -82,6 +82,8 @@ public class GameScene : SceneBase
             GfxRom = GfxVariant.Current.Name,
             Run = new GameRunData
             {
+                CampaignId=_run.CampaignId,
+                ContestPyramid=_run.ContestPyramid,
                 Stage = _run.Stage,
                 Lives = _run.Rest,
                 HiScore = _run.HiScore,
@@ -98,8 +100,10 @@ public class GameScene : SceneBase
     {
         try
         {
+            if(data.Run.CampaignId!=RomContent.CampaignId)return false;
             var def = GameNavigation.StageOverride ?? StageLoader.Load(RomContent.LevelsDirectory, data.Run.Stage);
-            _session = new StageSession(def) { Invincible = data.Run.Invincible };
+            if(RomContent.IsContest)def=def.WithPyramid(Math.Clamp(data.Run.ContestPyramid,1,6));
+            _session = new StageSession(def,data.Run.CampaignId) { Invincible = data.Run.Invincible };
             _session.RestoreFrom(data.Session);
 
             _run = new GameRun(
@@ -108,7 +112,7 @@ public class GameScene : SceneBase
                 data.Run.StageScore,
                 data.Run.HiScore,
                 data.Run.Invincible,
-                data.Run.ContinueEnabled);
+                data.Run.ContinueEnabled,data.Run.CampaignId) {ContestPyramid=Math.Clamp(data.Run.ContestPyramid,1,6)};
 
             _phase = Phase.Playing;
             _phaseTicks = 0;
@@ -176,26 +180,27 @@ public class GameScene : SceneBase
 
     private static GameRun RunFromEnvironment()
     {
-        int hi = ProfileSaveService.Load().HiScore;
+        int hi = ProfileSaveService.Load().ProgressFor(RomContent.CampaignId).HiScore;
         if (GameNavigation.StageOverride != null)
-            return GameRun.New(hi, GameNavigation.StageOverride.Number);
+            return RomContent.NewRun(hi, GameNavigation.StageOverride.Number);
 
         var password = Environment.GetEnvironmentVariable("KINGSVALLEY_PASSWORD")?.Trim();
         if (string.Equals(password, StagePassword.Festival, StringComparison.OrdinalIgnoreCase))
-            return GameRun.Cheat(hi, invincible: true);          // 6B24: stage 1, REST 1, E255 = 1
+            return GameRun.Cheat(hi, invincible: true,campaignId:RomContent.CampaignId);          // 6B24: stage 1, REST 1, E255 = 1
         if (string.Equals(password, StagePassword.TryAgain, StringComparison.OrdinalIgnoreCase))
-            return GameRun.Cheat(hi, continueEnabled: true);     // 6B24: stage 1, REST 1, E217 = 1
+            return GameRun.Cheat(hi, continueEnabled: true,campaignId:RomContent.CampaignId);     // 6B24: stage 1, REST 1, E217 = 1
         if (password != null && StagePassword.TryDecode(password, out int ps, out int pl))
-            return GameRun.New(hi, ps, pl);
+            return RomContent.NewRun(hi, ps, pl);
 
         var raw = Environment.GetEnvironmentVariable("KINGSVALLEY_LEVEL");
-        return int.TryParse(raw, out int stage) && stage > 0 ? GameRun.New(hi, stage) : GameRun.New(hi);
+        return int.TryParse(raw, out int stage) && stage > 0 ? RomContent.NewRun(hi, stage) : RomContent.NewRun(hi);
     }
 
     private void StartStage()
     {
         var def = GameNavigation.StageOverride ?? StageLoader.Load(RomContent.LevelsDirectory, _run.Stage);
-        _session = new StageSession(def) { Invincible = _run.Invincible };
+        if(RomContent.IsContest)def=def.WithPyramid(_run.ContestPyramid);
+        _session = new StageSession(def,_run.CampaignId) { Invincible = _run.Invincible };
         bool skipIntro = Environment.GetEnvironmentVariable("KINGSVALLEY_SKIP_LEVELSTART") == "1";
         _phase = skipIntro ? Phase.Playing : Phase.Intro;
         _phaseTicks = 0;
@@ -263,7 +268,7 @@ public class GameScene : SceneBase
         var p = _session.Player;
         Console.WriteLine($"[GameScene] KINGSVALLEY_EXIT={ticks} -> phase {_session.Exit}, " +
             $"door frame {_session.DoorFrame}, curtain {_session.CurtainBands}, " +
-            $"Vick ({p.X},{p.Y}) pose {p.PoseSet}/{p.Pose} (congela: {_exitHold})");
+            $"Vick ({p.X},{p.Y}) pose {p.PoseSet}/{p.Pose} (hold: {_exitHold})");
     }
 
 
@@ -612,7 +617,7 @@ public class GameScene : SceneBase
         }
 
         int prev = Math.Max(1, _run.Stage - 1);
-        _run = GameRun.New(_run.HiScore, prev);
+        _run = RomContent.NewRun(_run.HiScore, prev);
         StartStage();
     }
 
@@ -628,8 +633,16 @@ public class GameScene : SceneBase
         bool wasLast = _run.IsLastStage;
         int cleared = _run.Stage;
         _run = _run.AddScore(_session!.Score).StageCleared();
-        ProfileSaveService.CompleteLevel(_run.Stage - 1, _session.Score);
-        ProfileSaveService.UpdateHiScore(_run.HiScore);
+        // A diagnostic door completion validates navigation without awarding profile progress.
+        if(!_exitDiagnostic)
+        {
+            ProfileSaveService.CompleteLevel(cleared, _session.Score,_run.CampaignId);
+            ProfileSaveService.UpdateHiScore(_run.HiScore,_run.CampaignId);
+        }
+        if(RomContent.IsContest)
+        {
+            Nez.Core.Scene=new CampaignSelectionScene(stages:true,showContestTitle:false);return;
+        }
         if (wasLast)
         {
             GameNavigation.GoToEnding(_run, StageFx.Ef10At(_run.Stage));   // mode_end (0x4B6E): end of the game + final menu
@@ -657,7 +670,7 @@ public class GameScene : SceneBase
         }
 
         _run = _run.AddScore(_session!.Score).Died();
-        ProfileSaveService.UpdateHiScore(_run.HiScore);
+        ProfileSaveService.UpdateHiScore(_run.HiScore,_run.CampaignId);
         if (_run.IsGameOver)
         {
             GameAudio.StopMusic();

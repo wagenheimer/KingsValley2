@@ -1,295 +1,241 @@
 # King's Valley II — The Seal of El Giza
-### Faithful MSX2 & MSX1 Port in C# / .NET 10 · MonoGame · Nez · Gum
 
-[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![MonoGame](https://img.shields.io/badge/MonoGame-3.8.5-E73C00?logo=monogame)](https://monogame.net/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-147%20Passing-brightgreen.svg)]()
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
+A C# reconstruction of Konami's 1988 MSX puzzle platformer, supporting **MSX1**, **MSX2** and the **Edit Contest** edition. Built with .NET 10, MonoGame, Nez and Gum.
 
-A high-fidelity, reverse-engineered 1:1 re-implementation of Konami's classic **King's Valley II: The Seal of El Giza** (MSX2 / MSX1, 1988), built natively in modern **C# / .NET 10** using **MonoGame**, the **Nez** 2D framework, and **Gum UI**.
+[![CI](https://github.com/wagenheimer/KingsValley2/actions/workflows/ci.yml/badge.svg)](https://github.com/wagenheimer/KingsValley2/actions/workflows/ci.yml)
+[![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
 
-Every stage layout, enemy behavior, puzzle mechanism, physical jump curve, and sound effect has been faithfully reconstructed from the original Konami Z80 ROM instructions and VDP memory mappings — running at a buttery-smooth native frame rate without any CPU emulation overhead.
-
----
-
-## 🏛️ Dual-Engine Graphics: MSX2 & MSX1 Support
-
-The engine features full real-time graphics switching between **MSX2 SCREEN 5** and **MSX1 SCREEN 2**. You can toggle between them at any moment during gameplay via **F11** or from the in-game **System Menu (ESC)**.
+Explore connected pyramid rooms, collect every soulstone and reach the exit. Tools, thrown weapons, mummies, rotating doors and collapsing terrain turn each stage into a puzzle. The project reconstructs behavior from cartridge routines and extracts graphics, stages and audio from a supported ROM supplied by the player.
 
 <p align="center">
-  <img src="docs/en/media/msx_comparison.png" alt="MSX2 vs MSX1 Visual Comparison" width="100%">
+  <img src="docs/en/media/msx_comparison.png" width="100%" alt="The original campaign rendered with MSX2 and MSX1 graphics">
 </p>
 
-| Feature | MSX2 Mode (SCREEN 5) | MSX1 Mode (SCREEN 2) |
-| :--- | :--- | :--- |
-| **Resolution** | **256 × 212** (MSX2 frame) | **256 × 192** (TMS9918A standard) |
-| **Color Model** | 16-color palette per pixel with smooth shading | 2 colors per 8-pixel row (authentic attribute color clash) |
-| **Aspect Ratio** | Crisp 1:1 square pixels | Crisp 1:1 square pixels centered with **10 px letterbox** (never stretched) |
-| **Cenography** | Continuous hardware palette color-6 cycling (flames & gold) | Animated mural patterns (blinking eyes decoded byte-for-byte from VRAM) |
-| **Architecture** | Runtime assembled from 4bpp nibble blocks & murals | Decoded from SCREEN 2 bank-switched pattern/color tables |
+**No cartridge ROM is included.** Extraction runs inside the application in C#; it does not require openMSX or an installed MSX BIOS. The bundled FRS patch has a separate non-commercial license.
 
----
+[Get started](#get-started) · [Edit Contest](#edit-contest-edition) · [Accepted ROMs](#exact-supported-cartridges) · [Build](#build-from-source) · [Documentation](#documentation)
 
-## 💾 ROM Setup & Built-in Extractor (First Run)
+## What you can play
 
-To respect Konami's intellectual property, **this open-source repository contains zero copyrighted ROM data, proprietary bitmaps, or audio files**.
+| Edition | Content | Presentation and progression |
+| --- | --- | --- |
+| Original — MSX2 | 60 original stages | Native SCREEN 5 graphics, palettes and animations; original campaign flow. |
+| Original — MSX1 | 60 original stages | Native SCREEN 2 graphics, 256×192 centered in the 256×212 frame without stretching. |
+| Edit Contest — MSX2 | 20 independent challenges | Publication → author → visual theme → challenge. Separate completion, high scores and save-state slots. |
 
-On first boot (or anytime by pressing **F12**), the built-in retro MSX setup screen guides you through configuring your cartridges:
+For the original campaign, extract MSX2 or MSX1, or both. **F11** and **ESC → GRAPHICS** cycle compatible extracted art sets within the current campaign. Contest keeps its own cartridge assets; it does not borrow the original campaign's graphics or audio.
+
+## Get started
+
+Download a package from [Releases](https://github.com/wagenheimer/KingsValley2/releases), or [build from source](#build-from-source). Release packages target Windows x64, Linux x64, macOS Intel and macOS Apple Silicon. Check the release's commit: an older tagged package may not contain the latest changes on `main`.
+
+1. Open **Cartridge Setup**, available on first use and through **F12** or **ROM SETUP** in the system menu.
+2. Choose **BROWSE** and select your supported `.rom`, `.bin` or `.zip`. Alternatively, place the ROM beside the executable, in its `roms/` subfolder, or in the folder opened by **FOLDER**, then choose **SCAN**.
+3. Select a cartridge and choose **EXTRACT SELECTED**. Browsing or selecting a row does not start extraction on this screen.
+4. Wait for the result dialog. Each edition has independent audio and graphics readiness. **ESC** offers cancellation and preserves previous complete generations.
+5. Choose **PLAY**. For the special edition, use **GAME → CONTEST** and follow its native selectors.
 
 <p align="center">
-  <img src="docs/en/media/rom_setup.png" width="48%" alt="Detected Cartridges in ROM Setup">
-  <img src="docs/en/media/rom_setup_empty.png" width="48%" alt="Step-by-step Setup Guide">
+  <img src="docs/en/media/rom_setup.png" width="70%" alt="Cartridge Setup with separate readiness indicators and explicit extraction controls">
 </p>
 
-### How to Set Up Your ROMs:
+The setup footer opens **ROM GUIDE**: press **H**, gamepad **START**, or click the footer. It lists accepted revisions, complete SHA-1 values and recommendations. **RESET DATA** removes extracted content after confirmation; it keeps your original ROM files.
 
-1. **Open the ROMs Folder:**
-   - Click **`FOLDER (O)`** or press the **`O`** key. The game automatically opens the local directory in your system file manager (`%APPDATA%\KingsValley\roms\` on Windows, or `./roms/` in portable mode).
-2. **Place Your Original ROM(s) in the Folder:**
-   - **MSX1:** `King's Valley II (JP) [RC-760].rom` (128 KB, SHA-1 `cfd872d005b7bd4cdd6e06c4c0162191f0b0415d`) — Contains all 60 stages, PSG sound driver, and SCREEN 2 graphics.
-   - **MSX2:** `King's Valley II (JP) [RC-761] [SCC].rom` (128 KB / 256 KB) — Contains SCC audio driver and MSX2 SCREEN 5 graphics.
-   - Standard `.rom`, `.bin`, and `.zip` archives are recognized and identified automatically via SHA-1 and cartridge hardware headers.
-3. **Scan and Detect:**
-   - Click **`REFRESH (R)`** or press **`R`**. The detected cartridges will appear with detailed version tags and sizes.
-4. **Extract with One Click:**
-   - Select your cartridge using keyboard arrows, mouse, or gamepad, and press **`ENTER`** (or click it). The built-in emulator runs the sound driver in-process and unpacks stages and screens.
-5. **Play with Either ROM:**
-   - Even if you only have one cartridge (MSX1 or MSX2), the **`PLAY ANYWAY (P)`** button enables immediately so you can jump straight into the game!
-   - If you attempt to switch to an unextracted graphics flavor during gameplay (via **F11** or the **ESC** system menu), the game gracefully returns to the setup screen with an informative alert:
+## Edit Contest edition
+
+The **Edit Contest** cartridge is a special collection of custom-stage contest entries, also encountered under **Gold** naming. Its framed opening identifies it as the **Custom stage Contest — Best Entries Collection**. There are **20 challenges**, grouped into four publication award categories with five authors each: **MSX Magazine, Comptiq, MSX-FAN and Beep**.
+
+This is a separate stage collection, rather than an extra difficulty setting for the original 60 stages. The supported dump is the **MSX2 JoySNES revision** listed below; other ROMs labeled Gold or Contest are not automatically compatible.
 
 <p align="center">
-  <img src="docs/en/media/rom_setup_notice.png" width="540" alt="In-Game Redirection Notice">
+  <img src="docs/en/media/contest_title.png" width="65%" alt="English Edit Contest opening: Custom stage Contest, Best Entries Collection">
 </p>
 
----
+### The original selection flow
 
-## 🎵 Legendary 8-Channel Soundtrack & Audio Architecture (PSG + SCC)
+After **GAME → CONTEST**, the port preserves the cartridge's presentation:
 
-The soundtrack of *King's Valley II* is celebrated as one of the finest musical achievements of the 8-bit era, composed by Konami's legendary sound team:
-* **Motoaki Furukawa** (*Gradius II, Vulcan Venture, Snatcher*)
-* **Kinuyo Yamashita** (*Castlevania / Akumajō Dracula, Esper Dream, Mega Man X3*)
-* **Kazuhiko Uehara** (*Tiny Toon Adventures, Teenage Mutant Ninja Turtles*)
-* **Masahiro Ikariko** (*Metal Gear, Snatcher, Salamander*)
-* **Michiru Yamane** (*Castlevania: Symphony of the Night, Bloodstained*)
-
-### The Hybrid 8-Channel Audio Engine:
-Contrary to widespread misconception, **an official "PSG-only" release of King's Valley II never existed**. Both the MSX1 edition (**RC-760**) and MSX2 edition (**RC-761**) were physically manufactured as Konami MegaROM cartridges featuring the custom **Konami SCC (Sound Creative Chip / K051649)** wavetable synthesizer soldered directly onto the PCB:
+1. The framed collection title appears.
+2. Select one of the four publication awards.
+3. Select one of that publication's five authors.
+4. Use **SCREEN SELECT** to choose one of six visual themes, then start the challenge.
 
 <p align="center">
-  <img src="docs/en/media/msx_scope.jpg" alt="MSX Scope Playing King's Valley II 8-Channel Audio" width="100%">
+  <img src="docs/en/media/contest_publication.png" width="48%" alt="Native Contest selector showing MSX Magazine, Comptiq, MSX-FAN and Beep awards">
+  <img src="docs/en/media/contest_author.png" width="48%" alt="Native Contest author selector with romanized names, including Kenji Shirai">
 </p>
 
-* **3 Built-in PSG Channels (AY-3-8910):** Dedicated to snappy percussions, white noise bursts, hi-hats, and rhythmic accents.
-* **5 Custom SCC Channels (K051649):** Delivering rich 32-byte cyclic wavetable synthesis, punchy basslines, and melodic synth harmonies.
-* **8 Voices in Total:** Konami's Z80 sound driver commands both chips in tandem, delivering a multi-timbral depth that redefined home computer gaming audio in 1988.
-
-### Inspect & Listen with the `MSXAudio` Player / Analyzer
-Once the game extracts the audio on first boot, the entire soundtrack and sound effects library are stored as pure cycle-accurate VGM logs inside `%APPDATA%\KingsValley\extracted\audio.msxaudio`.
-
-You can open, analyze, and play this exact package using our standalone audio suite **[MSX Scope / Wagenheimer.MsxAudio](https://github.com/wagenheimer/MsxAudio)**:
-* **Real-time Chip Analyzer:** Inspect all 8 individual channels, mute/solo instruments (`PSG1..3`, `SCC1..5`), and toggle stereo panning profiles.
-* **Live Wavetable Scope:** Watch the 5 dynamic 32-byte SCC waveforms oscillate in real-time as notes are synthesized.
-* **Interactive Keyboard & Piano Roll:** Visualize note events, inspect envelopes, and study Konami's master sound arrangements note-by-note.
-
----
-
-## 🎮 In-Game System Menu & Instant Save States
-
-Pressing **ESC** at any time during gameplay opens the in-game System Menu, rendered natively with retro MSX aesthetics:
+Use arrows and **ENTER**, or gamepad D-pad and **A**. **ESC/B** returns one step. Mouse selection is supported; click the theme preview to cycle themes and **SCREEN SELECT** to play. Theme selection changes presentation while keeping the challenge layout.
 
 <p align="center">
-  <img src="docs/en/media/sysmenu.png" alt="In-Game ESC System Menu" width="600">
+  <img src="docs/en/media/contest_theme.png" width="48%" alt="Contest SCREEN SELECT with a preview of the selected pyramid theme">
+  <img src="docs/en/media/contest_gameplay.png" width="48%" alt="Gameplay from Contest challenge 3, with soulstones, ladders and the native score HUD">
 </p>
 
-* **3 SaveState / LoadState Slots:** Instantly snapshot the exact room state — including player coordinates, enemy positions, pathfinder state, thrown weapons, and door angles.
-* **Live Viewport Thumbnails:** Each save slot stores a crisp 128×106 thumbnail captured directly from the game viewport without black bars.
-* **Runtime Toggles:** Switch audio mixing profiles (Original / Stereo / Remaster / Auto), swap graphics flavors (MSX2 / MSX1), choose MSX1 object backgrounds (Original / Transparent), toggle fullscreen, or switch title language (English / Japanese) on the fly.
+Completing a challenge plays the door and closing-curtain sequence, displays the cartridge's **CONGRATULATION** screen, then returns to publication selection. Contest does not use the original campaign's world tour, password/bonus sequence or ending puzzle. Its completion records, high scores and save-state slots remain separate from **ORIGINAL**.
 
----
+### Automatic English translation — offline
 
-## ⚡ Core Gameplay & Physics Mechanics
+Supply the supported **Japanese JoySNES ROM**. During extraction, the game verifies the complete bundled **FRS enhancement patch v1.1** archive, applies `KVAL2G.IPS` to a private working copy and checks the exact resulting SHA-1. English title/menu artwork and romanized author names are extracted from that copy. **Your selected ROM is never overwritten, and no download is needed.**
 
-All room mechanics are dynamically assembled and simulated at runtime. No pre-baked image backgrounds are used:
+This is the locally validated JoySNES + FRS combination, not the differently hashed official prepatched Gold revision. Its 20 extracted stage definitions match the Japanese source. Audio is captured from the effective cartridge's own driver. Reports record both ROM identities and patch attribution.
 
-<p align="center">
-  <img src="docs/en/media/title.png" width="48%" alt="Title Screen">
-  <img src="docs/en/media/worldmap_tour.png" width="48%" alt="World Map Tour">
-</p>
+FRS documents the Gold translation on the [author's patch page](https://frs.badcoffee.info/patches.html). Credits, hashes, redistribution conditions and the original license are in the [bundled patch documentation](third_party/FRS/README.md). Set `KINGSVALLEY_CONTEST_LANGUAGE=jp` before starting the application for native Japanese diagnostic extraction.
 
-| Mechanic | Demonstration | Details |
-| :--- | :---: | :--- |
-| **Combat & Throwing** | ![Knife Throw](docs/en/media/knife.gif) | Jump arcs, throwing knives, boomerangs with return trajectories, and precise weapon pickup collision boxes. |
-| **Revolving Doors** | ![Revolving Door](docs/en/media/door.gif) | Full simulation of Type 1 push doors and Type 2 one-way 4-phase revolving doors (`0 → 1 → 2 → 3 → 0`) with dynamic background mural restoration. |
-| **Sandstone Digging** | ![Digging](docs/en/media/dig.gif) | Authentic 3-stage block crumbling animation with pickaxe tools, matching the original MSX tick timing. |
-| **Traps & Pitfalls** | ![Trap Door](docs/en/media/trap.gif) | Retractable trapdoors that open under actors and snap shut, restoring the wall mural tiles behind them. |
-| **Enemy AI & Physics** | ![Enemy AI](docs/en/media/enemies.gif) | White Mummies, fast Gold Mummies, bouncing guards (*Pyoncy*), and rolling boulders (*Rock Roll*) traced from original ROM algorithms. |
+See the [Contest guide](docs/CONTEST_EDITION.md) for stage mappings, native screen recipes, completion timing and validation limits. All five Contest screenshots above were captured from this port using the translated cartridge generation.
 
----
+## Exact supported cartridges
 
-## 🛠️ Built-In Tools & Secret Modes
+**You do not need all the ROMs.** Choose one original MSX2 or MSX1 cartridge for the original campaign. Add Contest for its 20 challenges; it needs no companion original cartridge. To have all three presentations/campaigns available, supply MSX2, MSX1 and Contest.
 
-<p align="center">
-  <img src="docs/en/media/editor.png" width="48%" alt="Stage Editor">
-  <img src="docs/en/media/puzzle.png" width="48%" alt="Sliding Puzzle Minigame">
-</p>
+Every accepted image below is **131,072 bytes (128 KiB)**. SHA-1 refers to the **uncompressed ROM inside a ZIP**, not the ZIP itself. Filenames, region tags and cartridge numbers alone do not establish compatibility.
 
-* **Integrated Stage Editor:** Create, edit, and playtest custom levels directly inside the game with full brush palettes (sandstone, ladders, doors, enemies, soul stones). Press **F8** to open.
-* **Secret 5×5 Sliding Puzzle:** Complete recreation of the hidden post-game sliding puzzle minigame from the Konami cartridge, featuring 4 board layouts and 1UP rewards. Press **F7** to test.
-* **Sound Test / Jukebox:** Complete player for all 19 Konami music tracks and sound effects rendered via accurate AY-3-8910 (PSG) and K051649 (SCC) emulation. Press **F2** to test.
+| Exact edition/revision | SHA-1 of ROM | Recommendation |
+| --- | --- | --- |
+| MSX2 RC-761 **SCC patch revision** | `0c7e0b618c72e7ca08bd756c3103b46e5c580c04` | **Recommended for original MSX2.** This exact patch revision is required. |
+| MSX1 RC-760 original / GoodMSX dump | `cfd872d005b7bd4cdd6e06c4c0162191f0b0415d` | **Recommended for original MSX1.** |
+| MSX1 RC-760 **FRS enhancement v1.1** | `cb612cbfdf79dabe55164b386ca956a3e187bef7` | Accepted MSX1 alternative, already patched. No automatic MSX1 patching. |
+| MSX2 **Edit Contest, JoySNES revision** (Japanese) | `4a157e6e217f6af4ab3dec5d7dd5188e5cef7954` | **Recommended for Contest.** English translation is applied automatically offline to a private copy. |
+| **JoySNES Contest + FRS v1.1**, validated local combination | `e7b0a7b083d2f5bb12fb4ea6b2e822ee6330a15e` | Accepted translated working copy. The game generates it; you do not need to obtain it separately. |
 
----
+Other revisions are not accepted for extraction, even when the scanner recognizes their edition name:
 
-## 🚀 Building & Running
+| Recognized or related revision — not supported | SHA-1 |
+| --- | --- |
+| Unpatched MSX2 RC-761 | `f25628e474035e6bf0440b274c5df04f94c49fb8` |
+| MSX2 boot hack | `74eeaa99bff38b332f64e9e9f7775f834d1842e7` |
+| Gold source specified in FRS's original instructions | `2e0436303648097e8e936c5467574aff5e3f1517` |
+| Official prepatched Gold revision | `376b4785cab7d60cc083f0c03bd5e8ea2fee8205` |
 
-### Prerequisites
-* [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
-* Git with recursive submodule support.
+Support for another revision requires its own extraction validation. Renaming a ROM does not bypass identification. King's Valley I is a different game and is not a cartridge for this port.
 
-### Clone and Run
+## Graphics, audio and extraction reports
+
+Fixed screens and room backgrounds are assembled **at runtime from native binary data**, not distributed background PNGs. MSX2 uses V9938 SCREEN 5 data; MSX1 uses TMS9918 SCREEN 2 addressing and its native palette. Sprites and atlas regions come from cartridge bytes or captured sprite tables. Rendering uses point sampling and integer scaling; MSX1's 192 rows are centered with ten black rows above and below.
+
+Audio extraction executes a fresh cartridge sound-driver instance per command and records **PSG/SCC register events**. This avoids recording music and effects mixed together during gameplay. The validated Contest capture contains **11 songs and 48 effects**; six additional commands are intentionally silent and reported as such.
+
+The reusable [MSXAudio / MSXScope](https://github.com/wagenheimer/MsxAudio) tools discover packages in the shared collection and can play and inspect them, including individual PSG/SCC channels and wavetable activity.
+
+### Where extracted files go
+
+By default, the collection lives under your user's **Music/MSXMusic** folder. `MSXAUDIO_HOME` overrides that root; both the game and MSXScope use the shared path rules.
+
+```text
+<MSXMusic>/kings-valley-2/
+├── msx1/
+├── msx2/
+└── msx2-contest/
+    ├── Audio/audio.msxaudio
+    ├── Graphics/current.json
+    ├── Graphics/generations/<generation-id>/
+    └── Report/index.html
+```
+
+Every attempted extraction generates an **offline HTML report in English**, including failures and cancellations. It presents screen/sprite previews, audio previews, file inventory, source identities, checks and limitations, including blank or duplicate atlas entries. Open `Report/index.html` in a browser; a web server is not needed.
+
+Graphics generations are immutable and tied to an exact cartridge hash. A partial or failed attempt cannot replace a complete generation. Structural readiness confirms the implemented inventory; it does not prove every pixel, sound or gameplay rule has been exhaustively compared with hardware.
+
+## Controls and tools
+
+| Action | Keyboard | Gamepad |
+| --- | --- | --- |
+| Move / climb | Arrows or WASD | D-pad / left stick |
+| Jump | UP/W when applicable | Up when applicable |
+| Contextual action: jump, use tool or throw weapon | SPACE, Z, J or K | Face buttons |
+| Confirm in menus | ENTER / SPACE | A |
+| System menu | ESC | START |
+| ROM Guide in setup | H, or click footer | START |
+
+The contextual action follows the player's state and held tool. In the **ESC system menu**, use arrows to select/change values and ENTER to confirm. Options include music, effects, audio mix, compatible graphics, window mode, available title language, save/load slots, ROM setup and reset. Native MSX1 object backdrops are the default; there is no OBJECTS BG toggle.
+
+| Shortcut | Tool |
+| --- | --- |
+| F2 | Sound Test |
+| F5 | Restart the current stage |
+| F6 | Quick save state |
+| F7 | Ending puzzle diagnostic |
+| F8 | Stage editor |
+| F9 | Game Over diagnostic |
+| F10 | Main menu |
+| F11 | Cycle compatible graphics within the current campaign |
+| F12 | Cartridge Setup |
+
+The application includes three save-state slots with viewport thumbnails, a stage editor and access to the original ending puzzle. These tools are separate from the Contest cartridge's native stage-selection flow.
+
+## Build from source
+
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and Git, then:
+
 ```bash
-# Clone the repository including submodules
 git clone --recursive https://github.com/wagenheimer/KingsValley2.git
 cd KingsValley2
-
-# Restore dotnet tools
 dotnet tool restore
-
-# Build solution (Release mode)
-dotnet build KingsValley.slnx -c Release
-
-# Run test suite (147 automated unit tests)
-dotnet test
-
-# Launch the game
+dotnet build KingsValley.slnx
 dotnet run --project src/KingsValley.Desktop
 ```
 
-Builds use the dependency commits pinned by the submodules. For local library development, `-p:UseExternalMsxDependencies=true` explicitly enables the existing external checkout override.
+For an existing checkout, run `git submodule update --init --recursive`. Dependency commits are pinned. `-p:UseExternalMsxDependencies=true` opts into external development checkouts; ordinary builds use the submodules.
 
----
-
-## ⌨️ Controls & Shortcuts
-
-### Player Controls
-| Action | Keyboard | Gamepad (Xbox / Generic) |
-| :--- | :--- | :--- |
-| **Move Left / Right** | Left / Right Arrow or `A` / `D` | D-Pad Left / Right or Left Stick |
-| **Climb Ladders** | Up / Down Arrow or `W` / `S` | D-Pad Up / Down or Left Stick |
-| **Jump** | `Up Arrow`, `W`, or `Space` | Button `A` or `X` |
-| **Use Weapon / Dig** | `Space`, `Z`, `J`, or `K` | Button `B` or `Y` |
-| **System Menu (Pause)** | `Escape` | `Start` / `Menu` |
-
-### Developer & Debug Shortcuts
-| Shortcut | Function |
-| :--- | :--- |
-| `F2` | Open Sound Test / Jukebox |
-| `F5` | Quick restart current room |
-| `F6` | Quick SaveState snapshot |
-| `F7` | Open Ending Puzzle minigame |
-| `F8` | Open Integrated Stage Editor |
-| `F9` | Trigger Game Over screen |
-| `F10` | Return to Main Menu |
-| `F11` | Cycle Graphics Flavor (**MSX2** ↔ **MSX1**) |
-| `F12` | Open ROM Extractor dialog |
-| `B` | Skip to previous stage (Debug) |
-| `T` | Cycle in-game stage music tracks |
-
----
-
-## 🔬 Diagnostic Environment Variables
-
-For automated testing, screenshot generation, and CI pipelines, the game can be launched directly into any scene, stage, or graphic mode:
+Run core tests with:
 
 ```bash
-# Launch directly into Stage 3 in MSX2 mode with instant spawn
-KINGSVALLEY_START_SCENE=level KINGSVALLEY_LEVEL=3 KINGSVALLEY_GFX=msx2 dotnet run --project src/KingsValley.Desktop
-
-# Launch directly into the ESC System Menu
-KINGSVALLEY_START_SCENE=level KINGSVALLEY_LEVEL=1 KINGSVALLEY_SYSMENU=1 dotnet run --project src/KingsValley.Desktop
-
-# Launch in MSX1 retro flavor
-KINGSVALLEY_GFX=msx1 dotnet run --project src/KingsValley.Desktop
+dotnet test tests/KingsValley.Core.Tests/KingsValley.Core.Tests.csproj
 ```
 
----
+ROM-dependent checks require locally owned cartridges and the documented diagnostic variables. A successful build or inventory check does not establish complete runtime fidelity. See the current [handoff](docs/EXTRACTION_HANDOFF.md) and [graphics audit](docs/GRAPHICS_EXTRACTION_AUDIT.md) for evidence and pending work.
 
-## 📜 Project Structure
+CI builds on Windows, Linux and macOS. Release packaging is defined in [release.yml](.github/workflows/release.yml); platform builds and signing are distinct from hands-on gameplay validation. Maintainers configuring macOS releases should read [signing and notarization](docs/MACOS_SIGNING.md).
+
+### Useful diagnostics
+
+These PowerShell examples assume the required edition has already been extracted:
+
+```powershell
+# Open setup without automatic extraction.
+$env:KINGSVALLEY_START_SCENE = 'setup'
+dotnet run --project src/KingsValley.Desktop
+
+# Open the translated Contest author selector.
+$env:KINGSVALLEY_GFX = 'msx2-contest'
+$env:KINGSVALLEY_START_SCENE = 'contest'
+$env:KINGSVALLEY_CONTEST_MENU = 'author'
+dotnet run --project src/KingsValley.Desktop
+```
+
+Environment values persist in the current shell. Clear diagnostic overrides when returning to normal play. More examples, input scripts and screenshot controls are in the [English documentation](docs/en/README.md) and [Contest guide](docs/CONTEST_EDITION.md).
+
+## Documentation
+
+| Resource | What it covers |
+| --- | --- |
+| [English documentation](docs/en/README.md) | Gameplay illustrations and technical guides |
+| [Game design](docs/GAME_DESIGN.md) | Cartridge behavior and measured game rules |
+| [ROM extraction](docs/ROM_EXTRACTION.md) | Supported identities, native formats and independent pipelines |
+| [Edit Contest](docs/CONTEST_EDITION.md) | Edition-specific menus, stages, themes and completion |
+| [Golden ladders](docs/GOLDEN_LADDERS.md) | Native use counters and disappearance behavior |
+| [Extraction handoff](docs/EXTRACTION_HANDOFF.md) | Current engineering checkpoint and next validation work |
+| [Graphics audit](docs/GRAPHICS_EXTRACTION_AUDIT.md) | Inventory, source evidence and fidelity limits |
+| [FRS patch credits and license](third_party/FRS/README.md) | Offline translation provenance and redistribution terms |
 
 ```text
-KingsValley/
-├── KingsValley.slnx               # Modern .NET solution file
-├── README.md                      # Project documentation and guide
-├── docs/                          # In-depth technical documentation
-│   ├── GAME_DESIGN.md             # Original game design document & formulas
-│   ├── ARCHITECTURE.md            # Nez / MonoGame engine design
-│   ├── ROM_ENGINEERING.md         # Z80 timing, memory maps & VDP registers
-│   └── en/media/                  # High-definition showcase screenshots & GIFs
-├── lib/
-│   ├── Nez/                       # Nez 2D framework
-│   ├── MsxAudio/                  # AY-3-8910 (PSG) & K051649 (SCC) sound emulation
-│   └── MonoGameHelper/            # Cross-platform window and layout helpers
-├── src/
-│   ├── KingsValley.Core/          # Pure C# logic: physics, room assembler, save system
-│   ├── KingsValley.Engine/        # MonoGame / Nez scenes, Gum UI, audio host, ROM extractor
-│   └── KingsValley.Desktop/       # DesktopGL launcher, windowing, app icon
-└── tests/
-    └── KingsValley.Core.Tests/    # 147 automated unit tests
+src/KingsValley.Core/        Game rules, stages, saves and native-data assembly
+src/KingsValley.Engine/      Extraction recipes, rendering, scenes and UI
+src/KingsValley.Desktop/     Desktop launcher and content configuration
+src/Wagenheimer.MsxGraphics/ Reusable graphics formats and HTML reporting
+lib/MsxAudio/               Reusable audio extraction, playback and MSXScope
+lib/MonoGameHelper/         Window/layout helpers
+lib/Nez/                    Scene framework
+tests/                      Automated checks and optional local-ROM comparisons
+third_party/FRS/            Complete original patch archive and attribution
 ```
 
----
+## Credits and distribution
 
-## 📦 Pre-built Binaries
+**King's Valley II: The Seal of El Giza** and its original game content belong to **Konami**. This is an independent reconstruction and preservation project, not an official Konami release. Complete cartridge ROMs and extracted game asset packages are not distributed in this repository; obtain and supply your own supported ROM.
 
-Ready-to-run standalone packages are automatically built by GitHub Actions for every release:
+The **FRS enhancement patches v1.1**, copyright 2011 FRS, retain their own license. They permit non-commercial use and redistribution only as the complete original archive; commercial use requires permission from FRS, and patched ROMs must not be redistributed. These terms also matter when distributing a build containing the archive.
 
-- **Windows x64** (`KingsValley2-v1.0.0-Windows-x64.zip`)
-- **Linux x64** (`KingsValley2-v1.0.0-Linux-x64.tar.gz`)
-- **macOS x64** (Intel) (`KingsValley2-v1.0.0-macOS-x64.zip`) — Native `.app` bundle
-- **macOS Apple Silicon** (`KingsValley2-v1.0.0-macOS-AppleSilicon.zip`) — Native `.app` bundle
+Translation contributors credited in the original package: **Jazzin, BiFi, Vampier, pegase, Metalion and iamweasel2**. Logo contributors: **SLotman and pegase**. The complete, controlling license and credits remain in `README.TXT` inside the [unmodified bundled ZIP](third_party/FRS/KingsValley_II_EnhancementPatches.zip).
 
-Download them from the [Releases Page](https://github.com/wagenheimer/KingsValley2/releases).
-
-### macOS signing and notarization (CI secrets)
-
-`tools/macos/package_app.sh` always removes the quarantine attribute and deep-signs the
-`.app`. Without a Developer ID it signs ad-hoc, which is enough to run locally but still
-shows a Gatekeeper warning on a fresh download. To publish a notarized build, configure
-these GitHub repository secrets:
-
-| Secret | Purpose |
-| --- | --- |
-| `MACOS_SIGN_IDENTITY` | `Developer ID Application: Name (TEAMID)` |
-| `MACOS_CERT_P12` | Base64 of the `.p12` certificate + private key |
-| `MACOS_CERT_PASSWORD` | Password of the `.p12` file |
-| `MACOS_KEYCHAIN_PASSWORD` | Password for the temporary runner keychain |
-| `APPLE_API_KEY` | Base64 of the App Store Connect `.p8` API key |
-| `APPLE_API_KEY_ID` | Key ID of the `.p8` key |
-| `APPLE_API_ISSUER` | Issuer ID of the App Store Connect API |
-
-Alternatively, use `APPLE_ID`, `APPLE_TEAM_ID` and `APPLE_APP_PASSWORD` (app-specific
-password) instead of the API key trio. Add them in **Settings → Secrets and variables →
-Actions → New repository secret**. The values are encrypted, masked in workflow logs and
-are never included in the repository or in the downloaded archives; they are also not
-available to workflows triggered by pull requests from forks. A paid Apple Developer
-Program membership and a `Developer ID Application` certificate are required.
-
-All secrets are optional: forks and local builds still produce a valid ad-hoc signed
-bundle. The release job verifies the result with `codesign --verify --deep --strict` and,
-when signed with a Developer ID, `spctl`. Signing with a Developer ID uses
-`tools/macos/Entitlements.plist` (`com.apple.security.cs.allow-jit` and
-`com.apple.security.cs.allow-unsigned-executable-memory`), which is required for a
-self-contained .NET app with the hardened runtime. Once the secrets are configured, a new
-release build is notarized and staple-attached, so macOS Gatekeeper accepts it without
-the "unknown developer" warning.
-
----
-
-## 📄 License & Disclaimer
-
-* **Engine & Source Code:** Released under the [MIT License](LICENSE).
-* **Game Concept, Level Designs & Audio:** King's Valley II is © 1988 Konami. This project is a non-commercial educational tribute and preservation effort. No copyrighted assets are distributed with this repository.
-
-## Current ROM extraction engineering
-
-Both validated cartridge profiles can extract their implemented required graphics inventory independently, without an external emulator. Read the [current extraction guide](docs/ROM_EXTRACTION.md), [handoff](docs/EXTRACTION_HANDOFF.md) and [graphics audit](docs/GRAPHICS_EXTRACTION_AUDIT.md) for supported hashes, per-variant paths and evidence limitations. Historical video/emulator workflows are research records, not production requirements. The future reusable MSX skill/repository proposal is saved in [the toolkit plan](docs/superpowers/plans/2026-11-24-msx-reconstruction-toolkit.md).
+Thanks to the **openMSX** project for its implementation references, debugger and software database used in research. The shipped extractor runs independently; it does not invoke openMSX. MonoGame, Nez, Gum, MSXAudio and other dependencies retain their respective licenses.

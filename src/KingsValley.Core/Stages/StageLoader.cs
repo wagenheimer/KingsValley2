@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using KingsValley.Core.Common;
 
 namespace KingsValley.Core.Stages;
@@ -89,6 +89,8 @@ public static class StageLoader
         return new StageDefinition
         {
             Number = root.GetProperty("stage").GetInt32(),
+            SourcePyramid = root.TryGetProperty("pyramid",out var pyramid)?pyramid.GetInt32():null,
+            SourceMusicIndex = root.TryGetProperty("music",out var music)?music.GetInt32():null,
             RoomGrid = ParseGrid(root.GetProperty("roomGrid")),
             Rooms = rooms,
             Ladders = ladders,

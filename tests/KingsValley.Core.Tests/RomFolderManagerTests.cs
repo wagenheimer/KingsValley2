@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using KingsValley.Engine.Assets;
 using KingsValley.Engine.Extraction;
@@ -8,6 +8,66 @@ namespace KingsValley.Core.Tests;
 
 public class RomFolderManagerTests
 {
+    [Fact]
+    public void ProfileAliasesStayDistinctFromUnverifiedCartridges()
+    {
+        Assert.True(RomFolderManager.SupportsSha1("cb612cbfdf79dabe55164b386ca956a3e187bef7"));
+        Assert.False(RomFolderManager.SupportsSha1(new string('0',40)));
+    }
+
+    [Fact]
+    public void VerifiedFrsMsx1Revision_HasTheSharedAudioAndGraphicsProfile()
+    {
+        const string hash="cb612cbfdf79dabe55164b386ca956a3e187bef7";
+        var profile=Wagenheimer.MsxAudio.Extraction.RomExtractionProfiles.FindByGameVariant("kings-valley-2","msx1");
+        Assert.NotNull(profile);
+        Assert.Contains(hash,profile.RomSha1,StringComparer.OrdinalIgnoreCase);
+        Assert.True(RomFolderManager.SupportsSha1(hash));
+    }
+
+    [Fact]
+    public void Reset_RemovesBothVariantsAndPreservesRomsReportsAndOtherGames()
+    {
+        string root=Path.Combine(Path.GetTempPath(),"kv2-reset-"+Guid.NewGuid().ToString("N"));
+        try
+        {
+            foreach(var variant in new[]{"msx1","msx2"})
+            foreach(var component in new[]{"Graphics","Audio","Report"})
+            {
+                string dir=Path.Combine(root,"kings-valley-2",variant,component);
+                Directory.CreateDirectory(dir);File.WriteAllText(Path.Combine(dir,"test.data"),"test");
+            }
+            Directory.CreateDirectory(Path.Combine(root,"another-game"));
+            File.WriteAllText(Path.Combine(root,"original.rom"),"source");
+            Assert.True(RomFolderManager.PurgeExtractedContent(root));
+            foreach(var variant in new[]{"msx1","msx2"})
+            {
+                Assert.False(Directory.Exists(Path.Combine(root,"kings-valley-2",variant,"Graphics")));
+                Assert.False(Directory.Exists(Path.Combine(root,"kings-valley-2",variant,"Audio")));
+                Assert.True(File.Exists(Path.Combine(root,"kings-valley-2",variant,"Report","test.data")));
+            }
+            Assert.True(Directory.Exists(Path.Combine(root,"another-game")));
+            Assert.Equal("source",File.ReadAllText(Path.Combine(root,"original.rom")));
+            Assert.False(RomFolderManager.PurgeExtractedContent(root));
+        }
+        finally
+        {
+            if(Directory.Exists(root))Directory.Delete(root,true);
+        }
+    }
+
+    [Fact]
+    public void ScanRoms_FindsCartridgesBesideTheExecutable()
+    {
+        string path=Path.Combine(AppDomain.CurrentDomain.BaseDirectory,$"portable-{Guid.NewGuid():N}.rom");
+        try
+        {
+            byte[] cartridge=new byte[131072];cartridge[0]=0x41;cartridge[1]=0x42;
+            File.WriteAllBytes(path,cartridge);
+            Assert.Contains(RomFolderManager.ScanRoms(),r=>Path.GetFullPath(r.FilePath)==path);
+        }
+        finally {if(File.Exists(path))File.Delete(path);}
+    }
     [Fact]
     public void DefaultRomsDirectory_IsInsideKingsValleyAppData()
     {
@@ -60,6 +120,7 @@ public class RomFolderManagerTests
             Assert.NotNull(info);
             Assert.Equal(131072, info.SizeBytes);
             Assert.Contains("128 KB", info.Description);
+            Assert.False(info.IsSupported);
         }
         finally
         {

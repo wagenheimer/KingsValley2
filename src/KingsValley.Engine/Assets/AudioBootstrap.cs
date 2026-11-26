@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -52,30 +52,23 @@ public static class AudioBootstrap
     /// <summary>Collection root shared with MSXScope. Test runs use an isolated temporary root.</summary>
     internal static string CollectionRoot => ExtractedDirectoryOverrideForTests ?? MsxAudioPaths.Home;
 
-    public static string GraphicsRootFor(ArtFlavor flavor) => Wagenheimer.MsxGraphics.Extraction.GraphicsLayout.GetRoot(
-        CollectionRoot, "kings-valley-2", flavor == ArtFlavor.Msx1 ? "msx1" : "msx2");
-
-    public static string GraphicsDirectoryFor(ArtFlavor flavor)
+    public static string GraphicsRootFor(ArtFlavor flavor)=>GraphicsRootForVariant(CartridgeVariants.Original(flavor));
+    public static string GraphicsRootForVariant(string variant)=>Wagenheimer.MsxGraphics.Extraction.GraphicsLayout.GetRoot(CollectionRoot,"kings-valley-2",variant);
+    public static string GraphicsDirectoryFor(ArtFlavor flavor)=>GraphicsDirectoryForVariant(CartridgeVariants.Original(flavor));
+    public static string GraphicsDirectoryForVariant(string variant)
     {
-        string variant = flavor == ArtFlavor.Msx1 ? "msx1" : "msx2";
-        string root = GraphicsRootFor(flavor);
-        return GraphicsGenerationStore.Current(root, variant) ?? Path.Combine(root, "unavailable");
+        string root=GraphicsRootForVariant(variant);
+        return GraphicsGenerationStore.Current(root,variant) ?? Path.Combine(root,"unavailable");
     }
-
-    /// <summary>Current validated graphics generation for the active flavor. The legacy mixed cache is ignored.</summary>
-    public static string ExtractedDirectory => GraphicsDirectoryFor(RomContent.Flavor);
-
+    public static string ExtractedDirectory=>GraphicsDirectoryForVariant(RomContent.Variant);
     public static string? LastGraphicsAttemptDirectory { get; private set; }
-
-    /// <summary>Package produced by the extraction.</summary>
-    public static string ExtractedPackagePath => AudioPackageFor(RomContent.Flavor);
-
-    internal static string AudioPackageFor(ArtFlavor flavor) => MsxAudioPaths.PackagePath("kings-valley-2",
-        flavor == ArtFlavor.Msx1 ? "msx1" : "msx2", ExtractedDirectoryOverrideForTests ?? MsxAudioPaths.Home);
+    public static string ExtractedPackagePath=>AudioPackageForVariant(RomContent.Variant);
+    internal static string AudioPackageFor(ArtFlavor flavor)=>AudioPackageForVariant(CartridgeVariants.Original(flavor));
+    internal static string AudioPackageForVariant(string variant)=>MsxAudioPaths.PackagePath("kings-valley-2",variant,CollectionRoot);
 
     private static readonly Dictionary<string, (DateTime Stamp, long Size, bool Valid)> AudioValidation = new();
 
-    private static bool IsCurrentAudio(string path, ArtFlavor flavor)
+    private static bool IsCurrentAudio(string path, string variant)
     {
         if (!File.Exists(path)) return false;
         var info = new FileInfo(path);
@@ -83,7 +76,7 @@ public static class AudioBootstrap
         {
             if (AudioValidation.TryGetValue(path, out var cached) && cached.Stamp == info.LastWriteTimeUtc && cached.Size == info.Length)
                 return cached.Valid;
-            var profile = RomExtractionProfiles.FindByGameVariant("kings-valley-2", flavor == ArtFlavor.Msx1 ? "msx1" : "msx2");
+            var profile = RomExtractionProfiles.FindByGameVariant("kings-valley-2",variant);
             bool valid = profile != null && RomExtractionProfiles.IsCurrentPackage(path, profile);
             AudioValidation[path] = (info.LastWriteTimeUtc, info.Length, valid);
             return valid;
@@ -94,7 +87,11 @@ public static class AudioBootstrap
     public static string ContentPackagePath => Path.Combine(RomContent.AudioDirectory, "audio.msxaudio");
 
     /// <summary>Is there a package to play (extracted first, then the development one)?</summary>
-    public static bool HasPackage => IsCurrentAudio(ExtractedPackagePath, RomContent.Flavor);
+    public static bool HasPackageForVariant(string variant)=>IsCurrentAudio(AudioPackageForVariant(variant),variant);
+
+    public static bool HasPackageFor(ArtFlavor flavor) => IsCurrentAudio(AudioPackageFor(flavor),CartridgeVariants.Original(flavor));
+
+    public static bool HasPackage => IsCurrentAudio(ExtractedPackagePath, RomContent.Variant);
 
     /// <summary>Path of the package to load.</summary>
     public static string? PackagePath => HasPackage ? ExtractedPackagePath : null;
@@ -206,7 +203,7 @@ public static class AudioBootstrap
     /// </remarks>
     public static void AutoStart()
     {
-        if (HasPackage && RomContent.IsFlavorAvailable(RomContent.Flavor))
+        if (HasPackage && RomContent.IsVariantAvailable(RomContent.Variant))
         {
             Console.WriteLine($"[AudioBootstrap] package: {PackagePath}");
             return;
@@ -219,7 +216,7 @@ public static class AudioBootstrap
             return;
         }
 
-        string desired = RomContent.Flavor == ArtFlavor.Msx1 ? "msx1" : "msx2";
+        string desired = RomContent.Variant;
         foreach (var candidate in RomFolderManager.ScanRoms())
         {
             try
@@ -308,19 +305,27 @@ public static class AudioBootstrap
         string outcome = "failed";
         string? failure = null;
         string? reportGraphicsDirectory = null;
+        string sourceName = Path.GetFileName(options.RomPath);
+        string? preparationNotice = null;
         try
         {
 
 
-            byte[] rom = File.ReadAllBytes(RomFile.Resolve(options.RomPath));
+            string resolved = RomFile.Resolve(options.RomPath);
+            string prepared = ContestEnglishPatch.Prepare(resolved, CollectionRoot,
+                line => { lock (Gate) _status = line; }, token);
+            byte[] rom = File.ReadAllBytes(prepared);
+            if (prepared != resolved)
+                preparationNotice = $"English translation by FRS and contributors (enhancement patch v1.1). Original cartridge preserved: SHA-1 {ContestEnglishPatch.SourceSha1}. Working cartridge SHA-1 {ContestEnglishPatch.EnglishSha1}. Complete original patch archive and license are bundled. Source: {ContestEnglishPatch.ArchiveUrl}";
+            options.RomPath = prepared;
+            options.Profile = LoadProfile(rom);
             reportRom = rom;
-            bool isMsx2 = options.Profile.Variant == "msx2";
-            string audioPath = AudioPackageFor(isMsx2 ? ArtFlavor.Msx2 : ArtFlavor.Msx1);
+            string audioPath = AudioPackageForVariant(options.Profile.Variant!);
             reportAudioPath = audioPath;
 
             // 1. Audio extraction (0% .. 40%) - only runs if package does not already exist
             ExtractionResult? result = null;
-            if (!RomExtractionProfiles.IsCurrentPackage(audioPath, options.Profile))
+            if (!RomExtractionProfiles.IsCurrentPackage(audioPath, options.Profile, Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom))))
             {
                 int total = Math.Max(1, options.Profile.Ids.Count);
 
@@ -353,7 +358,7 @@ public static class AudioBootstrap
             token.ThrowIfCancellationRequested();
 
             // Graphics has an independent identity, staging area, inventory and publication lifecycle.
-            int stageLimit = int.TryParse(Environment.GetEnvironmentVariable("KINGSVALLEY_EXTRACT_STAGES"), out int limit) ? limit : 60;
+            int stageLimit = int.TryParse(Environment.GetEnvironmentVariable("KINGSVALLEY_EXTRACT_STAGES"), out int limit) ? limit : CartridgeVariants.StageCount(options.Profile.Variant!);
             var context = GraphicsExtractionContext.Create(rom, options.Profile.Variant!, CollectionRoot, stageLimit);
             var graphics = GraphicsExtractionCoordinator.Extract(context, line =>
             {
@@ -392,13 +397,13 @@ public static class AudioBootstrap
             // environment variable and no automatic browser launch are required.
             try
             {
-                var flavor = options.Profile.Variant == "msx2" ? ArtFlavor.Msx2 : ArtFlavor.Msx1;
-                string package = reportAudioPath ?? AudioPackageFor(flavor);
+                string variant=options.Profile.Variant!;
+                string package = reportAudioPath ?? AudioPackageForVariant(variant);
                 string reportDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(package)!)!, "Report");
                 string hash = reportRom == null ? string.Empty : Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(reportRom)).ToLowerInvariant();
-                string reportPath = ExtractionReportBuilder.Build(new(reportGraphicsDirectory ?? GraphicsDirectoryFor(flavor), package, reportDirectory,
-                    Path.GetFileName(options.RomPath), hash, options.Profile.Variant ?? "unknown", outcome,
-                    elapsed.Elapsed.TotalSeconds, failure), line => Console.WriteLine("[ExtractionReport] " + line));
+                string reportPath = ExtractionReportBuilder.Build(new(reportGraphicsDirectory ?? GraphicsDirectoryForVariant(variant), package, reportDirectory,
+                    sourceName, hash, options.Profile.Variant ?? "unknown", outcome,
+                    elapsed.Elapsed.TotalSeconds, failure, preparationNotice), line => Console.WriteLine("[ExtractionReport] " + line));
                 lock (Gate) _lastReportPath = reportPath;
             }
             catch (Exception reportError)
@@ -422,7 +427,9 @@ public static class AudioBootstrap
     internal static RomExtractionProfile LoadProfile(byte[] rom)
     {
         RomExtractionProfile profile = RomExtractionProfiles.FindForRom(rom)
-            ?? throw new InvalidDataException("This ROM revision has no verified in-process audio profile.");
+            ?? throw new InvalidDataException("This cartridge revision is not supported yet (SHA-1 " +
+                Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom)) +
+                "). Its sound driver must be verified before extraction.");
         if (profile.GameId != "kings-valley-2") throw new InvalidDataException("Not a King's Valley II audio profile.");
 
         // Quick tests: "KINGSVALLEY_EXTRACT_IDS=3,5,19" limits the work (the full profile is minutes).

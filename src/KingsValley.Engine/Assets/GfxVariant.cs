@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Linq;
 using KingsValley.Core.SaveSystem;
@@ -17,7 +17,7 @@ namespace KingsValley.Engine.Assets;
 /// <c>Content/RomMsx1</c>, and a remaster in <c>Content/ArtSets/&lt;id&gt;/</c> — creating the folder
 /// (and the <c>artset.json</c>) is enough for it to appear in the menu, without touching code. Switching the set unloads
 /// the global atlases/textures and **recreates the current scene**, so everything is read from the right folder.
-/// Stages and audio are shared.
+/// Stages and audio resolve through the active cartridge variant. Graphics cycling stays within its campaign.
 ///
 /// Precedence at initialization: <c>KINGSVALLEY_GFX=&lt;id&gt;</c> (diagnostic) > save.
 /// Key <c>F11</c> goes to the next set (<c>F2</c> is the Sound Test of the debug shortcuts).
@@ -40,7 +40,7 @@ public static class GfxVariant
         string chosen = string.IsNullOrWhiteSpace(env) ? saved : env;
 
         ArtSet? target = ArtSets.Find(RomContent.Available, chosen);
-        if (target != null && !RomContent.IsFlavorAvailable(target.Flavor) && RomContent.CanPlayAny)
+        if (target != null && !RomContent.IsVariantAvailable(target.Variant) && RomContent.CanPlayAny)
         {
             var fallback = RomContent.GetFirstPlayableFlavor();
             target = ArtSets.Find(RomContent.Available, fallback == ArtFlavor.Msx1 ? ArtSets.Msx1Id : ArtSets.Msx2Id) ?? target;
@@ -62,7 +62,7 @@ public static class GfxVariant
     public static void Cycle(int direction, bool reloadScene = false)
     {
         // Only cycle through flavors that are currently extracted and available
-        var playableSets = RomContent.Available.Where(s => RomContent.IsFlavorAvailable(s.Flavor)).ToList();
+        var playableSets = RomContent.Available.Where(s => s.CampaignId==Current.CampaignId && RomContent.IsVariantAvailable(s.Variant)).ToList();
         if (playableSets.Count <= 1)
             return;
 
@@ -80,17 +80,20 @@ public static class GfxVariant
         if (target is null || target.Id == Current.Id)
             return;
 
-        if (!RomContent.IsFlavorAvailable(target.Flavor))
+        if (!RomContent.IsVariantAvailable(target.Variant))
         {
             Console.WriteLine($"[GfxVariant] Flavor {target.Flavor} ({target.Name}) is not extracted. Redirecting to extraction screen.");
             Nez.Core.Scene = new FirstRunScene($"{target.Name.ToUpperInvariant()} GRAPHICS REQUIRE EXTRACTION - INSERT {target.Name.ToUpperInvariant()} ROM");
             return;
         }
 
+        var previous=Current;
         RomContent.Use(target);
 
         var save = ProfileSaveService.Load();
+        if(previous.CampaignId==Core.Common.Campaigns.Original)save.OriginalGfxRom=previous.Id;
         save.GfxRom = target.Id;
+        if(target.CampaignId==Core.Common.Campaigns.Original)save.OriginalGfxRom=target.Id;
         ProfileSaveService.Save(save);
 
         // Texturas/atlases globais foram carregados da pasta antiga.

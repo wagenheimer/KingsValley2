@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using KingsValley.Core.Common;
 
@@ -75,26 +75,26 @@ public static class ProfileSaveService
     }
 
     /// <summary>Writes the record if <paramref name="score"/> beats it.</summary>
-    public static void UpdateHiScore(int score)
+    public static void UpdateHiScore(int score,string campaign=Campaigns.Original)
     {
         var data = Load();
-        if (score <= data.HiScore)
+        var progress=data.ProgressFor(campaign);
+        if (score <= progress.HiScore)
             return;
 
-        data.HiScore = score;
+        progress.HiScore = score;
         Save(data);
     }
 
     /// <summary>Marks a room as completed (and updates the highest level reached).</summary>
-    public static void CompleteLevel(int number, int score)
+    public static void CompleteLevel(int number, int score,string campaign=Campaigns.Original)
     {
         var data = Load();
 
-        if (!data.CompletedLevels.Contains(number))
-            data.CompletedLevels.Add(number);
-
-        data.TotalScore += score;
-        data.HighestLevel = Math.Max(data.HighestLevel, number + 1);
+        var progress=data.ProgressFor(campaign);
+        if (!progress.CompletedLevels.Contains(number))progress.CompletedLevels.Add(number);
+        progress.TotalScore += score;
+        progress.HighestLevel = Math.Max(progress.HighestLevel,Math.Min(number+1,Campaigns.StageCount(campaign)));
 
         Save(data);
     }

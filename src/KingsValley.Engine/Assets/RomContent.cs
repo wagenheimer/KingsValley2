@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,7 +44,7 @@ public static class RomContent
     private static string Base => ContentDirectory;
 
     /// <summary>Development content root for the active cartridge flavor.</summary>
-    public static string SharedRoot => Path.Combine(ContentDirectory, Flavor == ArtFlavor.Msx1 ? "RomMsx1" : "Rom");
+    public static string SharedRoot => Path.Combine(ContentDirectory, CartridgeVariants.ContentFolder(Variant));
 
     /// <summary>Art sets found on disk (the order is the cycle order in the menu).</summary>
     public static IReadOnlyList<ArtSet> Available { get; private set; } = Array.Empty<ArtSet>();
@@ -58,13 +58,19 @@ public static class RomContent
     public static string Root => Active.Root;
 
     /// <summary>Pipeline of the active set (what changes the room assembly and the HUD).</summary>
+    public static string Variant=>Active.Variant;
+    public static string CampaignId=>Active.CampaignId;
+    public static bool IsContest=>CampaignId==Core.Common.Campaigns.Contest;
+    public static int StageCount=>CartridgeVariants.StageCount(Variant);
+    public static Core.Gameplay.GameRun NewRun(int hiScore,int stage=1,int rest=Core.Common.GameConstants.StartingRest,bool invincible=false,bool continueEnabled=false)=>
+        Core.Gameplay.GameRun.New(hiScore,stage,rest,invincible,continueEnabled,CampaignId);
     public static ArtFlavor Flavor => Active.Flavor;
 
     /// <summary>
     /// In MSX1 mode: items, soulstones, coffins and doors have a solid black backdrop
-    /// (authentic to MSX1 SCREEN 2 attribute limits). Default true.
+    /// (authentic to MSX1 SCREEN 2 attribute limits). Always enabled.
     /// </summary>
-    public static bool Msx1OpaqueBackdrop { get; set; } = true;
+    public static bool Msx1OpaqueBackdrop => true;
 
     /// <summary>
     /// Title preference (MSX1 has both variants; unavailable artwork uses the native title). Set at boot from the save
@@ -94,10 +100,10 @@ public static class RomContent
         string? previousId = Active.Id;
         Available = ArtSets.Discover(ContentDirectory,
             Path.Combine(AudioBootstrap.GraphicsDirectoryFor(ArtFlavor.Msx1), "Screens"))
-            .Where(set => IsFlavorAvailable(set.Flavor)).ToArray();
+            .Where(set => IsVariantAvailable(set.Variant)).ToArray();
 
         ArtSet? previous = ArtSets.Find(Available, previousId);
-        if (previous != null && IsFlavorAvailable(previous.Flavor))
+        if (previous != null && IsVariantAvailable(previous.Variant))
         {
             // An explicit, playable choice (save or KINGSVALLEY_GFX) always wins.
             Active = previous;
@@ -113,19 +119,6 @@ public static class RomContent
                      ?? (Available.Count > 0 ? Available[0] : Active);
         }
 
-        try
-        {
-            var save = ProfileSaveService.Load();
-            Msx1OpaqueBackdrop = save.Msx1OpaqueBackdrop;
-            // Diagnostic presentation override; never writes the player's saved preference.
-            string? objectBackground=Environment.GetEnvironmentVariable("KINGSVALLEY_MSX1_OBJECT_BG");
-            if(objectBackground=="original")Msx1OpaqueBackdrop=true;
-            else if(objectBackground=="transparent")Msx1OpaqueBackdrop=false;
-        }
-        catch
-        {
-            // Fallback to default
-        }
     }
 
     /// <summary>
@@ -147,11 +140,16 @@ public static class RomContent
     }
 
     /// <summary>
-    /// Folder of the 60 original stages (<c>stageNN.json</c>) — the same in both versions. In the free version,
+    /// Folder of the active cartridge's stages (<c>stageNN.json</c>): 60 original stages or 20 Contest challenges. In the free version,
     /// the files are generated from the ROM on the first boot (<see cref="Extraction.RomStageJson"/>) in
     /// <c>&lt;MSXMusic&gt;/kings-valley-2/&lt;variant&gt;/Graphics/generations/&lt;id&gt;/Levels</c>.
     /// </summary>
-    public static string LevelsDirectory => LevelsFor(Flavor);
+    public static string LevelsDirectory=>LevelsForVariant(Variant);
+    public static string LevelsForVariant(string variant)
+    {
+        string extracted=Path.Combine(AudioBootstrap.GraphicsDirectoryForVariant(variant),"Levels");
+        return Directory.Exists(extracted)?extracted:Path.Combine(ContentDirectory,CartridgeVariants.ContentFolder(variant),"Levels");
+    }
 
     public static string LevelsFor(ArtFlavor flavor)
     {
@@ -209,7 +207,7 @@ public static class RomContent
         {
             if (Active.ExtractedFirst)
             {
-                string extracted = Path.Combine(AudioBootstrap.GraphicsDirectoryFor(Flavor), "Art", "kv2.atlas");
+                string extracted = Path.Combine(AudioBootstrap.GraphicsDirectoryForVariant(Variant), "Art", "kv2.atlas");
                 if (File.Exists(extracted)) return extracted;
             }
             return ArtSets.Resolve(Available, Active, Path.Combine("Art", "kv2.atlas"));
@@ -266,7 +264,7 @@ public static class RomContent
 
     /// <summary>Are the 60 game stages extracted and ready to play?</summary>
     public static bool AreStagesAvailable =>
-        System.Linq.Enumerable.Range(1, 60).All(n => File.Exists(Path.Combine(LevelsDirectory, $"stage{n:00}.json")));
+        System.Linq.Enumerable.Range(1, StageCount).All(n => File.Exists(Path.Combine(LevelsDirectory, $"stage{n:00}.json")));
 
     /// <summary>Is the audio package (PSG/SCC) extracted and ready?</summary>
     public static bool IsAudioAvailable =>
@@ -280,13 +278,14 @@ public static class RomContent
     public static bool IsMsx1Available => HasCompleteGraphics(ArtFlavor.Msx1);
     public static bool IsMsx2Available => HasCompleteGraphics(ArtFlavor.Msx2);
 
-    private static bool HasCompleteGraphics(ArtFlavor flavor)
+    private static bool HasCompleteGraphics(ArtFlavor flavor)=>IsVariantAvailable(CartridgeVariants.Original(flavor));
+    public static bool IsContestAvailable=>IsVariantAvailable(CartridgeVariants.Contest);
+    public static bool IsVariantAvailable(string variant)
     {
-        string variant = flavor == ArtFlavor.Msx1 ? "msx1" : "msx2";
-        string? generation = Extraction.GraphicsGenerationStore.Current(AudioBootstrap.GraphicsRootFor(flavor), variant);
+        string? generation = Extraction.GraphicsGenerationStore.Current(AudioBootstrap.GraphicsRootForVariant(variant), variant);
         if (generation != null) return true;
         // Development bundles require the same manifest/identity contract as extracted generations.
-        string disk = Path.Combine(ContentDirectory, flavor == ArtFlavor.Msx1 ? "RomMsx1" : "Rom");
+        string disk = Path.Combine(ContentDirectory, CartridgeVariants.ContentFolder(variant));
         return Extraction.GraphicsExtractionManifest.Read(disk)?.Verify(disk, variant) == true;
     }
 
@@ -301,7 +300,7 @@ public static class RomContent
     /// <summary>Can the player launch the game (at least one flavor available and stages present)?</summary>
     public static bool CanPlayAny =>
         (IsMsx1Available && Directory.Exists(LevelsFor(ArtFlavor.Msx1))) ||
-        (IsMsx2Available && Directory.Exists(LevelsFor(ArtFlavor.Msx2)));
+        (IsMsx2Available && Directory.Exists(LevelsFor(ArtFlavor.Msx2))) || IsContestAvailable;
 
     /// <summary>Returns the first flavor that is currently playable (MSX2 preferred if available).</summary>
     public static ArtFlavor GetFirstPlayableFlavor()

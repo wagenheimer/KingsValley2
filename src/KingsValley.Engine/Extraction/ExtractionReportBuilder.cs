@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace KingsValley.Engine.Extraction;
 
 public sealed record ExtractionReportRequest(string GraphicsDirectory, string? AudioPackagePath,
     string ReportDirectory, string RomName, string RomSha1, string Variant, string Outcome,
-    double ElapsedSeconds, string? Failure = null);
+    double ElapsedSeconds, string? Failure = null, string? PreparationNotice = null);
 
 /// <summary>Collects game-specific evidence. Presentation is supplied by the reusable graphics library.</summary>
 public static class ExtractionReportBuilder
@@ -32,6 +32,9 @@ public static class ExtractionReportBuilder
             RomSha1 = request.RomSha1, Outcome = request.Outcome, ElapsedSeconds = request.ElapsedSeconds
         };
         Directory.CreateDirectory(request.ReportDirectory);
+        if (request.PreparationNotice != null) report.Notices.Add(request.PreparationNotice);
+        if(request.Variant==Assets.CartridgeVariants.Contest)
+            report.Notices.Add("Contest contains four publications with five independent author challenges each. Its native publication, author and SCREEN SELECT menus are extracted as thirty binary frames, including six visual themes. The native CONGRATULATION screen follows door entry and the closing curtain, preserves the live score HUD, and returns to publication selection after 360 logic calls. The framed artwork is the edition title, not a separate winner certificate.");
         if(request.Variant=="msx2")report.Notices.Add("This validated MSX2 cartridge draws the Japanese title only. An English title is not extracted, fabricated or borrowed from MSX1; the title-language preference uses the available native title.");
         if (request.Outcome == "existing") report.Notices.Add("This report was rebuilt from available files. No new extraction was performed to generate this view.");
         if (!string.IsNullOrWhiteSpace(request.Failure)) report.Notices.Add("The run did not finish: " + request.Failure);
@@ -100,7 +103,7 @@ public static class ExtractionReportBuilder
                         byte[] packed=File.ReadAllBytes(file);
                         _=Packed4Bpp.Unpack(packed,width*height);
                         byte[] palette=Wagenheimer.MsxGraphics.Video.Tms9918.Palette.SelectMany((c,i)=>new[]{c.R,c.G,c.B,i==0?(byte)0:(byte)255}).ToArray();
-                        if(report.Variant=="msx2")
+                        if(report.Variant!="msx1")
                         {
                             string pyramid=Path.GetFileName(Path.GetDirectoryName(file)!)[1..];
                             using var colors=JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"Rooms","palettes.json")));
@@ -146,7 +149,8 @@ public static class ExtractionReportBuilder
                 }
             }
         }
-        if (report.StageCount < 60) report.Notices.Add($"Found {report.StageCount} of 60 stages. The graphics library cannot yet be considered complete.");
+        int expected=Assets.CartridgeVariants.StageCount(report.Variant);
+        if (report.StageCount < expected) report.Notices.Add($"Found {report.StageCount} of {expected} stages. The graphics library cannot yet be considered complete.");
     }
 
     private static string Category(string group) => group switch

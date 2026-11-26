@@ -25,6 +25,8 @@ MSX2 rooms use native 4bpp blocks, murals, decorations and palette animation. MS
 
 Use the system menu GRAPHICS setting or F11 to cycle available art sets. `KINGSVALLEY_GFX=<id>` is the diagnostic selection; F2 is Sound Test, not graphics selection.
 
+Graphics cycling stays within the active campaign. When only one compatible set is available, GRAPHICS shows its name without adjustment arrows; selecting it explains the limitation in the footer. Long setting values use compact text within a reserved value column so they cannot overlap labels. The TITLE LOGO row shows NATIVE without arrows when the cartridge has no alternate English artwork.
+
 Fixed screens use a 38-byte header: palette 32 bytes, little-endian width/height four bytes, flags one byte and reserved one byte, followed by packed 4bpp pixels. Flag bit zero enables transparent color zero; bit one selects the fixed TMS9918 palette. Legacy flag-zero V9938 screens keep their contract. No PNG background or fixed screen is loaded by the game. Sprite atlases may use PNG.
 
 `tools/kv2-extract/art/artkit.py` is an optional artist workflow, not the production extraction or a fidelity oracle. Inspect its supported formats before using it on a new palette-model header; do not assume a rendered-color round trip preserves native palette indices or alpha. Export from the selected validated generation's `Screens` directory, never the old mixed cache.
@@ -34,8 +36,8 @@ See [EXTRACTION_HANDOFF.md](EXTRACTION_HANDOFF.md) for current paths and [GRAPHI
 
 ## MSX1 object background presentation
 
-The system menu's **OBJECT BG** row selects **ORIGINAL** or **TRANSPARENT** in MSX1. It displays **N/A (MSX2)** for MSX2. Original preserves the cartridge's black tile-object backgrounds; Transparent reveals the room around items, soulstones, coffins and exit doors. The change applies immediately and is saved. The toggle itself plays no cursor/confirmation effect; ordinary menu navigation keeps its existing feedback.
+MSX1 always preserves the cartridge's original black tile-object backgrounds for items, soulstones, coffins and exit doors. The former OBJECT BG setting has been removed. Legacy saved transparent preferences are ignored.
 
 This is an optional runtime presentation copy, not an extraction change. The reusable `SpriteBackdrop.RemoveConnectedBlack` removes border-connected black/transparent pixels and preserves enclosed black details. It only applies to eligible MSX1 object regions, including item-name aliases; actors, projectiles and terrain remain unchanged. Native atlas files and manifests are never rewritten. Baked coffin/door backgrounds are restored from the native mural and terrain before drawing the optional copies.
 
-For reproducible captures, `KINGSVALLEY_MSX1_OBJECT_BG=original|transparent` overrides the initial display preference without saving it. This setting controls object backgrounds, not the VDP display border or MSX1's ten-pixel presentation letterbox.
+The former `KINGSVALLEY_MSX1_OBJECT_BG` diagnostic override is ignored. MSX1 retains its ten-pixel presentation letterbox.

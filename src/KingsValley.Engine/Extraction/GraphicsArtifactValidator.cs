@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.IO;
 using System.Linq;
@@ -28,7 +28,7 @@ public static class GraphicsArtifactValidator
             if (screen.Width == 256 && screen.Height != height && screen.Height != 32) throw new InvalidDataException("Unexpected screen height: "+path);
         }
         var animationRooms=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
-        for (int stage=1;stage<=60;stage++)
+        for (int stage=1;stage<=Assets.CartridgeVariants.StageCount(context.Variant);stage++)
         {
             int number=stage;
             Check($"stage-{stage:00}",()=>
@@ -43,7 +43,7 @@ public static class GraphicsArtifactValidator
             });
         }
         foreach (string name in KingsValleyGraphicsProfiles.RequiredScreens(context.Variant)) Check("screen-"+name,()=>Screen("Screens/"+name+".bin"));
-        if (context.Variant == "msx2")
+        if (context.Variant != "msx1")
         {
             for(int p=1;p<=6;p++)
             {
@@ -66,10 +66,10 @@ public static class GraphicsArtifactValidator
                 Check("sprite-"+name,()=> { if(!regions.TryGetValue(name,out var region) || region.VisiblePixels==0) throw new InvalidDataException("Required sprite is missing or transparent: "+name); });
             if(File.Exists(Path.Combine(directory,"Art","kv2.generated"))) throw new InvalidDataException("Procedural atlas markers are not accepted.");
         });
-        for(int pyramid=1;pyramid<=(context.Variant=="msx2"?6:1);pyramid++)
+        for(int pyramid=1;pyramid<=(context.Variant!="msx1"?6:1);pyramid++)
         {
         int capturedPyramid=pyramid;
-        string prefix=context.Variant=="msx2"?$"mechanism-p{pyramid}-":"mechanism-";
+        string prefix=context.Variant!="msx1"?$"mechanism-p{pyramid}-":"mechanism-";
         string MechanismFile(string name)=>Path.Combine(directory,"Rooms",KingsValleyGraphicsProfiles.MechanismPath(context.Variant,capturedPyramid,name));
         for(int phase=0;phase<4;phase++)
         {
@@ -96,7 +96,7 @@ public static class GraphicsArtifactValidator
                animation.Frames.Any(f=>f.Background>1) || !animation.Frames.Any(f=>f.Background==1))
                 throw new InvalidDataException("The native MSX1 intro timeline does not match its sprite strip.");
         });
-        if(context.StageLimit!=60) result.Checks.Add(new("scope","partial","Diagnostic stage subsets never replace a complete generation."));
+        if(context.StageLimit!=Assets.CartridgeVariants.StageCount(context.Variant)) result.Checks.Add(new("scope","partial","Diagnostic stage subsets never replace a complete generation."));
         foreach(string file in Directory.EnumerateFiles(directory,"*",SearchOption.AllDirectories).OrderBy(p=>p,StringComparer.Ordinal))
         {
             if(Path.GetFileName(file)==GraphicsExtractionManifest.FileName) continue;

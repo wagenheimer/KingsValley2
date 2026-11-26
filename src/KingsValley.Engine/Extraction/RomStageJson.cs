@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,8 +31,11 @@ public static class RomStageJson
     /// <summary>Builds the JSON of one stage with pre-read tables and state for speed.</summary>
     public static string Build(RomLevels levels, RomStage state, int stage)
     {
-        RomLevel tables = levels.Read(stage);
+        return Build(levels.Read(stage),state,stage);
+    }
 
+    public static string Build(RomLevel tables,RomStage state,int stage)
+    {
         var rooms = new JsonArray();
         foreach (RomRoom room in tables.Rooms)
         {

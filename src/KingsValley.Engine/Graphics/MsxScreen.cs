@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,6 +16,7 @@ public static class MsxScreen
 {
     private static readonly Dictionary<string, Sprite?> Cache = new();
     private static Texture2D? _pixel;
+    private static Texture2D? _applicationGlyphs;
 
     /// <summary>Width of a character (VDP).</summary>
     public const int CharSize = 8;
@@ -92,6 +93,13 @@ public static class MsxScreen
         if (string.IsNullOrEmpty(text) || maxWidth < MiniCharWidth)
             return lines;
 
+        if (text.Contains('\n'))
+        {
+            foreach (string paragraph in text.Replace("\r", "").Split('\n'))
+                lines.AddRange(MiniTextWrap(paragraph, maxWidth));
+            return lines;
+        }
+
         int charsPerLine = maxWidth / MiniCharWidth;
         var current = new System.Text.StringBuilder();
 
@@ -151,22 +159,19 @@ public static class MsxScreen
             }
 
             ushort glyph = GetMiniGlyph(raw);
-            if (glyph != 0)
-            {
-                for (int r = 0; r < 5; r++)
-                {
-                    for (int c = 0; c < 3; c++)
-                    {
-                        if ((glyph & (1 << (14 - (r * 3 + c)))) != 0)
-                            Fill(batcher, new Rectangle((int)curX + c, (int)y + r, 1, 1), tint);
-                    }
-                }
-            }
+            if (glyph != 0 && raw < 128)
+                batcher.Draw(ApplicationGlyphs, new Vector2(curX, y),
+                    new Rectangle((raw % 16) * 8, (raw / 16) * 8, 3, 5), tint);
+            else if (glyph != 0)
+                for (int row=0;row<5;row++)
+                for (int col=0;col<3;col++)
+                    if ((glyph & (1 << (14-row*3-col))) != 0)
+                        Fill(batcher,new Rectangle((int)curX+col,(int)y+row,1,1),tint);
             curX += MiniCharWidth;
         }
     }
 
-    private static ushort GetMiniGlyph(char ch) => ch switch
+    internal static ushort GetMiniGlyph(char ch) => ch switch
     {
         '0' => 0b111_101_101_101_111,
         '1' => 0b010_110_010_010_111,
@@ -354,22 +359,47 @@ public static class MsxScreen
         if (pattern == null)
             return;
 
-        int ix = (int)x;
-        int iy = (int)y;
-        for (int r = 0; r < 7; r++)
+        if (c >= 128)
         {
-            byte row = pattern[r];
-            if (row == 0) continue;
+            for (int row = 0; row < 7; row++)
             for (int col = 0; col < 5; col++)
+                if ((pattern[row] & (1 << (4-col))) != 0)
+                    Fill(batcher,new Rectangle((int)(x+(col+1)*scale),(int)(y+row*scale),
+                        (int)scale,(int)scale),tint);
+            return;
+        }
+        int index = c;
+        batcher.Draw(ApplicationGlyphs, new Vector2(x,y),
+            new Rectangle((index % 16) * 8, 64 + (index / 16) * 8, 8, 8),
+            tint, 0f, Vector2.Zero, new Vector2(scale), SpriteEffects.None, 0f);
+    }
+
+    // Application-only fonts remain available before extraction. One quad per glyph also
+    // avoids thousands of pixel draws and buffer flushes on the first-run screen.
+    private static Texture2D ApplicationGlyphs
+    {
+        get
+        {
+            if (_applicationGlyphs is { IsDisposed: false }) return _applicationGlyphs;
+            var pixels = new Color[128 * 128];
+            for (int code = 0; code < 128; code++)
             {
-                if ((row & (1 << (4 - col))) != 0)
-                {
-                    if (scale == 1f)
-                        Fill(batcher, new Rectangle(ix + col + 1, iy + r, 1, 1), tint);
-                    else
-                        Fill(batcher, new Rectangle((int)(x + (col + 1) * scale), (int)(y + r * scale), (int)scale, (int)scale), tint);
-                }
+                int x = (code % 16) * 8, y = (code / 16) * 8;
+                ushort mini = GetMiniGlyph((char)code);
+                for (int row = 0; row < 5; row++)
+                for (int col = 0; col < 3; col++)
+                    if ((mini & (1 << (14-row*3-col))) != 0)
+                        pixels[(y+row)*128+x+col] = Color.White;
+                var fallback = GetFallbackGlyph((char)code);
+                if (fallback == null) continue;
+                for (int row = 0; row < 7; row++)
+                for (int col = 0; col < 5; col++)
+                    if ((fallback[row] & (1 << (4-col))) != 0)
+                        pixels[(64+y+row)*128+x+col+1] = Color.White;
             }
+            _applicationGlyphs = new Texture2D(Nez.Core.GraphicsDevice,128,128);
+            _applicationGlyphs.SetData(pixels);
+            return _applicationGlyphs;
         }
     }
 

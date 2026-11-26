@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,13 +17,20 @@ public static class Msx1IntroAnimation
     {
         var profile=RomExtractionProfiles.FindForRom(rom);
         if(profile?.GameId!="kings-valley-2" || profile.Variant!="msx1")throw new InvalidDataException("The intro recipe requires the verified MSX1 cartridge.");
-        var machine=new MiniMsx(rom,RomMapper.KonamiScc);machine.SetBiosByte(0x002B,0);
-        if(!machine.Boot(2_000_000))throw new InvalidDataException("The native intro machine did not boot.");
-        machine.CallAddress(0x4192);machine.CallAddress(0x6611,2_000_000);
-        machine.Write(0xE200,3);machine.Write(0xE201,6);machine.Write(0xE24A,0);
-        // The game runs inside H.TIMI. Direct setup calls leave the main CPU at their return
-        // sentinel; only the cartridge interrupt hook should advance this isolated scene.
-        machine.MainRunning=false;
+        bool usesMainLoop=Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom))==RomFolderManager.Msx1FrsSha1;
+        MiniMsx machine;
+        if(usesMainLoop)
+            machine=RomScreens.BootToIntro(rom,token);
+        else
+        {
+            machine=new MiniMsx(rom,RomMapper.KonamiScc);machine.SetBiosByte(0x002B,0);
+            if(!machine.Boot(2_000_000))throw new InvalidDataException("The native intro machine did not boot.");
+            machine.CallAddress(0x4192);machine.CallAddress(0x6611,2_000_000);
+            // Original RC-760 advances inside H.TIMI. Direct setup returns the main CPU
+            // to a sentinel. FRS DynamicVsync instead needs its booted main loop intact.
+            machine.MainRunning=false;
+            machine.Write(0xE200,3);machine.Write(0xE201,6);machine.Write(0xE24A,0);
+        }
         var animation=new NativeActorAnimation {FramesPerSecond=machine.FramesPerSecond};
         var poses=new List<byte[]>();var unique=new Dictionary<string,int>(StringComparer.Ordinal);
         bool completed=false;

@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -25,8 +25,12 @@ namespace KingsValley.Engine.Scenes;
 /// </summary>
 public class MainMenuScene : SceneBase
 {
+    private readonly bool _startSelect;
+    public MainMenuScene(bool startSelect=false)=>_startSelect=startSelect;
+
     protected override void OnInitialize()
     {
+        if(RomContent.IsContest){Nez.Core.Scene=new CampaignSelectionScene(stages:true);return;}
         GameAudio.Initialize();
         GameAudio.PlayTitle();
         AddEntity(new Entity("menu")).AddComponent(new MenuRenderer(this));
@@ -84,7 +88,7 @@ public class MainMenuScene : SceneBase
             RenderLayer = RenderLayers.Tile;
             _title = _scene.LoadScreen("title");
             _select = _scene.LoadScreen("start_select");
-            _page = DebugPage;
+            _page = _scene._startSelect?Page.StartSelect:DebugPage;
         }
 
         public void ReloadGraphics()
@@ -247,10 +251,7 @@ public class MainMenuScene : SceneBase
                 return;
             }
 
-            // Native MSX1 4845 calls 6588 after GAME: both cartridges open START SELECT.
-            _message = string.Empty;
-            _page = Page.StartSelect;
-            GameAudio.PlayMenu();
+            Nez.Core.Scene=new CampaignSelectionScene();
         }
 
         private void UpdateTitle()
@@ -295,7 +296,7 @@ public class MainMenuScene : SceneBase
             switch (_option)
             {
                 case 0:
-                    Start(GameRun.New(ProfileSaveService.Load().HiScore));
+                    Start(RomContent.NewRun(ProfileSaveService.Load().ProgressFor(RomContent.CampaignId).HiScore));
                     break;
                 case 1:
                     _page = Page.Password;
@@ -327,7 +328,7 @@ public class MainMenuScene : SceneBase
                         var json = System.IO.File.ReadAllText(savedPath);
                         var stage = StageLoader.Parse(json);
                         GameNavigation.StageOverride = stage;
-                        Start(GameRun.New(ProfileSaveService.Load().HiScore, stage.Number > 0 ? stage.Number : 1));
+                        Start(RomContent.NewRun(ProfileSaveService.Load().ProgressFor(RomContent.CampaignId).HiScore, stage.Number > 0 ? stage.Number : 1));
                     }
                     else
                     {
@@ -380,23 +381,23 @@ public class MainMenuScene : SceneBase
                 return;
 
             var text = _password.ToString();
-            int hi = ProfileSaveService.Load().HiScore;
+            int hi = ProfileSaveService.Load().ProgressFor(RomContent.CampaignId).HiScore;
             if (text == StagePassword.Festival)
             {
                 // 6B24: play_clear (stage 1, REST 1) + E255 = 1 (invencibilidade).
                 GameAudio.PlayConfirm();
-                Start(GameRun.Cheat(hi, invincible: true));
+                Start(GameRun.Cheat(hi, invincible: true,campaignId:RomContent.CampaignId));
             }
             else if (StagePassword.TryDecode(text, out int stage, out int lives))
             {
                 GameAudio.PlayConfirm();
-                Start(GameRun.New(hi, stage, lives));
+                Start(RomContent.NewRun(hi, stage, lives));
             }
             else if (text == StagePassword.TryAgain)
             {
                 // 6B24: play_clear (stage 1, REST 1) + E217 = 1 (continue habilitado).
                 GameAudio.PlayConfirm();
-                Start(GameRun.Cheat(hi, continueEnabled: true));
+                Start(GameRun.Cheat(hi, continueEnabled: true,campaignId:RomContent.CampaignId));
             }
             else
             {

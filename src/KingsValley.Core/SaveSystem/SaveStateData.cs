@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using KingsValley.Core.Gameplay;
@@ -33,6 +33,8 @@ public sealed class SaveStateData
 
 public sealed class GameRunData
 {
+    public int ContestPyramid {get;set;}=1;
+    public string CampaignId {get;set;}=KingsValley.Core.Common.Campaigns.Original;
     public int Stage { get; set; }
     public int Lives { get; set; }
     public int HiScore { get; set; }
@@ -65,6 +67,7 @@ public sealed class StageSessionData
     public List<RotatingDoorData> RotatingDoors { get; set; } = new();
     public List<TrapData> Traps { get; set; } = new();
     public List<FallingWallData> FallingWalls { get; set; } = new();
+    public List<GoldenLadderData> GoldenLadders {get;set;}=new();
     public DigCrumbleData? Crumble { get; set; }
     public int DigTimer { get; set; }
     public int DigStage { get; set; }
@@ -89,6 +92,13 @@ public sealed class PlayerData
     public int VelocityY { get; set; }
     public int AnimPhase { get; set; }
     public int AnimTimer { get; set; }
+}
+
+public sealed class GoldenLadderData
+{
+    public int Index {get;set;}
+    public int Remaining {get;set;}=2;
+    public bool Armed {get;set;}
 }
 
 public sealed class FloorItemData

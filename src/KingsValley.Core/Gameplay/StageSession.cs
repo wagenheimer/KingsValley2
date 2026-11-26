@@ -159,9 +159,14 @@ public sealed partial class StageSession
     public IReadOnlyList<GameEvent> Events => _events;
 
     /// <summary>Builds the session from the definition.</summary>
-    public StageSession(StageDefinition definition)
+    public string CampaignId {get;}
+    /// <summary>Contest 4800: E204=180 decrements only on alternate logic calls.</summary>
+    public const int ContestClearTicks=360;
+    public StageSession(StageDefinition definition,string campaignId=Campaigns.Original)
     {
+        Campaigns.StageCount(campaignId);CampaignId=campaignId;
         Definition = definition;
+        foreach(var ladder in definition.GoldenLadders)_goldenLadders[ladder]=new GoldenLadderState();
         foreach (var room in definition.Rooms)
             _rooms[room.Index] = new RoomMap(room, definition.Ladders.Concat(definition.GoldenLadders));
 
@@ -540,6 +545,7 @@ public sealed partial class StageSession
         UpdateEnemies();
         CheckEnemyContact();
         UpdateMechanisms(input);
+        UpdateGoldenLadders();
         // 4711: the e300_enemy_hit is the LAST step of play_tick (after vic_enemy_overlap) — the
         // hit test sees the positions already moved on this tick.
         CheckToolHits();
@@ -796,6 +802,12 @@ public sealed partial class StageSession
     /// </summary>
     private void StepClearScreen(PlayerInput input, int t)
     {
+        if(CampaignId==Campaigns.Contest)
+        {
+            // Contest 47CF/4800: no bonus/password/key wait; return to publication selection.
+            if(t>=ContestClearTicks-1){Status=StageStatus.Cleared;ClearStep=ExitClearStep.None;}
+            return;
+        }
         switch (ClearStep)
         {
             case ExitClearStep.Texts:

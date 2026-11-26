@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Threading;
 
@@ -27,8 +27,19 @@ public static class GraphicsExtractionCoordinator
         bool cancelled=false;
         try
         {
-            Step("stages",()=>RomStageJson.WriteAll(context.Rom,System.IO.Path.Combine(staging,"Levels"),maxStages:context.StageLimit));
-            if(context.Variant=="msx2") Msx2GraphicsPipeline.Extract(context,staging,Step,log,token);
+            Step("stages",()=>
+            {
+                if(context.Variant==Assets.CartridgeVariants.Contest)ContestCartridge.WriteStages(context.Rom,System.IO.Path.Combine(staging,"Levels"),context.StageLimit);
+                else RomStageJson.WriteAll(context.Rom,System.IO.Path.Combine(staging,"Levels"),maxStages:context.StageLimit);
+            });
+            if(context.Variant==Assets.CartridgeVariants.Contest)
+            {
+                Step("contest rooms",()=>ContestCartridge.WriteRooms(context.Rom,staging));
+                Step("contest screens",()=>ContestCartridge.WriteScreens(context.Rom,staging));
+                Step("contest mechanisms",()=>Msx2MechanismFrames.Write(context.Rom,staging,log,token));
+                Step("contest atlas",()=>RomDirectExtractor.ExtractMsx2Atlas(context.Rom,staging,log));
+            }
+            else if(context.Variant=="msx2") Msx2GraphicsPipeline.Extract(context,staging,Step,log,token);
             else Msx1GraphicsPipeline.Extract(context,staging,Step,log,token);
             token.ThrowIfCancellationRequested();
         }

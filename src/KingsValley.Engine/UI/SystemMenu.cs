@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.IO;
 using Microsoft.Xna.Framework;
@@ -22,8 +22,8 @@ namespace KingsValley.Engine.UI;
 /// retry stage, resume and back to title.
 /// </summary>
 /// <remarks>
-/// <para>Drawn with the game's own font (<see cref="MsxScreen"/>) on the
-/// <see cref="RenderLayers.SystemMenu"/> layer, above the world — authentic MSX2 Konami pause menu.</para>
+/// <para>Application controls in the existing MSX-style pixel layout, on the
+/// <see cref="RenderLayers.SystemMenu"/> layer above the world.</para>
 /// <para>While it is open the game scene **freezes** (<see cref="Scenes.GameScene"/> returns before
 /// processing a tick).</para>
 /// </remarks>
@@ -237,7 +237,9 @@ public static class SystemMenu
     /// <summary>The menu can open on any scene, except during active extraction in FirstRunScene.</summary>
     private static bool CanOpen()
     {
-        if (Nez.Core.Scene is Scenes.FirstRunScene fr && fr.IsExtracting)
+        // Native Contest/campaign selectors own ESC as their back action.
+        if(Nez.Core.Scene is Scenes.CampaignSelectionScene)return false;
+        if (Nez.Core.Scene is Scenes.FirstRunScene fr && (fr.IsExtracting || fr.HasDialog))
             return false;
 
         return true;
@@ -309,12 +311,16 @@ public static class SystemMenu
         public Func<string>? Value;
         public Action? Activate;
         public Action<int>? Change;
+        public Func<bool>? CanChange;
+        public string UnavailableHint=string.Empty;
         public bool PlayChangeSound=true;
     }
 
     /// <summary>Menu drawing and layout.</summary>
     private sealed class View : RenderableComponent, IUpdatable
     {
+        private ApplicationMenuCanvas? _canvas;
+        private bool _drawingCanvas;
         private const int PanelWidth = 216;
         private const int PanelHeight = 192;
         private const int RowHeightMain = 10;
@@ -347,6 +353,17 @@ public static class SystemMenu
         private readonly Texture2D?[] _slotTextures = new Texture2D?[SaveStateService.MaxSlots];
         private string _statusMessage = string.Empty;
         private float _statusTimer;
+        private string _graphicsCampaign=string.Empty;
+        private int _playableGraphicsCount;
+        private bool CanChangeGraphics()
+        {
+            if(_graphicsCampaign!=RomContent.CampaignId)
+            {
+                _graphicsCampaign=RomContent.CampaignId;
+                _playableGraphicsCount=RomContent.Available.Count(s=>s.CampaignId==RomContent.CampaignId && RomContent.IsVariantAvailable(s.Variant));
+            }
+            return _playableGraphicsCount>1;
+        }
 
         public View()
         {
@@ -403,21 +420,11 @@ public static class SystemMenu
             items.Add(new Item
             {
                 Label = "GRAPHICS",
-                Value = () =>
-                {
-                    int playableCount = RomContent.Available.Count(s => RomContent.IsFlavorAvailable(s.Flavor));
-                    return playableCount > 1 ? GfxVariant.Current.Name : $"{GfxVariant.Current.Name} (LOCKED)";
-                },
+                Value = () => GfxVariant.Current.Name,
+                CanChange=CanChangeGraphics,
+                UnavailableHint="ONE GRAPHICS SET FOR THIS CAMPAIGN",
                 Change = CycleGraphics,
                 Activate = () => CycleGraphics(+1),
-            });
-            items.Add(new Item
-            {
-                Label = "OBJECT BG",
-                Value = () => RomContent.Flavor!=ArtFlavor.Msx1?"N/A (MSX2)":RomContent.Msx1OpaqueBackdrop?"ORIGINAL":"TRANSPARENT",
-                Change = _ => ToggleMsx1Backdrop(),
-                Activate = ToggleMsx1Backdrop,
-                PlayChangeSound=false,
             });
             items.Add(new Item
             {
@@ -429,7 +436,9 @@ public static class SystemMenu
             items.Add(new Item
             {
                 Label = "TITLE LOGO",
-                Value = () => RomContent.TitleArtLanguage == TitleLanguage.Japanese ? "JP" : "EN",
+                Value = () => !File.Exists(RomContent.ScreenPath("title_en"))?"NATIVE":RomContent.TitleArtLanguage == TitleLanguage.Japanese ? "JP" : "EN",
+                CanChange=()=>File.Exists(RomContent.ScreenPath("title_en")),
+                UnavailableHint="THIS CARTRIDGE HAS ONE TITLE LOGO",
                 Change = _ => ToggleTitleLanguage(),
                 Activate = ToggleTitleLanguage,
             });
@@ -453,10 +462,7 @@ public static class SystemMenu
                 Activate = () =>
                 {
                     Close();
-                    Extraction.RomFolderManager.PurgeExtractedContent();
-                    RomContent.Initialize();
-                    GameAssets.Unload();
-                    Nez.Core.Scene = new Scenes.FirstRunScene("EXTRACTED DATA RESET. SELECT A ROM TO EXTRACT.");
+                    Nez.Core.Scene = new Scenes.FirstRunScene(requestReset:true);
                 },
             });
 
@@ -495,6 +501,7 @@ public static class SystemMenu
 
         public override void OnRemovedFromEntity()
         {
+            _canvas?.Dispose();
             base.OnRemovedFromEntity();
             DisposeSlotTextures();
         }
@@ -533,9 +540,9 @@ public static class SystemMenu
             for (int i = 0; i < SaveStateService.MaxSlots; i++)
             {
                 int slot = i + 1;
-                _slotData[i] = SaveStateService.Load(slot);
+                _slotData[i] = SaveStateService.Load(slot,RomContent.CampaignId);
 
-                var pngPath = SaveStateService.GetPngPath(slot);
+                var pngPath = SaveStateService.GetPngPath(slot,RomContent.CampaignId);
                 if (File.Exists(pngPath) && gd != null)
                 {
                     try
@@ -570,7 +577,7 @@ public static class SystemMenu
             if (_page == MenuPage.Main)
             {
                 Item item = _mainItems[_selected];
-                if (item.Change == null) return;
+                if (item.Change == null || item.CanChange?.Invoke()==false) return;
                 if(item.PlayChangeSound)GameAudio.PlayCursor();
                 item.Change(direction);
             }
@@ -585,6 +592,7 @@ public static class SystemMenu
             if (_page == MenuPage.Main)
             {
                 Item item = _mainItems[_selected];
+                if(item.CanChange?.Invoke()==false)return;
                 if (item.Activate != null)
                 {
                     item.Activate();
@@ -611,7 +619,7 @@ public static class SystemMenu
                         var data = gameScene.CreateSaveState(slot);
                         if (data != null)
                         {
-                            SaveStateService.Save(slot, data, _capturedThumbnail);
+                            SaveStateService.Save(slot, data, _capturedThumbnail,RomContent.CampaignId);
                             _slotData[_selected] = data;
 
                             // Refresh thumbnail in UI
@@ -715,25 +723,29 @@ public static class SystemMenu
 
         public override void Render(Batcher batcher, Camera camera)
         {
+            _drawingCanvas=_page==MenuPage.Main;
+            if(_drawingCanvas){_canvas??=new ApplicationMenuCanvas();_canvas.Clear(Color.Transparent);}
+            // Submit gameplay quads before the application overlay changes textures/state.
+            batcher.FlushBatch();
             // 1. Semi-transparent dark overlay dimming the game behind
-            MsxScreen.Fill(batcher, new Rectangle(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight), BackdropDim);
+            Fill(batcher, new Rectangle(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight), BackdropDim);
 
             int x = (GameConstants.DesignWidth - PanelWidth) / 2;
             int y = (GameConstants.DesignHeight - PanelHeight) / 2;
 
             // 2. Panel box
-            MsxScreen.Fill(batcher, new Rectangle(x, y, PanelWidth, PanelHeight), PanelBg);
+            Fill(batcher, new Rectangle(x, y, PanelWidth, PanelHeight), PanelBg);
 
             // Double border
-            MsxScreen.Fill(batcher, new Rectangle(x, y, PanelWidth, 1), OuterBorder);
-            MsxScreen.Fill(batcher, new Rectangle(x, y + PanelHeight - 1, PanelWidth, 1), OuterBorder);
-            MsxScreen.Fill(batcher, new Rectangle(x, y, 1, PanelHeight), OuterBorder);
-            MsxScreen.Fill(batcher, new Rectangle(x + PanelWidth - 1, y, 1, PanelHeight), OuterBorder);
+            Fill(batcher, new Rectangle(x, y, PanelWidth, 1), OuterBorder);
+            Fill(batcher, new Rectangle(x, y + PanelHeight - 1, PanelWidth, 1), OuterBorder);
+            Fill(batcher, new Rectangle(x, y, 1, PanelHeight), OuterBorder);
+            Fill(batcher, new Rectangle(x + PanelWidth - 1, y, 1, PanelHeight), OuterBorder);
 
-            MsxScreen.Fill(batcher, new Rectangle(x + 1, y + 1, PanelWidth - 2, 1), InnerBorder);
-            MsxScreen.Fill(batcher, new Rectangle(x + 1, y + PanelHeight - 2, PanelWidth - 2, 1), InnerBorder);
-            MsxScreen.Fill(batcher, new Rectangle(x + 1, y + 1, 1, PanelHeight - 2), InnerBorder);
-            MsxScreen.Fill(batcher, new Rectangle(x + PanelWidth - 2, y + 1, 1, PanelHeight - 2), InnerBorder);
+            Fill(batcher, new Rectangle(x + 1, y + 1, PanelWidth - 2, 1), InnerBorder);
+            Fill(batcher, new Rectangle(x + 1, y + PanelHeight - 2, PanelWidth - 2, 1), InnerBorder);
+            Fill(batcher, new Rectangle(x + 1, y + 1, 1, PanelHeight - 2), InnerBorder);
+            Fill(batcher, new Rectangle(x + PanelWidth - 2, y + 1, 1, PanelHeight - 2), InnerBorder);
 
             if (_page == MenuPage.Main)
             {
@@ -743,17 +755,23 @@ public static class SystemMenu
             {
                 RenderSlotMenu(batcher, x, y);
             }
+            if(_drawingCanvas)
+            {
+                _canvas!.Commit();batcher.Draw(_canvas.Texture,Vector2.Zero,Color.White);
+                _drawingCanvas=false;
+            }
+            batcher.FlushBatch();
         }
 
         private void RenderMainMenu(Batcher batcher, int x, int y)
         {
             // 3. Header title
-            const string title = "* SYSTEM MENU *";
+            const string title = "SYSTEM MENU";
             float titleX = x + (PanelWidth - title.Length * MsxScreen.CharSize) / 2f;
-            MsxScreen.Text(batcher, title, titleX, y + 6, TitleColor);
+            DrawText(batcher, title, titleX, y + 6, TitleColor);
 
             // Header separator line
-            MsxScreen.Fill(batcher, new Rectangle(x + 6, y + 16, PanelWidth - 12, 1), DividerColor);
+            Fill(batcher, new Rectangle(x + 6, y + 16, PanelWidth - 12, 1), DividerColor);
 
             // 4. Menu rows
             for (int i = 0; i < _mainItems.Length; i++)
@@ -764,58 +782,85 @@ public static class SystemMenu
                 if (isSelected)
                 {
                     // Highlight row background
-                    MsxScreen.Fill(batcher, new Rectangle(x + 4, rowY - 1, PanelWidth - 8, 10), HighlightBg);
+                    Fill(batcher, new Rectangle(x + 4, rowY - 1, PanelWidth - 8, 10), HighlightBg);
                     // Golden accent bar on left edge
-                    MsxScreen.Fill(batcher, new Rectangle(x + 4, rowY - 1, 2, 10), AccentBar);
+                    Fill(batcher, new Rectangle(x + 4, rowY - 1, 2, 10), AccentBar);
 
                     // Selection cursor
-                    if (MsxScreen.Get("arrow") != null)
-                        MsxScreen.Draw(batcher, "arrow", x + 8, rowY);
-                    else
-                        MsxScreen.MiniText(batcher, "►", x + 9, rowY + 1, TitleColor);
+                    MiniText(batcher,"►",x+9,rowY+1,TitleColor);
                 }
 
                 // Label
                 Color labelColor = isSelected ? TextSelected : TextNormal;
-                MsxScreen.Text(batcher, _mainItems[i].Label, x + 22, rowY, labelColor);
+                DrawText(batcher, _mainItems[i].Label, x + 22, rowY, labelColor);
 
                 // Value with arrows (if row has value)
                 string value = _mainItems[i].Value?.Invoke() ?? string.Empty;
                 if (value.Length > 0)
                 {
-                    Color valColor = isSelected ? ValueSelected : ValueNormal;
+                    bool adjustable=_mainItems[i].CanChange?.Invoke()!=false;
+                    Color valColor = !adjustable?HintColor:isSelected ? ValueSelected : ValueNormal;
                     Color arrColor = isSelected ? ArrowSelected : ArrowNormal;
 
-                    int valWidth = value.Length * MsxScreen.CharSize;
                     int valRightX = x + PanelWidth - 14;
-                    int valX = valRightX - valWidth;
+                    // Reserve the label and a twelve-pixel gap before fitting the value.
+                    // Native-size text is preferred; long pack/profile names use the compact font.
+                    var layout=SystemMenuValueLayout.Fit(_mainItems[i].Label,value,x+22,valRightX);
+                    int valX=layout.X;
 
                     // Left arrow ◄
-                    MsxScreen.MiniText(batcher, "◄", valX - 7, rowY + 1, arrColor);
+                    if(adjustable)MiniText(batcher, "◄", valX - 7, rowY + 1, arrColor);
 
                     // Value text
-                    MsxScreen.Text(batcher, value, valX, rowY, valColor);
+                    if(layout.Compact)MiniText(batcher,layout.Text,valX,rowY+1,valColor);
+                    else DrawText(batcher,layout.Text,valX,rowY,valColor);
 
                     // Right arrow ►
-                    MsxScreen.MiniText(batcher, "►", valRightX + 3, rowY + 1, arrColor);
+                    if(adjustable)MiniText(batcher, "►", valRightX + 3, rowY + 1, arrColor);
                 }
             }
 
             // Footer separator line
-            MsxScreen.Fill(batcher, new Rectangle(x + 6, y + PanelHeight - 16, PanelWidth - 12, 1), DividerColor);
+            Fill(batcher, new Rectangle(x + 6, y + PanelHeight - 16, PanelWidth - 12, 1), DividerColor);
 
             // 5. Footer help text
-            MsxScreen.MiniText(batcher, "▲▼ SELECT  ◄► CHANGE  ENTER OK  ESC RESUME", x + 10, y + PanelHeight - 11, HintColor);
+            var selected=_mainItems[_selected];
+            string help=selected.CanChange?.Invoke()==false?selected.UnavailableHint:"▲▼ SELECT  ◄► CHANGE  ENTER OK  ESC RESUME";
+            MiniText(batcher,help,x+10,y+PanelHeight-11,HintColor);
+        }
+
+        private void Fill(Batcher batcher,Rectangle rectangle,Color color)
+        {
+            if(_drawingCanvas)_canvas!.Fill(rectangle,color);else MsxScreen.Fill(batcher,rectangle,color);
+        }
+        private void MiniText(Batcher batcher,string text,float x,float y,Color color)
+        {
+            if(_drawingCanvas)_canvas!.Mini(text,(int)x,(int)y,color);else MsxScreen.MiniText(batcher,text,x,y,color);
+        }
+        private void DrawText(Batcher batcher,string text,float x,float y,Color color)
+        {
+            if(_drawingCanvas){_canvas!.Text(text,(int)x,(int)y,color,advance:8,bold:true);return;}
+            // The application menu uses one consistent monochrome pixel font, independent
+            // of a cartridge's colored digits, glyph cache and gameplay sprite textures.
+            foreach(char c in text.ToUpperInvariant())
+            {
+                if(c!=' ')
+                {
+                    MsxScreen.DrawFallbackChar(batcher,c,x,y,color);
+                    MsxScreen.DrawFallbackChar(batcher,c,x+1,y,color);
+                }
+                x+=MsxScreen.CharSize;
+            }
         }
 
         private void RenderSlotMenu(Batcher batcher, int x, int y)
         {
-            string title = _page == MenuPage.SaveState ? "* SAVE STATE *" : "* LOAD STATE *";
+            string title = _page == MenuPage.SaveState ? "SAVE STATE" : "LOAD STATE";
             float titleX = x + (PanelWidth - title.Length * MsxScreen.CharSize) / 2f;
-            MsxScreen.Text(batcher, title, titleX, y + 6, TitleColor);
+            DrawText(batcher, title, titleX, y + 6, TitleColor);
 
             // Header separator line
-            MsxScreen.Fill(batcher, new Rectangle(x + 6, y + 16, PanelWidth - 12, 1), DividerColor);
+            Fill(batcher, new Rectangle(x + 6, y + 16, PanelWidth - 12, 1), DividerColor);
 
             // 4 Slot rows
             for (int i = 0; i < 4; i++)
@@ -825,13 +870,10 @@ public static class SystemMenu
 
                 if (isSelected)
                 {
-                    MsxScreen.Fill(batcher, new Rectangle(x + 4, rowY - 2, PanelWidth - 8, 11), HighlightBg);
-                    MsxScreen.Fill(batcher, new Rectangle(x + 4, rowY - 2, 2, 11), AccentBar);
+                    Fill(batcher, new Rectangle(x + 4, rowY - 2, PanelWidth - 8, 11), HighlightBg);
+                    Fill(batcher, new Rectangle(x + 4, rowY - 2, 2, 11), AccentBar);
 
-                    if (MsxScreen.Get("arrow") != null)
-                        MsxScreen.Draw(batcher, "arrow", x + 8, rowY + 1);
-                    else
-                        MsxScreen.MiniText(batcher, "►", x + 9, rowY + 2, TitleColor);
+                    MiniText(batcher,"►",x+9,rowY+2,TitleColor);
                 }
 
                 Color labelColor = isSelected ? TextSelected : TextNormal;
@@ -844,16 +886,16 @@ public static class SystemMenu
                         : $"SLOT {i + 1}: -- EMPTY --";
 
                     Color col = isSelected ? TextSelected : (data != null ? TextNormal : HintColor);
-                    MsxScreen.Text(batcher, label, x + 22, rowY, col);
+                    DrawText(batcher, label, x + 22, rowY, col);
                 }
                 else
                 {
-                    MsxScreen.Text(batcher, "◄ BACK TO MENU", x + 22, rowY, labelColor);
+                    DrawText(batcher, "◄ BACK TO MENU", x + 22, rowY, labelColor);
                 }
             }
 
             // Divider line below slots
-            MsxScreen.Fill(batcher, new Rectangle(x + 6, y + 73, PanelWidth - 12, 1), DividerColor);
+            Fill(batcher, new Rectangle(x + 6, y + 73, PanelWidth - 12, 1), DividerColor);
 
             // Thumbnail and Metadata Preview
             if (_selected < 3)
@@ -868,7 +910,7 @@ public static class SystemMenu
                 int thumbH = 70;
 
                 // Outer border around thumbnail
-                MsxScreen.Fill(batcher, new Rectangle(thumbX - 1, thumbY - 1, thumbW + 2, thumbH + 2), OuterBorder);
+                Fill(batcher, new Rectangle(thumbX - 1, thumbY - 1, thumbW + 2, thumbH + 2), OuterBorder);
 
                 if (tex != null)
                 {
@@ -876,50 +918,50 @@ public static class SystemMenu
                 }
                 else
                 {
-                    MsxScreen.Fill(batcher, new Rectangle(thumbX, thumbY, thumbW, thumbH), Color.Black);
-                    MsxScreen.MiniText(batcher, "NO PREVIEW", thumbX + 16, thumbY + 31, HintColor);
+                    Fill(batcher, new Rectangle(thumbX, thumbY, thumbW, thumbH), Color.Black);
+                    MiniText(batcher, "NO PREVIEW", thumbX + 16, thumbY + 31, HintColor);
                 }
 
                 int infoX = thumbX + thumbW + 8;
                 if (data != null)
                 {
-                    MsxScreen.MiniText(batcher, $"DATE: {data.Timestamp:yyyy-MM-dd}", infoX, thumbY + 2, TextNormal);
-                    MsxScreen.MiniText(batcher, $"TIME: {data.Timestamp:HH:mm:ss}", infoX, thumbY + 13, TextNormal);
-                    MsxScreen.MiniText(batcher, $"STAGE: {data.Stage:D2} (PYR {data.Pyramid})", infoX, thumbY + 24, ValueSelected);
-                    MsxScreen.MiniText(batcher, $"ROOM:  {data.Room:D2}", infoX, thumbY + 35, TextNormal);
-                    MsxScreen.MiniText(batcher, $"SCORE: {data.Score}", infoX, thumbY + 46, TitleColor);
+                    MiniText(batcher, $"DATE: {data.Timestamp:yyyy-MM-dd}", infoX, thumbY + 2, TextNormal);
+                    MiniText(batcher, $"TIME: {data.Timestamp:HH:mm:ss}", infoX, thumbY + 13, TextNormal);
+                    MiniText(batcher, $"STAGE: {data.Stage:D2} (PYR {data.Pyramid})", infoX, thumbY + 24, ValueSelected);
+                    MiniText(batcher, $"ROOM:  {data.Room:D2}", infoX, thumbY + 35, TextNormal);
+                    MiniText(batcher, $"SCORE: {data.Score}", infoX, thumbY + 46, TitleColor);
                     int collected = Math.Max(0, data.TotalSoulStones - data.SoulStonesRemaining);
-                    MsxScreen.MiniText(batcher, $"REST: {data.Lives}   SOULS: {collected}/{data.TotalSoulStones}", infoX, thumbY + 57, TextNormal);
+                    MiniText(batcher, $"REST: {data.Lives}   SOULS: {collected}/{data.TotalSoulStones}", infoX, thumbY + 57, TextNormal);
                 }
                 else
                 {
-                    MsxScreen.Text(batcher, "EMPTY SLOT", infoX + 4, thumbY + 20, HintColor);
+                    DrawText(batcher, "EMPTY SLOT", infoX + 4, thumbY + 20, HintColor);
                     string actionHint = _page == MenuPage.SaveState ? "ENTER TO SAVE" : "NO SAVE DATA";
-                    MsxScreen.MiniText(batcher, actionHint, infoX + 4, thumbY + 36, ArrowNormal);
+                    MiniText(batcher, actionHint, infoX + 4, thumbY + 36, ArrowNormal);
                 }
             }
             else
             {
-                MsxScreen.Text(batcher, "RETURN TO MAIN MENU", x + 34, y + 105, TextNormal);
+                DrawText(batcher, "RETURN TO MAIN MENU", x + 34, y + 105, TextNormal);
             }
 
             // Status message (saved / empty feedback)
             if (!string.IsNullOrEmpty(_statusMessage))
             {
                 int msgX = (int)(x + (PanelWidth - _statusMessage.Length * MsxScreen.CharSize) / 2f);
-                MsxScreen.Fill(batcher, new Rectangle(x + 6, y + 149, PanelWidth - 12, 10), HighlightBg);
-                MsxScreen.Fill(batcher, new Rectangle(x + 6, y + 149, PanelWidth - 12, 1), AccentBar);
-                MsxScreen.Text(batcher, _statusMessage, msgX, y + 150, TitleColor);
+                Fill(batcher, new Rectangle(x + 6, y + 149, PanelWidth - 12, 10), HighlightBg);
+                Fill(batcher, new Rectangle(x + 6, y + 149, PanelWidth - 12, 1), AccentBar);
+                DrawText(batcher, _statusMessage, msgX, y + 150, TitleColor);
             }
 
             // Footer separator line
-            MsxScreen.Fill(batcher, new Rectangle(x + 6, y + PanelHeight - 16, PanelWidth - 12, 1), DividerColor);
+            Fill(batcher, new Rectangle(x + 6, y + PanelHeight - 16, PanelWidth - 12, 1), DividerColor);
 
             // Footer help text
             string footerHint = _page == MenuPage.SaveState
                 ? "▲▼ SELECT   ENTER SAVE   ESC BACK"
                 : "▲▼ SELECT   ENTER LOAD   ESC BACK";
-            MsxScreen.MiniText(batcher, footerHint, x + 16, y + PanelHeight - 11, HintColor);
+            MiniText(batcher, footerHint, x + 16, y + PanelHeight - 11, HintColor);
         }
 
         private static void ToggleMusic()
@@ -959,17 +1001,6 @@ public static class SystemMenu
             GfxVariant.Cycle(direction, reloadScene: false);
         }
 
-        private static void ToggleMsx1Backdrop()
-        {
-            if(RomContent.Flavor!=ArtFlavor.Msx1)return;
-            RomContent.Msx1OpaqueBackdrop = !RomContent.Msx1OpaqueBackdrop;
-            var save = ProfileSaveService.Load();
-            save.Msx1OpaqueBackdrop = RomContent.Msx1OpaqueBackdrop;
-            ProfileSaveService.Save(save);
-            GameAssets.PrepareMsx1ObjectBackground();
-            MsxScreen.Reset();
-            Console.WriteLine($"[SystemMenu] MSX1 object background: {(RomContent.Msx1OpaqueBackdrop ? "ORIGINAL" : "TRANSPARENT")}");
-        }
 
         private static bool IsFullScreen => Nez.Screen.GraphicsDeviceManager?.IsFullScreen == true;
 

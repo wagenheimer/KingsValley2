@@ -1,4 +1,4 @@
-namespace KingsValley.Core.Stages;
+﻿namespace KingsValley.Core.Stages;
 
 /// <summary>Terrain class of an 8x8 cell (2 bits in the original — see <c>docs/ROM_EXTRACTION.md</c>).</summary>
 public enum TerrainKind : byte
@@ -151,10 +151,19 @@ public sealed class StageDefinition
     public required int Number { get; init; }
 
     /// <summary>Pyramid (1..6) — defines palette, tiles and mural.</summary>
-    public int Pyramid => (Number - 1) / Common.GameConstants.StagesPerPyramid + 1;
+    public int? SourcePyramid {get;init;}
+    private int? _presentationPyramid;
+    public int Pyramid => _presentationPyramid ?? SourcePyramid ?? (Number - 1) / Common.GameConstants.StagesPerPyramid + 1;
+    /// <summary>Returns an independent presentation choice without changing extracted terrain or source metadata.</summary>
+    public StageDefinition WithPyramid(int pyramid)
+    {
+        if(pyramid is <1 or >6)throw new ArgumentOutOfRangeException(nameof(pyramid));
+        var copy=(StageDefinition)MemberwiseClone();copy._presentationPyramid=pyramid;return copy;
+    }
 
     /// <summary>Background music index (0..4): the original changes it every 2 stages.</summary>
-    public int MusicIndex => ((Number - 1) % Common.GameConstants.StagesPerPyramid) / 2;
+    public int? SourceMusicIndex {get;init;}
+    public int MusicIndex => SourceMusicIndex ?? ((Number - 1) % Common.GameConstants.StagesPerPyramid) / 2;
 
     /// <summary>8x8 grid of rooms (0 = no room). <c>[row, column]</c>.</summary>
     public required int[,] RoomGrid { get; init; }

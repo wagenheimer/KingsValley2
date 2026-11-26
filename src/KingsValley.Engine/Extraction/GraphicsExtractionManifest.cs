@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,18 +36,19 @@ public sealed class GraphicsExtractionManifest
     public void Save(string directory) => File.WriteAllText(Path.Combine(directory,FileName), JsonSerializer.Serialize(this,new JsonSerializerOptions {WriteIndented=true}));
     public bool Verify(string directory, string variant, string? sha1 = null)
     {
+        if(!Assets.CartridgeVariants.All.Contains(variant,StringComparer.Ordinal))return false;
         if(Checks==null || Artifacts==null || Checks.Any(c=>c==null) || Artifacts.Any(a=>a==null)) return false;
-        if (Schema != 1 || ProfileRevision != KingsValleyGraphicsProfiles.Revision(variant) || GameId != "kings-valley-2" || Variant != variant || (sha1 != null && RomSha1 != sha1) || !Ready || Outcome != "completed" || StageLimit != 60 || Artifacts.Count == 0 || Checks.Any(c => c.State != "valid")) return false;
+        if (Schema != 1 || ProfileRevision != KingsValleyGraphicsProfiles.Revision(variant) || GameId != "kings-valley-2" || Variant != variant || (sha1 != null && RomSha1 != sha1) || !Ready || Outcome != "completed" || StageLimit != Assets.CartridgeVariants.StageCount(variant) || Artifacts.Count == 0 || Checks.Any(c => c.State != "valid")) return false;
         var profile=Wagenheimer.MsxAudio.Extraction.RomExtractionProfiles.FindByGameVariant(GameId,variant);
         if(profile==null || !profile.RomSha1.Contains(RomSha1,StringComparer.OrdinalIgnoreCase)) return false;
         var components=Checks.Select(c=>c.Component).ToHashSet(StringComparer.Ordinal);
-        if(!components.Contains("atlas") || Enumerable.Range(1,60).Any(n=>!components.Contains($"stage-{n:00}")) || KingsValleyGraphicsProfiles.RequiredScreens(variant).Any(n=>!components.Contains("screen-"+n))) return false;
+        if(!components.Contains("atlas") || Enumerable.Range(1,Assets.CartridgeVariants.StageCount(variant)).Any(n=>!components.Contains($"stage-{n:00}")) || KingsValleyGraphicsProfiles.RequiredScreens(variant).Any(n=>!components.Contains("screen-"+n))) return false;
         var paths=Artifacts.Select(a=>a.Path).ToHashSet(StringComparer.Ordinal);
-        if(!paths.Contains("Art/kv2.atlas") || !paths.Contains("Art/kv2.png") || Enumerable.Range(1,60).Any(n=>!paths.Contains($"Levels/stage{n:00}.json")) || KingsValleyGraphicsProfiles.RequiredScreens(variant).Any(n=>!paths.Contains("Screens/"+n+".bin"))) return false;
+        if(!paths.Contains("Art/kv2.atlas") || !paths.Contains("Art/kv2.png") || Enumerable.Range(1,Assets.CartridgeVariants.StageCount(variant)).Any(n=>!paths.Contains($"Levels/stage{n:00}.json")) || KingsValleyGraphicsProfiles.RequiredScreens(variant).Any(n=>!paths.Contains("Screens/"+n+".bin"))) return false;
         if(KingsValleyGraphicsProfiles.RequiredSprites(variant).Any(n=>!components.Contains("sprite-"+n)))return false;
-        for(int pyramid=1;pyramid<=(variant=="msx2"?6:1);pyramid++)
+        for(int pyramid=1;pyramid<=(variant!="msx1"?6:1);pyramid++)
         {
-            string prefix=variant=="msx2"?$"mechanism-p{pyramid}-":"mechanism-";
+            string prefix=variant!="msx1"?$"mechanism-p{pyramid}-":"mechanism-";
             bool Mechanism(string component,string file)=>components.Contains(prefix+component) &&
                 paths.Contains("Rooms/"+KingsValleyGraphicsProfiles.MechanismPath(variant,pyramid,file));
             for(int phase=0;phase<4;phase++)
@@ -58,7 +59,7 @@ public sealed class GraphicsExtractionManifest
             }
             if(!Mechanism("4","mechanism_t4.bin"))return false;
         }
-        if(variant=="msx2")
+        if(variant!="msx1")
         {
             for(int pyramid=1;pyramid<=6;pyramid++)
                 if(!components.Contains("blocks-"+pyramid) || !paths.Contains($"Rooms/blocks_p{pyramid}.bin"))return false;

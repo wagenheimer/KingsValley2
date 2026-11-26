@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text.Json;
 using KingsValley.Core.Screens;
 using KingsValley.Engine.Extraction;
@@ -9,6 +9,28 @@ namespace KingsValley.Core.Tests;
 public class GraphicsRomAuditTests
 {
     private static byte[] Rom(string variant) => File.ReadAllBytes(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"KingsValley","roms",variant=="msx1"?"kv2_msx1.rom":"kv2_msx2_scc.rom"));
+
+    [LocalRomFact("msx1-frs")]
+    public void FrsRevisionIsIdentifiedByBytesAndItsMainLoopIntroCompletes()
+    {
+        string path=Environment.GetEnvironmentVariable("KINGSVALLEY_TEST_FRS_ROM")!;
+        byte[] rom=File.ReadAllBytes(path);
+        Assert.Equal(RomFolderManager.Msx1FrsSha1,Convert.ToHexString(SHA1.HashData(rom)));
+        string root=Path.Combine(Path.GetTempPath(),"kv-frs-intro-"+Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(root);
+            string renamed=Path.Combine(root,"unlabelled.bin");File.WriteAllBytes(renamed,rom);
+            var info=RomFolderManager.InspectRomFile(renamed);
+            Assert.NotNull(info);Assert.True(info.IsSupported);Assert.Equal(ScannedRomFlavor.Msx1,info.Flavor);
+            Msx1IntroAnimation.Write(rom,root);
+            var animation=Wagenheimer.MsxGraphics.Video.NativeActorAnimation.Load(Path.Combine(root,"Screens","intro_vick.json"));
+            Assert.Equal(824,animation.Frames.Count);Assert.Equal(5,animation.PoseCount);
+            Assert.Contains(animation.Frames,f=>f.Pose>=0);
+            Assert.Contains(animation.Frames,f=>f.Background==1);
+        }
+        finally {if(Directory.Exists(root))Directory.Delete(root,true);}
+    }
 
     [LocalRomFact("msx1")]
     public void CancellationRetainsTheExistingPointerAndRejectsWrongCartridgeIdentity()

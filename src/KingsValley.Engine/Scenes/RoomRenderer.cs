@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -18,6 +18,8 @@ namespace KingsValley.Engine.Scenes;
 /// </summary>
 public sealed class RoomRenderer : RenderableComponent
 {
+    private Texture2D? _contestClear;
+    public override void OnRemovedFromEntity(){_contestClear?.Dispose();base.OnRemovedFromEntity();}
     private readonly Func<StageSession?> _session;
     private readonly Func<GameRun> _run;
     private readonly Func<StageSession?, Texture2D?>? _assembled;
@@ -46,15 +48,21 @@ public sealed class RoomRenderer : RenderableComponent
 
     public override void Render(Batcher batcher, Camera camera)
     {
-        MsxScreen.Fill(batcher, new Rectangle(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight), Color.Black);
         var s = _session();
+        if(RomContent.IsContest && s is {Exit:ExitPhase.ClearScreen})
+        {
+            // The native completion is a closed playfield plus live HUD; room actors and
+            // curtain quads no longer participate in this frame.
+            DrawClearScreen(batcher,s);DrawHud(batcher,_run(),s);return;
+        }
+        MsxScreen.Fill(batcher, new Rectangle(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight), Color.Black);
         if (s != null)
             DrawRoom(batcher, s);
 
         // 72E1: on the stage-end screen the HUD disappears (the longplay confirms: the bottom strip goes all
         // black) and the text appears over the room already darkened by the curtain.
         bool clearScreen = s is { Exit: ExitPhase.ClearScreen };
-        if (!clearScreen)
+        if (!clearScreen || RomContent.IsContest)
             DrawHud(batcher, _run(), s);
 
         // 7296: the curtain closes the room before the stage change — the HUD (outside the 24 rows) stays.
@@ -336,6 +344,17 @@ public sealed class RoomRenderer : RenderableComponent
         }
 
         int score = run.Score + (s?.Score ?? 0);
+        if(RomContent.IsContest)
+        {
+            // Contest's native 5C1A script prints both labels at Y=198 on one line.
+            void Number(int value,int x)
+            {
+                string text=Math.Max(0,value).ToString().PadLeft(6,'0');text=text[^6..];
+                for(int i=0;i<6;i++)MsxScreen.Draw(batcher,"hud_digit_"+text[i],x+i*8,y+6);
+            }
+            Number(Math.Max(run.HiScore,score),80);Number(score,192);
+            return;
+        }
         MsxScreen.Number(batcher, Math.Max(run.HiScore, score), 6, 24, y + 10);
         MsxScreen.Number(batcher, score, 6, 88, y + 10);
         MsxScreen.Number(batcher, run.Stage, 2, 176, y + 10);
@@ -363,6 +382,14 @@ public sealed class RoomRenderer : RenderableComponent
     /// </summary>
     private void DrawClearScreen(Batcher batcher, StageSession s)
     {
+        if(RomContent.IsContest)
+        {
+            _contestClear??=ScreenBuilder.LoadTexture(Nez.Core.GraphicsDevice,RomContent.ScreenPath("contest_clear"));
+            if(_contestClear==null)throw new InvalidOperationException("Missing native Contest completion screen. Re-extract the Contest cartridge.");
+            // Keep the live score HUD; the native capture's bottom rows are evidence only.
+            batcher.Draw(_contestClear,Vector2.Zero,new Rectangle(0,0,256,192),Color.White);
+            return;
+        }
         // 72E1: INC (0xE242) — the REST shown on screen is already the incremented one (00 -> 01 on the longplay) and the
         // password is the next stage's (7331 -> 697C generates the password after the increment).
         var next = _run().StageCleared();

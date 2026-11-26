@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,7 +40,11 @@ public sealed record ArtSet(
     string Root,
     ArtFlavor Flavor,
     string? BaseId = null,
-    bool ExtractedFirst = false);
+    bool ExtractedFirst = false,string? CartridgeVariant=null)
+{
+    public string Variant=>CartridgeVariant ?? CartridgeVariants.Original(Flavor);
+    public string CampaignId=>CartridgeVariants.Campaign(Variant);
+}
 
 /// <summary>
 /// Discovers the art sets available on disk. **Adding a remaster is just creating a folder**:
@@ -106,6 +110,10 @@ public static class ArtSets
         // and the cartridge art is generated on the first boot.
         if (msx1OnDisk || msx1Extracted)
             sets.Add(new ArtSet(Msx1Id, "MSX1", msx1Root, ArtFlavor.Msx1, ExtractedFirst: true));
+
+        if(Directory.Exists(AudioBootstrap.GraphicsDirectoryForVariant(CartridgeVariants.Contest)))
+            sets.Add(new ArtSet(CartridgeVariants.Contest,"MSX2 CONTEST",Path.Combine(contentDirectory,"RomContest"),ArtFlavor.Msx2,
+                ExtractedFirst:true,CartridgeVariant:CartridgeVariants.Contest));
 
         sets.AddRange(DiscoverCustom(contentDirectory, sets.Select(s => s.Id)));
         return sets;
@@ -197,7 +205,7 @@ public static class ArtSets
                 yield break;
 
             ArtSet? candidate = sets.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
-            if (candidate == null || candidate.Flavor != active.Flavor) yield break;
+            if (candidate == null || candidate.Flavor != active.Flavor || candidate.CampaignId!=active.CampaignId) yield break;
             yield return id;
 
             ArtSet? next = sets.FirstOrDefault(s =>

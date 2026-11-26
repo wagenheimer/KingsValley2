@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,7 +22,7 @@ public static class RomDirectExtractor
     private static void RequireMsx2(byte[] rom)
     {
         var profile=Wagenheimer.MsxAudio.Extraction.RomExtractionProfiles.FindForRom(rom);
-        if(profile?.GameId!="kings-valley-2" || profile.Variant!="msx2") throw new InvalidDataException("This recipe requires the verified MSX2 cartridge.");
+        if(profile?.GameId!="kings-valley-2" || profile.Variant is not ("msx2" or CartridgeVariants.Contest)) throw new InvalidDataException("This recipe requires the verified MSX2 cartridge.");
     }
 
     private static readonly (int R, int G, int B)[] PlayerColors = { (255, 255, 255), (105, 55, 20) };
@@ -258,7 +258,7 @@ public static class RomDirectExtractor
             (182, 182, 182), // 14: Gray
             (255, 255, 255), // 15: White
         };
-        int p = rom.Off(0xB95D, b8: 14, ba: 15);
+        int p = rom.Off(ContestCartridge.Is(rom.Data)?0xB460:0xB95D, b8: 14, ba: 15);
         byte[] d = rom.Data;
         while (p + 2 < d.Length && d[p] != 0xFF)
         {
@@ -349,9 +349,12 @@ public static class RomDirectExtractor
     public static void ExtractMsx2Atlas(byte[] romBytes, string extractedDirectory, Action<string>? log = null)
     {
         RequireMsx2(romBytes);
-        if(!File.Exists(Path.Combine(extractedDirectory,"Art","Native","arrow.bin")) ||
-           !File.Exists(Path.Combine(extractedDirectory,"Art","Native","title_cursor.bin")))
-            Msx2Screens.WriteSupported(romBytes,extractedDirectory,log);
+        if(!ContestCartridge.Is(romBytes) && (!File.Exists(Path.Combine(extractedDirectory,"Art","Native","arrow.bin")) ||
+           !File.Exists(Path.Combine(extractedDirectory,"Art","Native","title_cursor.bin"))))
+        {
+            if(ContestCartridge.Is(romBytes))ContestCartridge.WriteScreens(romBytes,extractedDirectory);
+            else Msx2Screens.WriteSupported(romBytes,extractedDirectory,log);
+        }
         log?.Invoke("msx2 atlas: reading exact sprites from ROM...");
         var rom = new RomReader(romBytes);
         var pal = ExtractPalette(rom);
@@ -396,7 +399,7 @@ public static class RomDirectExtractor
         // 3. Vick door entrance (0xABB9 -> 0xF800, 8 poses of 128 bytes)
         {
             var vram = new byte[0x20000];
-            Decompress(rom, vram, 0xABB9, 0xF800);
+            Decompress(rom, vram, ContestCartridge.Is(romBytes)?0x9EF0:0xABB9, 0xF800);
             for (int i = 0; i < 8; i++)
             {
                 var line = new byte[128];
@@ -413,8 +416,8 @@ public static class RomDirectExtractor
             // Enemies (26 frames)
             for (int f = 0; f < 26; f++)
             {
-                int pa = rom.Byte(0xBEED + 2 * f, ba: 13) / 4;
-                int pb = rom.Byte(0xBEEE + 2 * f, ba: 13) / 4;
+                int pa = rom.Byte((ContestCartridge.Is(romBytes)?0xB2A2:0xBEED) + 2 * f, ba: 13) / 4;
+                int pb = rom.Byte((ContestCartridge.Is(romBytes)?0xB2A3:0xBEEE) + 2 * f, ba: 13) / 4;
                 if (pa == 0 && pb == 0) continue;
 
                 var a = Pat16(vram, 0xF800 + pa * 32);
@@ -851,7 +854,7 @@ public static class RomDirectExtractor
         // Digits D0..D9, exclamation DB, alphabet DD..F6. No embedded bitmap substitutes.
         byte[] Glyph(int code, int color)
         {
-            int source = 12 * 0x2000 + 0xAA29 - 0xA000 + (code - 0xD0) * 8;
+            int source = (ContestCartridge.Is(romBytesForFont)?0x1673C:12 * 0x2000 + 0xAA29 - 0xA000) + (code - 0xD0) * 8;
             var rgba = new byte[8 * 8 * 4];
             for (int y = 0; y < 8; y++)
                 for (int x = 0; x < 8; x++)
@@ -867,9 +870,12 @@ public static class RomDirectExtractor
         sprites.Add(new DirectSprite("font_excl", 8, 8, Glyph(0xDB, 11)));
         // Draw only the native static HUD script (5EF2) after the original stage setup.
         // The number fields remain untouched; the port supplies the current score/lives later.
-        var hudMachine=new Msx2VdpRunner(romBytesForFont); hudMachine.Boot(); hudMachine.PrepareAndPaint(1);
-        hudMachine.Invoke(0x5BEB); // Native normal-font tiles, required before the HUD text stream.
-        hudMachine.Invoke(0x51D0,hl:0x5EF2);
+        var hudMachine=new Msx2VdpRunner(romBytesForFont);
+        bool contest=ContestCartridge.Is(romBytesForFont);
+        if(contest){hudMachine.BootContest();ContestCartridge.Prepare(hudMachine,1);}
+        else {hudMachine.Boot();hudMachine.PrepareAndPaint(1);}
+        hudMachine.Invoke(contest?(ushort)0x5679:(ushort)0x5BEB); // Native normal-font tiles, required before the HUD text stream.
+        hudMachine.Invoke(contest?(ushort)0x4D99:(ushort)0x51D0,hl:contest?(ushort)0x5C1A:(ushort)0x5EF2);
         var hud=hudMachine.SnapshotScreen5();
         byte[] strip=new byte[256*20*4];
         for(int i=0;i<256*20;i++)
@@ -878,8 +884,26 @@ public static class RomDirectExtractor
             strip[i*4]=color.R; strip[i*4+1]=color.G; strip[i*4+2]=color.B; strip[i*4+3]=255;
         }
         sprites.Add(new DirectSprite("hud_strip",256,20,strip));
+        if(contest)
+        {
+            // Use the native normal-font writer for score digits. The generic world-map
+            // digit regions have another shape/color and must not cover the Contest HUD.
+            for(int digit=0;digit<10;digit++)
+            {
+                hudMachine.SetMemory(0xF100,80);hudMachine.SetMemory(0xF101,198);
+                hudMachine.SetMemory(0xF102,(byte)(0xD0+digit));hudMachine.SetMemory(0xF103,255);
+                hudMachine.Invoke(0x4D99,hl:0xF100);
+                var image=hudMachine.SnapshotScreen5();var rgba=new byte[8*8*4];
+                for(int y=0;y<8;y++)for(int x=0;x<8;x++)
+                {
+                    var color=image.Palette[image.Indices[(198+y)*256+80+x]];int offset=(y*8+x)*4;
+                    rgba[offset]=color.R;rgba[offset+1]=color.G;rgba[offset+2]=color.B;rgba[offset+3]=255;
+                }
+                sprites.Add(new DirectSprite($"hud_digit_{digit}",8,8,rgba));
+            }
+        }
         // Native UI colors belong to each capture, not the gameplay palette.
-        foreach(string name in new[]{"arrow","title_cursor"})
+        foreach(string name in contest?Array.Empty<string>():new[]{"arrow","title_cursor"})
         {
             var image=ScreenAssembler.DecodeFile(Path.Combine(extractedDir,"Art","Native",name+".bin"));
             var rgba=new byte[image.Width*image.Height*4];

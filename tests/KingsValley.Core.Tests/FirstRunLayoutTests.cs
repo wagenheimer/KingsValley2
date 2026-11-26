@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System.Linq;
 using KingsValley.Engine.Graphics;
 using KingsValley.Engine.Scenes;
@@ -8,6 +8,29 @@ namespace KingsValley.Core.Tests;
 
 public class FirstRunLayoutTests
 {
+    [Fact]
+    public void BrowsingAndExtractionAreSeparateAndPrimaryActionsHaveTheirOwnRow()
+    {
+        Assert.Equal("BROWSE",FirstRunLayout.ButtonLabels[0]);
+        Assert.Equal("EXTRACT SELECTED",FirstRunLayout.ButtonLabels[3]);
+        var buttons=FirstRunLayout.GetButtonRects();
+        Assert.True(buttons[3].Height>buttons[0].Height);
+        Assert.True(buttons[3].Bottom<buttons[0].Y);
+    }
+    [Fact]
+    public void DialogContent_HasPaddingAndDoesNotOverlapActions()
+    {
+        var dialog=FirstRunLayout.Dialog;
+        var body=FirstRunLayout.DialogBody;
+        AssertInside(body,dialog.X+12,dialog.Y+12,dialog.Right-12,dialog.Bottom-12);
+        foreach(var button in new[]{FirstRunLayout.DialogPrimary,FirstRunLayout.DialogSecondary})
+        {
+            AssertInside(button,dialog.X+12,dialog.Y+12,dialog.Right-12,dialog.Bottom-12);
+            Assert.False(body.Intersects(button));
+        }
+        Assert.False(FirstRunLayout.DialogPrimary.Intersects(FirstRunLayout.DialogSecondary));
+    }
+
     private static LayoutRect[] Bands => new[]
     {
         FirstRunLayout.Header,

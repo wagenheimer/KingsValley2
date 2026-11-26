@@ -1,4 +1,4 @@
-# ROM extraction: current implementation
+﻿# ROM extraction: current implementation
 
 Updated 2026-11-24. Production extraction uses only the user's verified ROM and in-process C# execution. No openMSX executable, longplay frame, pre-recorded audio, companion cartridge or procedural artwork is required. Earlier emulator/video experiments are preserved in [ROM_EXTRACTION_HISTORY.md](ROM_EXTRACTION_HISTORY.md), explicitly as historical research.
 
@@ -7,7 +7,15 @@ Updated 2026-11-24. Production extraction uses only the user's verified ROM and 
 | Cartridge | SHA-1 | Profile |
 | --- | --- | --- |
 | MSX1 RC-760 | `cfd872d005b7bd4cdd6e06c4c0162191f0b0415d` | Native TMS9918 graphics and isolated sound-driver execution |
+| MSX1 RC-760 FRS v1.1 | `cb612cbfdf79dabe55164b386ca956a3e187bef7` | Native FRS main-loop intro capture and isolated patched sound-driver execution |
 | MSX2 SCC patch | `0c7e0b618c72e7ca08bd756c3103b46e5c580c04` | Native V9938 graphics and isolated sound-driver execution |
+| MSX2 Edit Contest (JoySNES) | `4a157e6e217f6af4ab3dec5d7dd5188e5cef7954` | Independent twenty-challenge MSX2 extraction; see [Contest edition](CONTEST_EDITION.md) |
+| MSX2 Edit Contest (JoySNES + FRS v1.1) | `e7b0a7b083d2f5bb12fb4ea6b2e822ee6330a15e` | Automatically generated English working copy; exact source/output checks and bundled original patch archive |
+
+The [README cartridge list](../README.md#exact-supported-cartridges) states which
+cartridges are needed, the recommended revisions, sizes, and recognized but
+unsupported revisions. The setup screen's **H / ROM GUIDE** contains the same
+accepted identities, also available through gamepad START or its clickable footer.
 
 Addresses belong to a particular cartridge and mapped bank. Do not reuse an MSX1 CPU address in MSX2 because its name or apparent role matches. For 8 KiB banks, file offset is `bank * 0x2000 + (CPU address & 0x1FFF)` only after establishing the active window/bank mapping. Other ROM revisions are unsupported until separately analyzed and validated.
 
@@ -66,3 +74,13 @@ The supported profiles enumerate IDs 1..65: 11 music entries, 48 effects and six
 Use [GraphicsAudit](../tools/GraphicsAudit/README.md), two isolated roots, manifest verification and artifact path/hash comparison. Build with `dotnet build KingsValley.slnx`; run `dotnet test tests/KingsValley.Core.Tests`. Native glyph/table comparisons and runtime screenshots supplement structural checks. Independent original-emulator comparison and interactive gameplay acceptance are separate evidence levels.
 
 The automatic English offline report is described in [EXTRACTION_REPORT.md](EXTRACTION_REPORT.md). Current counts, source revisions, validation and limitations live in [GRAPHICS_EXTRACTION_AUDIT.md](GRAPHICS_EXTRACTION_AUDIT.md). The reusable skill/repository proposal is saved in [the toolkit plan](superpowers/plans/2026-11-24-msx-reconstruction-toolkit.md).
+
+## Patched cartridges and compatibility
+
+Compatibility is identified from resolved cartridge bytes, including ROMs inside ZIP archives. A filename, an MSX header, or the mapper alone cannot establish that extraction addresses and driver state still match. Curated profile aliases are shared by discovery, audio extraction, graphics extraction and manifest validation. Unknown revisions remain unsupported until verified; this is not universal support for arbitrary translations, hacks, truncated images or bad dumps.
+
+The MSX1 FRS v1.1 cartridge is independently verified. The [openMSX software database](https://github.com/openMSX/openMSX/blob/master/share/softwaredb.xml) identifies its exact SHA-1 as the FRS patch with KonamiSCC mapping. [FRS documents](https://frs.badcoffee.info/patches.html) changes to DynamicVsync and the jukebox. Its sound driver retains the mapped entrypoints but produces its own native timing; extraction executes those patched bytes without restoring original code. All 65 IDs were captured: 11 songs, 48 effects, six expected silent commands and no capture-limit terminations. A full graphics run completed with 273 validated artifacts and 508 atlas regions. Readiness remains a structural/inventory guarantee, not a claim of complete visual or listening acceptance.
+
+For this revision the intro must enter through the cartridge's title/start menu and retain the main loop. Freezing it after direct setup calls leaves the FRS actor animation stalled. The FRS capture contains 824 vblanks and five source poses; the pose strip is byte-identical to the original RC-760 capture. The original cartridge retains its independent 764-vblank recipe.
+
+To run the optional FRS regression checks, set `KINGSVALLEY_TEST_FRS_ROM` to a locally owned cartridge. No ROM bytes or extracted assets are distributed with those tests.

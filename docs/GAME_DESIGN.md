@@ -155,7 +155,7 @@ Each **sarcophagus** (`E2C0`, 5-byte record `[0x80|type][0x10|level][room][y][x]
 ### 3.5 Other elements
 
 - **Exit door** (4x4 cells, `E2F0`): closed until the last soul stone. *(RAM)*
-- **Temporary golden ladders** (table `0x60F0` → list `E7C0`). *(ROM — behavior to be confirmed)*
+- **Temporary golden ladders** (table `0x60F0` → list `E7C0`): two armed uses, not a time limit. Climbing arms the record; a subsequent climb-exit/landing strobe consumes a use. On the second use, the top pair becomes soft terrain and the remaining ladder cells are erased. See [Golden ladders](GOLDEN_LADDERS.md). *(Native Contest `8FD5`; original disassembly `BE15`.)*
 - **Doors that turn/return**, **bridges that fall after 2 crossings** (HG101) — *to be mapped in the ROM*.
 - **Extra stages** (secret): *puzzle* (entrances on stages 20, 35, 43, 52, 55 — gives ~35 lives) and
   *music* (playable keyboard; stages 7, 32, 40, 50, 53). You jump several times in one spot until it
@@ -223,7 +223,7 @@ cutscene → map "DO YOUR BEST !!" → "STAGE nn / SOUL STONE nn" → game. The 
 | MSX2 graphics (tiles, murals, objects, characters, HUD, screens) | `Content/Rom/Art` (atlas `kv2`) | ✅ (character sprites from the video) |
 | Original music and effects | `Content/Rom/Audio` + `GameAudio` | ✅ (some effects unnamed) |
 | Menus (title, START SELECT, password) | `MainMenuScene` | ✅ (EDIT and STAGE LOAD to do) |
-| Temporary golden ladders | drawn as a fixed ladder | ⬜ |
+| Temporary golden ladders | `StageSession.GoldenLadders.cs`, mutable room assembly and save-state counters | Two-use native behavior and save/restore tested |
 | Rotating doors / falling bridges | — | ⬜ (map in the ROM) |
 | Extra stages (puzzle / music) | — | ⬜ |
 | Map between pyramids, cutscene, ending | — | ⬜ |
@@ -238,8 +238,8 @@ cutscene → map "DO YOUR BEST !!" → "STAGE nn / SOUL STONE nn" → game. The 
    types** — the type 3 track on the ladder/fall and type 2 on the ladder closed in Oct/2026
    (`ROM_PORT_HANDOFF.md` §6) — and the **knife/boomerang**: the knife's step is the literal `4` of `A72A`
    and the boomerang follows the profile of tables `A961`/`A96B` (23-tick trip).
-2. **Map in the ROM** the rotating doors, the bridges and the lifetime of the golden ladders (lists
-   `E7C0` and neighbors).
+2. **Map remaining bridge and mechanism behavior in the ROM.** Golden ladder counters, arming and
+   replacement terrain are now covered by [native checks](GOLDEN_LADDERS.md).
 3. **Clean MSX2 sprites**: the character poses come from the video (some noise). Run the MSX2 ROM
    (RC-761) in the emulator and read VRAM directly — the available dump is an ASCII8 conversion that does
    not boot on C-BIOS (see ROM_EXTRACTION.md).

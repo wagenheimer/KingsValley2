@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.IO;
 using System.Text.Json;
@@ -328,7 +328,9 @@ public sealed class RoomBackgroundBuilder
                     for (int c = 0; c < GameConstants.RoomColumns; c++)
                     {
                         var origKind = roomDef.Cells[r * GameConstants.RoomColumns + c];
-                        if (origKind is TerrainKind.Soft or TerrainKind.Wall && s.Map.At(c * 8, r * 8) == TerrainKind.Empty)
+                        var currentKind=s.Map.At(c*8,r*8);
+                        if ((origKind is TerrainKind.Soft or TerrainKind.Wall && currentKind==TerrainKind.Empty)
+                            || (origKind==TerrainKind.Ladder && currentKind!=TerrainKind.Ladder))
                         {
                             RestoreMsx1MuralCell(c, r, pyr);
                         }
@@ -591,7 +593,7 @@ public sealed class RoomBackgroundBuilder
     private int[] GetMuralCodes(int pyramid, int stage)
     {
         if (_murals == null) return new int[32];
-        string parity = stage % 2 == 0 ? "even" : "odd";
+        string parity = RomContent.IsContest || stage % 2 == 0 ? "even" : "odd";
         if (_murals.RootElement.TryGetProperty(pyramid.ToString(), out var pyrEl) && pyrEl.TryGetProperty(parity, out var codesEl))
             return codesEl.EnumerateArray().Select(e => e.GetInt32()).ToArray();
         if (_murals.RootElement.TryGetProperty($"p{pyramid}_{parity}", out var flatEl))
@@ -652,7 +654,7 @@ public sealed class RoomBackgroundBuilder
         var assembled = RoomAssembler.Assemble(
             pyramid: pyramid, stage: stage, room: room,
             blocks: blocks, muralCodes: muralCodes, decorations: decs,
-            map: map, ladders: def.Ladders, goldenLadders: def.GoldenLadders);
+            map: map, ladders: def.Ladders, goldenLadders: s.ActiveGoldenLadders);
 
         // The mechanism (push door) on top of the mural: a 16x24 crop per phase.
         // The type 4 mechanism (Unknown4) is a bar 4 cells wide (32x8) of block 0xAD.

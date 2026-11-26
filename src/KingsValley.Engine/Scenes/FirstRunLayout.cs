@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 
@@ -35,60 +35,39 @@ public static class FirstRunLayout
     private const int BandInset = 4;
     private static int BandWidth => Panel.Width - 2 * BandInset;
 
-    // Vertical bands. Absolute values are derived from the centered panel:
-    // header 5..14, notice 16..27, status 30..54, buttons 59..72,
-    // ROM list 76..192, footer 196..206 (panel ends at 210).
-    public static LayoutRect Header { get; } = new(Panel.X + BandInset, Panel.Y + 3, BandWidth, 9);
-    public static LayoutRect Notice { get; } = new(Panel.X + BandInset, Panel.Y + 14, BandWidth, 11);
-    public static LayoutRect Status { get; } = new(Panel.X + BandInset, Panel.Y + 28, BandWidth, 24);
-    public static LayoutRect Buttons { get; } = new(Panel.X + BandInset, Panel.Y + 57, BandWidth, 13);
-    public static LayoutRect RomList { get; } = new(Panel.X + BandInset, Panel.Y + 74, BandWidth, 116);
-    public static LayoutRect Footer { get; } = new(Panel.X + BandInset, Panel.Y + 194, BandWidth, 10);
+    public static LayoutRect Header { get; } = new(6,7,244,10);
+    public static LayoutRect Notice { get; } = new(6,23,244,16);
+    public static LayoutRect Status { get; } = new(6,43,244,29);
+    public static LayoutRect RomList { get; } = new(6,76,244,80);
+    public static LayoutRect Buttons { get; } = new(6,160,244,36);
+    public static LayoutRect Footer { get; } = new(6,198,244,10);
+    public static LayoutRect Dialog { get; } = new(12,38,232,140);
+    public static LayoutRect DialogBody { get; } = new(24,66,208,72);
+    public static LayoutRect DialogPrimary { get; } = new(24,150,98,16);
+    public static LayoutRect DialogSecondary { get; } = new(134,150,98,16);
 
     // ── Buttons ────────────────────────────────────────────────────────────────
     public const int ButtonCount = 6;
     public const int PlayButtonIndex = 4;
     public const int ButtonGap = 3;
     public const int ButtonPaddingX = 4;
-    public const int ButtonHeight = 11;
+    public const int ButtonHeight = 16;
     public const int ButtonBandPaddingY = 1;
 
-    public static readonly string[] ButtonLabels = { "SELECT", "FOLDER", "REFRESH", "RESET", "PLAY", "QUIT" };
+    public const int ExtractButtonIndex = 3;
+    public static readonly string[] ButtonLabels = { "BROWSE", "FOLDER", "SCAN", "EXTRACT SELECTED", "PLAY", "QUIT" };
 
     /// <summary>
-    /// Five stable rectangles, independent of game state. Extra horizontal space is shared
-    /// equally so the row spans the whole button band without overlapping.
+    /// Six stable rectangles: two primary actions above four utility actions.
     /// </summary>
-    public static IReadOnlyList<LayoutRect> GetButtonRects()
+    public static IReadOnlyList<LayoutRect> GetButtonRects() => new LayoutRect[]
     {
-        var widths = new int[ButtonCount];
-        int used = 0;
-        for (int i = 0; i < ButtonCount; i++)
-        {
-            widths[i] = MeasureWidth(ButtonLabels[i]) + 2 * ButtonPaddingX;
-            used += widths[i];
-        }
-
-        used += (ButtonCount - 1) * ButtonGap;
-        int extra = Math.Max(0, Buttons.Width - used);
-        int perButton = extra / ButtonCount;
-        int remainder = extra % ButtonCount;
-
-        var rects = new List<LayoutRect>(ButtonCount);
-        int x = Buttons.X;
-        int y = Buttons.Y + ButtonBandPaddingY;
-        for (int i = 0; i < ButtonCount; i++)
-        {
-            int width = widths[i] + perButton + (i < remainder ? 1 : 0);
-            rects.Add(new LayoutRect(x, y, width, ButtonHeight));
-            x += width + ButtonGap;
-        }
-
-        return rects;
-    }
+        new(6,183,58,12),new(67,183,57,12),new(127,183,48,12),
+        new(6,161,146,16),new(156,161,94,16),new(178,183,72,12),
+    };
 
     // ── Status columns ─────────────────────────────────────────────────────────
-    public const int StatusTextStep = 7;
+    public const int StatusTextStep = 9;
     public const int StatusLabelColumnWidth = 108;
     public const int StatusTagColumnWidth = 120;
 
@@ -98,28 +77,14 @@ public static class FirstRunLayout
     public static LayoutRect StatusTagColumn { get; } = new(
         StatusLabelColumn.Right + 4, Status.Y, StatusTagColumnWidth, Status.Height);
 
-    public static readonly string[] StatusLabels =
-    {
-        "MSX1 GRAPHICS (RC-760):",
-        "MSX2 GRAPHICS (RC-761):",
-        "AUDIO & 60 STAGES:",
-    };
-
-    // Longest expected values, used by layout tests to guard the two columns.
-    public static readonly string[] StatusTags =
-    {
-        "[ INCLUDED / READY ]",
-        "[ READY TO EXTRACT ]",
-        "[ ROM NOT FOUND ]",
-        "[ AUDIO + 60 STAGES OK ]",
-        "[ NEED MSX1 RC-760 ]",
-    };
+    public static readonly string[] StatusLabels = { "MSX1 CARTRIDGE", "MSX2 CARTRIDGE", "MSX2 CONTEST" };
+    public static readonly string[] StatusTags = { "READY TO PLAY", "READY TO EXTRACT", "ADD A ROM", "AUDIO NOT EXTRACTED" };
 
     // ── ROM list ───────────────────────────────────────────────────────────────
-    public const int VisibleRoms = 4;
+    public const int VisibleRoms = 3;
     public const int RomHeaderHeight = 11;
-    public const int RomItemHeight = 23;
-    public const int RomItemGap = 3;
+    public const int RomItemHeight = 20;
+    public const int RomItemGap = 2;
 
     /// <summary>Rectangles for up to <see cref="VisibleRoms"/> ROM rows inside the list band.</summary>
     public static IReadOnlyList<LayoutRect> GetRomItemRects(int count)
@@ -137,28 +102,25 @@ public static class FirstRunLayout
     }
 
     // ── Text content (kept here so widths can be verified in tests) ────────────
-    public const string HeaderTitle = "KING'S VALLEY II - ROM SETUP";
-    public const string DefaultNotice = "STEP 1: PLACE YOUR ORIGINAL ROMS IN THE FOLDER";
-    public const string NoticeRomReady = "STEP 2: SELECT A ROM BELOW AND PRESS ENTER TO EXTRACT";
-    public const string NoticeGameReady = "READY! PRESS PLAY OR 'P' TO START THE GAME";
+    public const string HeaderTitle = "CARTRIDGE SETUP";
+    public const string DefaultNotice = "BROWSE FOR YOUR ORIGINAL CARTRIDGE TO BEGIN.";
+    public const string NoticeRomReady = "CHOOSE A ROM, THEN SELECT EXTRACT SELECTED.";
+    public const string NoticeGameReady = "READY TO PLAY. EXTRACT ANOTHER ROM OR SELECT PLAY.";
     public const string ExtractionTitle = "EXTRACTING DATA FROM YOUR CARTRIDGE...";
     public const string ExtractionCancelHint = "EXTRACTION RUNS ONCE - PRESS ESC TO CANCEL";
 
     public static readonly string[] FooterLines =
     {
-        "S SELECT  O FOLDER  R SCAN  DEL RESET  P PLAY",
-        "ARROWS MOVE  ENTER OK  MOUSE CLICK  ESC BACK",
+        "ARROWS SELECT  ENTER OK  H ROM GUIDE  ESC BACK",
     };
 
     public static readonly string[] EmptyStateLines =
     {
-        "NO ROM FILES FOUND IN THE ROMS FOLDER.",
-        "TO PLAY YOU NEED YOUR OWN KING'S VALLEY II CARTRIDGE:",
-        "1. PRESS S TO PICK YOUR ROM.",
-        "2. OR PRESS O AND COPY IT INTO THE ROMS FOLDER.",
-        "   - MSX1 RC-760 (128 KB): 60 STAGES, AUDIO AND MSX1 ART",
-        "   - MSX2 RC-761 (128 KB): SCC AUDIO AND MSX2 ART",
-        "3. PRESS R TO RESCAN, THEN ENTER ON A ROM TO EXTRACT.",
+        "NO CARTRIDGES FOUND.",
+        "USE BROWSE, OR PLACE YOUR ROM BESIDE THE GAME",
+        "OR IN ITS ROMS SUBFOLDER, THEN SELECT SCAN.",
+        "MSX1 RC-760, MSX2 SCC AND EDIT CONTEST ARE SUPPORTED.",
+        "YOUR ORIGINAL ROM FILES ARE NEVER CHANGED.",
     };
 
     public static readonly string[] ExtractionBullets =

@@ -1,10 +1,10 @@
-namespace KingsValley.Core.SaveSystem;
+﻿namespace KingsValley.Core.SaveSystem;
 
 /// <summary>
 /// Persisted game data (settings + progress). Versioned: <see cref="Version"/> allows
 /// migrating old saves (see <c>SaveMigrator</c> when there is more than one version).
 /// </summary>
-public sealed class SaveGameData
+public sealed class SaveGameData : CampaignProgress
 {
     /// <summary>Save format version (for migration).</summary>
     public int Version { get; set; } = 1;
@@ -50,6 +50,17 @@ public sealed class SaveGameData
 
     // ── Progresso ───────────────────────────────────────────────────────────────────
 
+    public string OriginalGfxRom {get;set;}="msx2";
+    public CampaignProgress ContestProgress {get;set;}=new();
+    public CampaignProgress ProgressFor(string campaign)=>campaign switch
+    {
+        Common.Campaigns.Original=>this,Common.Campaigns.Contest=>ContestProgress,
+        _=>throw new ArgumentException("Unknown campaign.",nameof(campaign))
+    };
+}
+
+public class CampaignProgress
+{
     /// <summary>Highest room reached (1-based).</summary>
     public int HighestLevel { get; set; } = 1;
 

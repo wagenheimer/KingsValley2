@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="KingsValley.Core.Tests" />
+    <EmbeddedResource Include="../../third_party/FRS/KingsValley_II_EnhancementPatches.zip" LogicalName="KingsValley.FRS.Patches.zip" />
   </ItemGroup>
 
   <ItemGroup>

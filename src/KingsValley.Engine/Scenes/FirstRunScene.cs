@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,21 +22,26 @@ namespace KingsValley.Engine.Scenes;
 public class FirstRunScene : SceneBase
 {
     private readonly string? _initialNotice;
+    private readonly bool _requestReset;
     private FirstRunView? _view;
 
     public bool IsExtracting => _view?.IsExtracting ?? false;
 
-    public FirstRunScene(string? initialNotice = null)
+    public FirstRunScene(string? initialNotice = null, bool requestReset = false)
     {
         _initialNotice = initialNotice;
+        _requestReset=requestReset;
     }
 
     protected override void OnInitialize()
     {
         GameAudio.StopMusic();
-        _view = new FirstRunView(_initialNotice);
+        _view = new FirstRunView(_initialNotice,_requestReset);
         AddEntity(new Entity("first-run")).AddComponent(_view);
     }
+
+    public bool HasDialog => _view?.HasDialog == true;
+    public void SelectCartridge(string path)=>_view?.SelectCartridge(path);
 
     private sealed class FirstRunView : RenderableComponent, IUpdatable
     {
@@ -71,27 +76,42 @@ public class FirstRunScene : SceneBase
         private volatile bool _isExtracting;
         private volatile bool _lastExtractionSucceeded;
         private string? _targetRomPath;
-        private float _autoPlayCountdown = -1f;
+        private bool _canPlay;
+        private readonly bool[] _graphicsReady=new bool[3];
+        private readonly bool[] _audioReady=new bool[3];
+        private SetupDialog? _dialog;
+        private bool _dialogPrimary;
+        private bool _cancelRequested;
+        private Vector2 _lastMouse=new(-10000,-10000);
+        private string? _pickedRom;
+        public bool HasDialog=>_dialog!=null;
+        private sealed record SetupDialog(string Title,string Message,string Primary,Action? Action,string? Secondary);
+        private bool CanExtract=>_selectedRom>=0 && _selectedRom<_scannedRoms.Count && _scannedRoms[_selectedRom].IsSupported;
         private float _displayProgress;
-        private float _escHoldTimer;
+
 
         public bool IsExtracting => _isExtracting;
 
-        public FirstRunView(string? initialNotice)
+        public FirstRunView(string? initialNotice,bool requestReset)
         {
             GameAudio.StopMusic();
-            SetNotice(initialNotice ?? string.Empty, 12f);
+
 
             RomFolderManager.EnsureDirectories();
             RefreshRomList();
 
             // Once the game is playable, PLAY is the primary button and takes focus immediately.
-            if (RomContent.CanPlayAny)
+            if (_canPlay)
                 FocusPlay();
 
             AudioBootstrap.Completed += OnExtractionCompleted;
             // Automatic boot extraction uses the same progress/cancellation UI as a manual start.
             _isExtracting = AudioBootstrap.IsRunning;
+            if(requestReset)ActionPurge();
+            else if(!string.IsNullOrWhiteSpace(initialNotice))ShowDialog("ROM SETUP",initialNotice);
+            else if(!_canPlay && _scannedRoms.Any(r=>r.IsSupported)){_focus=FocusArea.RomList;}
+            if (!_isExtracting && int.TryParse(Environment.GetEnvironmentVariable("KINGSVALLEY_ROM_GUIDE"), out int guidePage))
+                ShowRomGuide(Math.Clamp(guidePage, 0, SupportedCartridges.GuidePageCount - 1));
         }
 
         public override RectangleF Bounds =>
@@ -111,130 +131,71 @@ public class FirstRunScene : SceneBase
 
         private void RefreshRomList()
         {
-            _scannedRoms.Clear();
-            _scannedRoms.AddRange(RomFolderManager.ScanRoms());
-
-            if (_selectedRom >= _scannedRoms.Count)
-                _selectedRom = Math.Max(0, _scannedRoms.Count - 1);
-
-            if (_firstVisibleRom > _selectedRom)
-                _firstVisibleRom = _selectedRom;
+            string? selected=_scannedRoms.ElementAtOrDefault(_selectedRom)?.FilePath;
+            _scannedRoms.Clear();_scannedRoms.AddRange(RomFolderManager.ScanRoms());
+            if(_pickedRom!=null && !_scannedRoms.Any(r=>r.FilePath==_pickedRom) &&
+                RomFolderManager.InspectRomFile(_pickedRom) is {} picked)_scannedRoms.Add(picked);
+            var distinct=_scannedRoms.GroupBy(r=>r.IsSupported?r.Sha1:r.FilePath,StringComparer.OrdinalIgnoreCase)
+                .Select(g=>g.OrderByDescending(r=>r.FilePath==_pickedRom)
+                    .ThenByDescending(r=>Path.GetDirectoryName(r.FilePath)?.TrimEnd(Path.DirectorySeparatorChar)==AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar)).First()).ToArray();
+            _scannedRoms.Clear();_scannedRoms.AddRange(distinct);
+            int previous=_scannedRoms.FindIndex(r=>r.FilePath==selected);
+            _selectedRom=previous>=0?previous:Math.Max(0,_scannedRoms.FindIndex(r=>r.IsSupported && r.Flavor==ScannedRomFlavor.Msx2));
+            _firstVisibleRom=0;EnsureVisibleRom();
+            for(int i=0;i<CartridgeVariants.All.Length;i++)
+            {
+                string variant=CartridgeVariants.All[i];_graphicsReady[i]=RomContent.IsVariantAvailable(variant);
+                _audioReady[i]=AudioBootstrap.HasPackageForVariant(variant);
+            }
+            _canPlay=RomContent.CanPlayAny;
         }
 
         // ── update ─────────────────────────────────────────────────────────────────
 
         void IUpdatable.Update()
         {
-            if (UI.SystemMenu.IsOpen)
-                return;
-
-            if (_noticeTimer > 0)
-                _noticeTimer -= Nez.Time.DeltaTime;
-
-            if (_autoPlayCountdown > 0)
+            if(UI.SystemMenu.IsOpen)return;
+            if(!_isExtracting && AudioBootstrap.IsRunning){_isExtracting=true;_lastExtractionSucceeded=false;}
+            if(_noticeTimer>0)_noticeTimer-=Nez.Time.DeltaTime;
+            if(_isExtracting)
             {
-                _autoPlayCountdown -= Nez.Time.DeltaTime;
-                if (_autoPlayCountdown <= 0)
-                {
-                    LaunchGame();
-                    return;
-                }
+                _displayProgress=MathHelper.Lerp(_displayProgress,(float)AudioBootstrap.Progress,0.15f);
+                if(!AudioBootstrap.IsRunning){FinishExtraction(_lastExtractionSucceeded,_cancelRequested?"EXTRACTION CANCELLED.":null);return;}
             }
-
-            if (_isExtracting)
+            if(_dialog!=null){UpdateDialog();return;}
+            if(_isExtracting)
             {
-                _displayProgress = MathHelper.Lerp(_displayProgress, (float)AudioBootstrap.Progress, 0.15f);
-
-                if (Nez.Input.IsKeyDown(Keys.Escape))
-                {
-                    _escHoldTimer += Nez.Time.DeltaTime;
-                    if (_escHoldTimer >= 1.5f)
-                    {
-                        AudioBootstrap.Cancel();
-                        FinishExtraction(false, "EXTRACTION CANCELLED.");
-                        _escHoldTimer = 0f;
-                        return;
-                    }
-                }
-                else
-                {
-                    _escHoldTimer = 0f;
-                }
-
-                // Completed(success) is raised on the worker thread; IsRunning tells us when it is safe
-                // to refresh the content. Never infer success from CanPlayAny alone.
-                if (!AudioBootstrap.IsRunning)
-                    FinishExtraction(_lastExtractionSucceeded, null);
-
+                if(Nez.Input.IsKeyPressed(Keys.Escape))ShowDialog("STOP EXTRACTION?","The current attempt will stop. Any previous complete extraction is kept.","STOP",()=>{_cancelRequested=true;AudioBootstrap.Cancel();},"KEEP GOING",false);
                 return;
             }
-
-            if (Nez.Input.IsKeyPressed(Keys.S))
+            if(Nez.Input.IsKeyPressed(Keys.S)){ActionSelectRom();return;}
+            if(Nez.Input.IsKeyPressed(Keys.H)){ShowRomGuide(0);return;}
+            if(Nez.Input.IsKeyPressed(Keys.O)){ActionOpenFolder();return;}
+            if(Nez.Input.IsKeyPressed(Keys.R)){ActionRefresh();return;}
+            if(Nez.Input.IsKeyPressed(Keys.Delete) || Nez.Input.IsKeyPressed(Keys.Back)){ActionPurge();return;}
+            if(Nez.Input.IsKeyPressed(Keys.P) && _canPlay){LaunchGame();return;}
+            bool up=Nez.Input.IsKeyPressed(Keys.Up),down=Nez.Input.IsKeyPressed(Keys.Down);
+            bool left=Nez.Input.IsKeyPressed(Keys.Left),right=Nez.Input.IsKeyPressed(Keys.Right);
+            bool confirm=Nez.Input.IsKeyPressed(Keys.Enter) || Nez.Input.IsKeyPressed(Keys.Space);
+            foreach(var pad in Nez.Input.GamePads)
             {
-                ActionSelectRom();
-                return;
+                if(!pad.IsConnected())continue;
+                up|=pad.IsButtonPressed(Buttons.DPadUp) || pad.IsLeftStickUp();
+                down|=pad.IsButtonPressed(Buttons.DPadDown) || pad.IsLeftStickDown();
+                left|=pad.IsButtonPressed(Buttons.DPadLeft) || pad.IsLeftStickLeft();
+                right|=pad.IsButtonPressed(Buttons.DPadRight) || pad.IsLeftStickRight();
+                confirm|=pad.IsButtonPressed(Buttons.A);
+                if(pad.IsButtonPressed(Buttons.X)){ActionSelectRom();return;}
+                if(pad.IsButtonPressed(Buttons.Y)){ActionRefresh();return;}
+                if(pad.IsButtonPressed(Buttons.Start)){ShowRomGuide(0);return;}
+                if(pad.IsButtonPressed(Buttons.B)){ActivateButton(5);return;}
             }
-
-            if (Nez.Input.IsKeyPressed(Keys.O))
-            {
-                ActionOpenFolder();
-                return;
-            }
-
-            if (Nez.Input.IsKeyPressed(Keys.R))
-            {
-                ActionRefresh();
-                return;
-            }
-
-            if (Nez.Input.IsKeyPressed(Keys.Delete) || Nez.Input.IsKeyPressed(Keys.Back))
-            {
-                ActionPurge();
-                return;
-            }
-
-            if (Nez.Input.IsKeyPressed(Keys.P) && RomContent.CanPlayAny)
-            {
-                LaunchGame();
-                return;
-            }
-
-            if (Nez.Input.IsKeyPressed(Keys.Escape))
-            {
-                // ESC opens System Menu! SystemMenu.Update() handles opening.
-                return;
-            }
-
-            bool up = Nez.Input.IsKeyPressed(Keys.Up);
-            bool down = Nez.Input.IsKeyPressed(Keys.Down);
-            bool left = Nez.Input.IsKeyPressed(Keys.Left);
-            bool right = Nez.Input.IsKeyPressed(Keys.Right);
-            bool confirm = Nez.Input.IsKeyPressed(Keys.Enter) || Nez.Input.IsKeyPressed(Keys.Space);
-
-            foreach (var pad in Nez.Input.GamePads)
-            {
-                if (!pad.IsConnected()) continue;
-
-                if (pad.IsButtonPressed(Buttons.DPadUp) || pad.IsLeftStickUp()) up = true;
-                if (pad.IsButtonPressed(Buttons.DPadDown) || pad.IsLeftStickDown()) down = true;
-                if (pad.IsButtonPressed(Buttons.DPadLeft) || pad.IsLeftStickLeft()) left = true;
-                if (pad.IsButtonPressed(Buttons.DPadRight) || pad.IsLeftStickRight()) right = true;
-                if (pad.IsButtonPressed(Buttons.A)) confirm = true;
-                if (pad.IsButtonPressed(Buttons.X)) { ActionOpenFolder(); return; }
-                if (pad.IsButtonPressed(Buttons.Y)) { ActionRefresh(); return; }
-                if (pad.IsButtonPressed(Buttons.B) || pad.IsButtonPressed(Buttons.Back)) { Nez.Core.Exit(); return; }
-            }
-
-            if (up) NavigateVertical(-1);
-            if (down) NavigateVertical(+1);
-            if (left) NavigateHorizontal(-1);
-            if (right) NavigateHorizontal(+1);
-
-            Vector2 mouse = Wagenheimer.MonoGameHelper.Layout.DesignViewport.ToDesign(Nez.Input.MousePosition);
-            HandleMouse(mouse);
-
-            if (confirm)
-                ActivateSelection();
+            if(up)NavigateVertical(-1);if(down)NavigateVertical(1);
+            if(left)NavigateHorizontal(-1);if(right)NavigateHorizontal(1);
+            var mouse=Wagenheimer.MonoGameHelper.Layout.DesignViewport.ToDesign(Nez.Input.MousePosition);
+            bool moved=Vector2.DistanceSquared(mouse,_lastMouse)>1;_lastMouse=mouse;
+            if(moved || Nez.Input.LeftMouseButtonPressed)HandleMouse(mouse);
+            if(confirm)ActivateSelection();
         }
 
         private void OnExtractionCompleted(bool success)
@@ -247,32 +208,32 @@ public class FirstRunScene : SceneBase
         private void FinishExtraction(bool succeeded, string? cancelledNotice)
         {
             _isExtracting = false;
-            _escHoldTimer = 0f;
+            _dialog=null;
             RomContent.Initialize();
             RefreshRomList();
 
             if (cancelledNotice != null)
             {
-                SetNotice(cancelledNotice, 5f);
+                ShowDialog("EXTRACTION STOPPED",cancelledNotice+" Previous complete data is kept.");
             }
-            else if (succeeded && RomContent.CanPlayAny)
+            else if (succeeded && _canPlay)
             {
-                SetNotice("EXTRACTION COMPLETE! PRESS ENTER OR PLAY TO START.", 12f);
+                ShowDialog("EXTRACTION COMPLETE","The selected cartridge has been extracted. Its data is stored separately from the other version. Choose PLAY to start, or SETUP to extract another cartridge.","PLAY",LaunchGame,"SETUP");
                 FocusPlay();
             }
             else if (succeeded)
             {
                 // GetPlayableBlocker() is not part of the current API; derive a short reason
                 // from the public readiness flags instead of showing a false success message.
-                SetNotice("EXTRACTION DONE. " + PlayableBlocker(), 6f);
+                ShowDialog("EXTRACTION INCOMPLETE",PlayableBlocker());
             }
             else
             {
                 var attempt=AudioBootstrap.LastGraphicsAttemptDirectory is { } directory
                     ? Extraction.GraphicsExtractionManifest.Read(directory) : null;
-                SetNotice(attempt?.Outcome=="partial"
-                    ? "GRAPHICS INCOMPLETE. SEE THE EXTRACTION REPORT."
-                    : "EXTRACTION DID NOT COMPLETE. TRY AGAIN.", 12f);
+                ShowDialog("EXTRACTION FAILED",attempt?.Outcome=="partial"
+                    ? "Graphics are incomplete. Open the extraction report for details, then try again."
+                    : "The extraction did not complete. Check that your cartridge is supported and try again.");
             }
 
             // Do not let a stale success flag leak into the next extraction.
@@ -282,7 +243,7 @@ public class FirstRunScene : SceneBase
         private static string PlayableBlocker()
         {
             if (!RomContent.AreStagesAvailable || !RomContent.IsAudioAvailable)
-                return "SELECT A ROM BELOW AND PRESS ENTER TO EXTRACT.";
+                return "CHOOSE A SUPPORTED ROM, THEN SELECT EXTRACT SELECTED.";
             if (!RomContent.IsMsx1Available && !RomContent.IsMsx2Available)
                 return "SELECT AN MSX1 OR MSX2 ROM TO PLAY.";
             return "SETUP IS NOT COMPLETE YET.";
@@ -309,32 +270,24 @@ public class FirstRunScene : SceneBase
 
         private void NavigateVertical(int dir)
         {
-            if (_focus == FocusArea.Buttons)
+            if(_focus==FocusArea.RomList)
             {
-                if (dir > 0 && _scannedRoms.Count > 0)
-                {
-                    _focus = FocusArea.RomList;
-                    _selectedRom = Math.Clamp(_selectedRom, 0, _scannedRoms.Count - 1);
-                }
+                if(dir>0 && _selectedRom>=_scannedRoms.Count-1){_focus=FocusArea.Buttons;_selectedButton=3;}
+                else {_selectedRom=Math.Clamp(_selectedRom+dir,0,Math.Max(0,_scannedRoms.Count-1));EnsureVisibleRom();}
+                return;
             }
-            else
-            {
-                if (dir < 0 && _selectedRom == 0)
-                {
-                    _focus = FocusArea.Buttons;
-                }
-                else
-                {
-                    _selectedRom = Math.Clamp(_selectedRom + dir, 0, _scannedRoms.Count - 1);
-                    EnsureVisibleRom();
-                }
-            }
+            bool primary=_selectedButton is 3 or 4;
+            if(dir<0 && primary && _scannedRoms.Count>0){_focus=FocusArea.RomList;return;}
+            if(dir>0 && primary)_selectedButton=_selectedButton==3?0:5;
+            else if(dir<0 && !primary)_selectedButton=_selectedButton<2?3:4;
         }
 
         private void NavigateHorizontal(int dir)
         {
-            if (_focus == FocusArea.Buttons)
-                _selectedButton = Math.Clamp(_selectedButton + dir, 0, FirstRunLayout.ButtonCount - 1);
+            if(_focus!=FocusArea.Buttons)return;
+            if(_selectedButton is 3 or 4){_selectedButton=_selectedButton==3?4:3;return;}
+            int[] order={0,1,2,5};int index=Array.IndexOf(order,_selectedButton);
+            _selectedButton=order[Math.Clamp(index+dir,0,order.Length-1)];
         }
 
         private void EnsureVisibleRom()
@@ -352,6 +305,11 @@ public class FirstRunScene : SceneBase
 
             int px = (int)mouse.X;
             int py = (int)mouse.Y;
+            if (FirstRunLayout.Footer.Contains(px, py) && Nez.Input.LeftMouseButtonPressed)
+            {
+                ShowRomGuide(0);
+                return;
+            }
             var buttonRects = FirstRunLayout.GetButtonRects();
 
             for (int i = 0; i < buttonRects.Count; i++)
@@ -378,7 +336,7 @@ public class FirstRunScene : SceneBase
                 _focus = FocusArea.RomList;
                 _selectedRom = _firstVisibleRom + i;
                 if (Nez.Input.LeftMouseButtonPressed)
-                    StartRomExtraction(_scannedRoms[_selectedRom].FilePath);
+                    SetNotice("SELECTED. CHOOSE EXTRACT SELECTED TO CONTINUE.",4f);
                 return;
             }
         }
@@ -391,7 +349,7 @@ public class FirstRunScene : SceneBase
             }
             else if (_focus == FocusArea.RomList && _scannedRoms.Count > 0)
             {
-                StartRomExtraction(_scannedRoms[_selectedRom].FilePath);
+                _focus=FocusArea.Buttons;_selectedButton=FirstRunLayout.ExtractButtonIndex;
             }
         }
 
@@ -402,18 +360,18 @@ public class FirstRunScene : SceneBase
                 case 0: ActionSelectRom(); break;
                 case 1: ActionOpenFolder(); break;
                 case 2: ActionRefresh(); break;
-                case 3: ActionPurge(); break;
+                case 3: if(CanExtract)StartRomExtraction(_scannedRoms[_selectedRom].FilePath); break;
                 case FirstRunLayout.PlayButtonIndex:
-                    if (RomContent.CanPlayAny)
+                    if (_canPlay)
                         LaunchGame();
                     else
                         SetNotice("PLAY LOCKED. " + PlayableBlocker(), 5f);
                     break;
-                default: Nez.Core.Exit(); break;
+                default: if(_canPlay)LaunchGame();else Nez.Core.Exit(); break;
             }
         }
 
-        /// <summary>Opens the native "open file" dialog of the current OS and extracts the chosen cartridge.</summary>
+        /// <summary>Opens the native file dialog and selects a cartridge without starting extraction.</summary>
         private void ActionSelectRom()
         {
             if (!Platform.RomPicker.IsAvailable)
@@ -429,7 +387,18 @@ public class FirstRunScene : SceneBase
                 return;
             }
 
-            StartRomExtraction(path);
+            SelectCartridge(path);
+        }
+
+        public void SelectCartridge(string path)
+        {
+            if(_isExtracting || _dialog!=null)return;
+            var info=RomFolderManager.InspectRomFile(path);
+            if(info==null){ShowDialog("CANNOT READ CARTRIDGE","Choose a readable .rom, .bin or .zip file.");return;}
+            _pickedRom=path;RefreshRomList();_selectedRom=_scannedRoms.FindIndex(r=>r.FilePath==path);EnsureVisibleRom();
+            _focus=FocusArea.Buttons;_selectedButton=FirstRunLayout.ExtractButtonIndex;
+            if(!info.IsSupported)ShowDialog("UNSUPPORTED CARTRIDGE","This revision has not been verified yet. SHA-1: " + info.Sha1 + ". Choose a supported cartridge. No data has been extracted.");
+            else SetNotice("CARTRIDGE SELECTED. CHOOSE EXTRACT SELECTED.",5f);
         }
 
         private void ActionOpenFolder()
@@ -440,24 +409,37 @@ public class FirstRunScene : SceneBase
 
         private void ActionRefresh()
         {
-            RefreshRomList();
             RomContent.Initialize();
+            RefreshRomList();
             SetNotice($"REFRESHED: {_scannedRoms.Count} ROM(S) DETECTED.", 4f);
         }
 
         private void ActionPurge()
         {
+            if(_isExtracting)return;
+            ShowDialog("RESET EXTRACTED DATA?","This removes extracted graphics and audio for all cartridges. Your original ROM files are kept. You will need to extract again.","RESET DATA",PurgeData,"CANCEL",false);
+        }
+
+        private void PurgeData()
+        {
             if (_isExtracting) return;
 
             GameAudio.StopMusic();
             GameAudio.Unload();
-            bool purged = RomFolderManager.PurgeExtractedContent();
+            bool purged;
+            try { purged = RomFolderManager.PurgeExtractedContent(); }
+            catch (Exception ex)
+            {
+                RomContent.Initialize();RefreshRomList();GameAssets.Unload();
+                ShowDialog("RESET INCOMPLETE","Some extracted files could not be removed. Close any application using them and try again. " + ex.Message);
+                return;
+            }
             RomContent.Initialize();
             RefreshRomList();
             GameAssets.Unload();
             if (!RomContent.CanPlayAny)
             {
-                _selectedButton = 0; // SELECT
+                _selectedButton = 0; // BROWSE
                 _focus = FocusArea.Buttons;
             }
             if (purged)
@@ -471,10 +453,12 @@ public class FirstRunScene : SceneBase
             if (_isExtracting) return;
 
             _targetRomPath = filePath;
+            _cancelRequested=false;
+            _displayProgress=0;
             if (!AudioBootstrap.Start(filePath, out string? error))
             {
                 _targetRomPath = null;
-                SetNotice(error ?? "CANNOT START EXTRACTION", 5f);
+                ShowDialog("CANNOT START EXTRACTION",error ?? "Choose another supported cartridge and try again.");
                 return;
             }
 
@@ -490,7 +474,7 @@ public class FirstRunScene : SceneBase
                 return;
 
             // Ensure active art set matches what is playable
-            if (!RomContent.IsFlavorAvailable(RomContent.Active.Flavor))
+            if (!RomContent.IsVariantAvailable(RomContent.Variant))
             {
                 var playableFlavor = RomContent.GetFirstPlayableFlavor();
                 var targetSet = ArtSets.Find(RomContent.Available,
@@ -520,9 +504,7 @@ public class FirstRunScene : SceneBase
             MsxScreen.Fill(batcher, new Rectangle(panel.X, panel.Y, 2, panel.Height), BorderColor);
             MsxScreen.Fill(batcher, new Rectangle(panel.Right - 2, panel.Y, 2, panel.Height), BorderColor);
 
-            DrawBox(batcher, FirstRunLayout.Header, BgColor, SubBorderColor);
-            DrawCentered(batcher, FirstRunLayout.HeaderTitle, FirstRunLayout.Header,
-                FirstRunLayout.Header.Y + 2, TitleColor);
+            MsxScreen.Text(batcher,FirstRunLayout.HeaderTitle,(256-FirstRunLayout.HeaderTitle.Length*8)/2,FirstRunLayout.Header.Y,TitleColor);
 
             RenderNotice(batcher);
             RenderStatusBox(batcher);
@@ -543,82 +525,37 @@ public class FirstRunScene : SceneBase
                 for (int i = 0; i < FirstRunLayout.FooterLines.Length; i++)
                 {
                     DrawCentered(batcher, FirstRunLayout.FooterLines[i], FirstRunLayout.Footer,
-                        FirstRunLayout.Footer.Y + i * MsxScreen.MiniLineHeight, HintColor);
+                        FirstRunLayout.Footer.Y + 2 + i * (MsxScreen.MiniLineHeight + 2), HintColor);
                 }
             }
+            if(_dialog!=null)RenderDialog(batcher);
         }
 
         private void RenderNotice(Batcher batcher)
         {
-            var band = FirstRunLayout.Notice;
-            if (_noticeTimer <= 0 || string.IsNullOrWhiteSpace(_notice))
-            {
-                string defaultText = RomContent.CanPlayAny
-                    ? FirstRunLayout.NoticeGameReady
-                    : _scannedRoms.Count > 0
-                        ? FirstRunLayout.NoticeRomReady
-                        : FirstRunLayout.DefaultNotice;
-
-                Color defaultColor = RomContent.CanPlayAny
-                    ? GreenOkColor
-                    : _scannedRoms.Count > 0
-                        ? TitleColor
-                        : HintColor;
-
-                DrawCentered(batcher, defaultText, band, band.Y + 3, defaultColor);
-                return;
-            }
-
-            MsxScreen.Fill(batcher, Rect(band), NoticeBgColor);
-            DrawWrapped(batcher, "! " + _notice, band, band.Y, Color.Gold,
-                MsxScreen.MiniLineHeight, 2, center: true);
+            var band=FirstRunLayout.Notice;
+            string text=_noticeTimer>0 && _notice!=null?_notice:
+                _canPlay?FirstRunLayout.NoticeGameReady:_scannedRoms.Count>0?FirstRunLayout.NoticeRomReady:FirstRunLayout.DefaultNotice;
+            DrawCentered(batcher,text,band,band.Y+1,_canPlay?GreenOkColor:Color.White);
+            DrawCentered(batcher,string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KINGSVALLEY_ROM_DIR"))?"SEARCH: GAME FOLDER / ROMS / USER ROMS":"SEARCH: CUSTOM ROM FOLDER",band,band.Y+10,HintColor);
         }
 
         private void RenderStatusBox(Batcher batcher)
         {
-            var band = FirstRunLayout.Status;
-            DrawBox(batcher, band, new Color(0, 0, 48), SubBorderColor);
-
-            bool hasMsx1Rom = _scannedRoms.Exists(r => r.Flavor == ScannedRomFlavor.Msx1);
-            bool hasMsx2Rom = _scannedRoms.Exists(r => r.Flavor == ScannedRomFlavor.Msx2);
-
-            bool msx1Extracted = File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Screens", "title.bin")) &&
-                                 File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Rooms", "dumps", "s01_r01.bin"));
-            string msx1Tag = RomContent.IsMsx1Available
-                ? (msx1Extracted ? "[ EXTRACTED / OK ]" : "[ INCLUDED / OK ]")
-                : hasMsx1Rom ? "[ READY TO EXTRACT ]" : "[ ROM NOT FOUND ]";
-            Color msx1Color = RomContent.IsMsx1Available
-                ? GreenOkColor
-                : hasMsx1Rom ? YellowReadyColor : RedMissingColor;
-
-            bool msx2Extracted = File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Art", "kv2.atlas")) &&
-                                 File.Exists(Path.Combine(AudioBootstrap.ExtractedDirectory, "Rooms", "murals.json"));
-            string msx2Tag = RomContent.IsMsx2Available
-                ? (msx2Extracted ? "[ EXTRACTED / OK ]" : "[ INCLUDED / OK ]")
-                : hasMsx2Rom ? "[ READY TO EXTRACT ]" : "[ ROM NOT FOUND ]";
-            Color msx2Color = RomContent.IsMsx2Available
-                ? GreenOkColor
-                : hasMsx2Rom ? YellowReadyColor : RedMissingColor;
-
-            bool audioReady = RomContent.IsAudioAvailable && RomContent.AreStagesAvailable;
-            string audioTag = audioReady
-                ? (File.Exists(AudioBootstrap.ExtractedPackagePath) ? "[ AUDIO + 60 STAGES OK ]" : "[ INCLUDED / OK ]")
-                : (hasMsx1Rom || hasMsx2Rom) ? "[ READY TO EXTRACT ]" : "[ ROM NOT FOUND ]";
-            Color audioColor = audioReady ? GreenOkColor : (hasMsx1Rom || hasMsx2Rom) ? YellowReadyColor : RedMissingColor;
-
-            string[] tags = { msx1Tag, msx2Tag, audioTag };
-            Color[] colors = { msx1Color, msx2Color, audioColor };
-            for (int i = 0; i < FirstRunLayout.StatusLabels.Length; i++)
+            var band=FirstRunLayout.Status;
+            for(int i=0;i<CartridgeVariants.All.Length;i++)
             {
-                int y = band.Y + 2 + i * FirstRunLayout.StatusTextStep;
-                DrawLeft(batcher, FirstRunLayout.StatusLabels[i], FirstRunLayout.StatusLabelColumn, y, Color.White);
-                DrawRight(batcher, tags[i], FirstRunLayout.StatusTagColumn, y, colors[i]);
+                bool found=_scannedRoms.Any(r=>r.IsSupported && r.Variant==CartridgeVariants.All[i]);
+                string tag=_graphicsReady[i]?(_audioReady[i]?"READY TO PLAY":"AUDIO NOT EXTRACTED"):found?"READY TO EXTRACT":"ADD A ROM";
+                int y=band.Y+2+i*FirstRunLayout.StatusTextStep;
+                DrawLeft(batcher,FirstRunLayout.StatusLabels[i],FirstRunLayout.StatusLabelColumn,y,Color.White);
+                DrawRight(batcher,tag,FirstRunLayout.StatusTagColumn,y,_graphicsReady[i]&&_audioReady[i]?GreenOkColor:found?YellowReadyColor:HintColor);
             }
         }
 
         private void RenderButtons(Batcher batcher)
         {
-            bool playable = RomContent.CanPlayAny;
+            bool playable = _canPlay;
             var rects = FirstRunLayout.GetButtonRects();
 
             for (int i = 0; i < rects.Count; i++)
@@ -626,8 +563,9 @@ public class FirstRunScene : SceneBase
                 LayoutRect r = rects[i];
                 bool isPlay = i == FirstRunLayout.PlayButtonIndex;
                 bool isFocused = _focus == FocusArea.Buttons && _selectedButton == i;
-                bool enabled = !_isExtracting && (!isPlay || playable);
-                bool primary = isPlay && playable && !_isExtracting;
+                bool enabled = !_isExtracting && (!isPlay || playable) && (i!=3 || CanExtract);
+                bool needsExtraction=CanExtract && (!_graphicsReady[Math.Max(0,Array.IndexOf(CartridgeVariants.All,_scannedRoms[_selectedRom].Variant))] || !_audioReady[Math.Max(0,Array.IndexOf(CartridgeVariants.All,_scannedRoms[_selectedRom].Variant))]);
+                bool primary=!_isExtracting && (i==0 && !CanExtract && !playable || i==3 && CanExtract && (needsExtraction || !playable) || isPlay && playable && !needsExtraction);
 
                 Color fill = !enabled ? DisabledFillColor
                     : primary ? (isFocused ? PrimaryFocusFillColor : PrimaryFillColor)
@@ -645,14 +583,7 @@ public class FirstRunScene : SceneBase
                 MsxScreen.Fill(batcher, new Rectangle(r.X, r.Y, 1, r.Height), border);
                 MsxScreen.Fill(batcher, new Rectangle(r.Right - 1, r.Y, 1, r.Height), border);
 
-                // Visible marker that stays on once PLAY becomes available.
-                if (primary)
-                {
-                    MsxScreen.Fill(batcher, new Rectangle(r.X + 3, r.Y + 3, isFocused ? 8 : 5, 2), border);
-                    MsxScreen.Fill(batcher, new Rectangle(r.X + 3, r.Bottom - 5, isFocused ? 8 : 5, 2), border);
-                }
-
-                DrawCentered(batcher, FirstRunLayout.ButtonLabels[i], r, r.Y + 3, textColor,
+                DrawCentered(batcher, i==5 && _canPlay?"BACK":FirstRunLayout.ButtonLabels[i], r, r.Y+(r.Height-5)/2, textColor,
                     FirstRunLayout.ButtonPaddingX);
             }
         }
@@ -685,7 +616,7 @@ public class FirstRunScene : SceneBase
             {
                 int index = _firstVisibleRom + i;
                 ScannedRomInfo rom = _scannedRoms[index];
-                bool isSelected = _focus == FocusArea.RomList && _selectedRom == index;
+                bool isSelected = _selectedRom == index;
                 LayoutRect item = itemRects[i];
 
                 MsxScreen.Fill(batcher, Rect(item), isSelected ? HighlightColor : new Color(0, 0, 56));
@@ -698,7 +629,7 @@ public class FirstRunScene : SceneBase
                 MsxScreen.Fill(batcher, new Rectangle(item.Right - 1, item.Y, 1, item.Height),
                     isSelected ? TitleColor : SubBorderColor);
 
-                string tag = rom.DisplayTag;
+                string tag = rom.Variant==CartridgeVariants.Contest?"CONTEST":rom.Flavor==ScannedRomFlavor.Msx1?"MSX1":rom.Flavor==ScannedRomFlavor.Msx2?"MSX2":"OTHER";
                 int tagWidth = MsxScreen.MiniTextWidth(tag);
                 var nameBand = new LayoutRect(item.X + 2, item.Y,
                     Math.Max(0, item.Width - 10 - tagWidth), 12);
@@ -710,9 +641,9 @@ public class FirstRunScene : SceneBase
                 DrawRight(batcher, tag, item, item.Y + 3,
                     rom.Flavor == ScannedRomFlavor.Msx1 ? GreenOkColor : YellowReadyColor, 4);
 
-                string line2 = (rom.Flavor == ScannedRomFlavor.Msx1 || rom.Flavor == ScannedRomFlavor.Msx2)
-                    ? Truncate(rom.Description, 24) + " -> [ENTER: EXTRACT DATA]"
-                    : Truncate(rom.Description, 32);
+                string source=Path.GetDirectoryName(Path.GetFullPath(rom.FilePath))==Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory).TrimEnd(Path.DirectorySeparatorChar)?"GAME FOLDER":"ROM FOLDER";
+                var revision = SupportedCartridges.All.FirstOrDefault(entry => entry.Sha1.Equals(rom.Sha1, StringComparison.OrdinalIgnoreCase));
+                string line2=rom.IsSupported?revision?.Recommendation ?? $"VERIFIED CARTRIDGE - {source}":"NOT SUPPORTED - H: ACCEPTED ROM GUIDE";
                 DrawLeft(batcher, line2, item, item.Y + 12,
                     isSelected ? Color.White : HintColor, 8);
             }
@@ -721,7 +652,7 @@ public class FirstRunScene : SceneBase
         private void RenderEmptyState(Batcher batcher, LayoutRect band)
         {
             var lines = new List<string>();
-            foreach (string source in FirstRunLayout.EmptyStateLines)
+            foreach (string source in _canPlay?new[]{"YOUR EXTRACTED DATA IS READY.","SELECT PLAY TO START THE GAME.","TO ADD ANOTHER CARTRIDGE, USE BROWSE.","YOUR ROM IS NOT NEEDED AGAIN UNLESS YOU RESET DATA."}:FirstRunLayout.EmptyStateLines)
                 lines.AddRange(MsxScreen.MiniTextWrap(source, FirstRunLayout.TextWidth(band)));
 
             const int step = 9;
@@ -738,101 +669,78 @@ public class FirstRunScene : SceneBase
 
         private void RenderExtractionProgress(Batcher batcher)
         {
-            var band = FirstRunLayout.RomList;
-            DrawBox(batcher, band, new Color(0, 0, 48), TitleColor);
-
-            char[] spinners = { '|', '/', '-', '\\' };
-            char spinChar = spinners[(int)(Nez.Time.TotalTime * 8f) % spinners.Length];
-
-            DrawCentered(batcher, $"EXTRACTING DATA FROM CARTRIDGE [{spinChar}]", band, band.Y + 7, TitleColor);
-
-            float prog = Math.Clamp(_displayProgress, 0f, 1f);
-            var bar = new Rectangle(band.X + 10, band.Y + 19, band.Width - 20, 11);
-            MsxScreen.Fill(batcher, bar, new Color(16, 16, 40));
-
-            int filled = (int)(bar.Width * prog);
-            if (filled > 0)
-            {
-                // Base progress fill
-                MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Y, filled, bar.Height), TitleColor);
-
-                // Animated moving barber-pole diagonal stripes
-                int animOffset = (int)(Nez.Time.TotalTime * 24f) % 12;
-                for (int px = 0; px < filled; px++)
-                {
-                    if ((px + animOffset) % 12 < 5)
-                        MsxScreen.Fill(batcher, new Rectangle(bar.X + px, bar.Y, 1, bar.Height), new Color(255, 240, 160));
-                }
-            }
-
-            // Outline of the progress bar
-            MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Y, bar.Width, 1), SubBorderColor);
-            MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Bottom - 1, bar.Width, 1), SubBorderColor);
-            MsxScreen.Fill(batcher, new Rectangle(bar.X, bar.Y, 1, bar.Height), SubBorderColor);
-            MsxScreen.Fill(batcher, new Rectangle(bar.Right - 1, bar.Y, 1, bar.Height), SubBorderColor);
-
-            DrawRight(batcher, $"{(int)(prog * 100)}%", band, band.Y + 7, GreenOkColor, 10);
-
-            // Sub-status text box (pill)
-            var statusBox = new Rectangle(band.X + 10, band.Y + 33, band.Width - 20, 12);
-            MsxScreen.Fill(batcher, statusBox, new Color(10, 20, 60));
-            DrawCentered(batcher, AudioBootstrap.Status.ToUpperInvariant(), band, band.Y + 36, Color.White);
-
-            // Live 4-stage checklist
-            string[] stages =
-            {
-                "PSG & SCC AUDIO DRIVER TRACKS",
-                "60 STAGE LAYOUTS, ITEMS & DOORS",
-                "FIXED SCREENS, PALETTES & MURALS",
-                "GAMEPLAY ROOM DUMPS (SCREEN 2)",
-            };
-
-            int activeStage = prog < 0.40f ? 0 : prog < 0.60f ? 1 : prog < 0.75f ? 2 : 3;
-
-            for (int i = 0; i < stages.Length; i++)
-            {
-                int y = band.Y + 49 + i * 11;
-                string tag;
-                Color tagColor;
-                Color textColor;
-
-                if (i < activeStage)
-                {
-                    tag = "[ OK ]";
-                    tagColor = GreenOkColor;
-                    textColor = Color.White;
-                }
-                else if (i == activeStage)
-                {
-                    tag = $"[ {spinChar} ]";
-                    tagColor = YellowReadyColor;
-                    textColor = TitleColor;
-                }
-                else
-                {
-                    tag = "[ .. ]";
-                    tagColor = DisabledTextColor;
-                    textColor = HintColor;
-                }
-
-                DrawLeft(batcher, "* " + stages[i], band, y, textColor, 12);
-                DrawRight(batcher, tag, band, y, tagColor, 12);
-            }
-
-            // Cancel hint or countdown
-            if (_escHoldTimer > 0)
-            {
-                DrawCentered(batcher, $"CANCELLING IN {(1.5f - _escHoldTimer):0.0}S ...", band, band.Y + 98, Color.Orange);
-            }
-            else
-            {
-                DrawCentered(batcher, "EXTRACTION IN PROGRESS - HOLD ESC (1.5S) TO CANCEL", band, band.Y + 98, RedMissingColor);
-            }
+            var band=FirstRunLayout.RomList;
+            DrawBox(batcher,band,new Color(0,0,48),SubBorderColor);
+            DrawLeft(batcher,_cancelRequested?"STOPPING EXTRACTION...":"EXTRACTING CARTRIDGE",band,band.Y+8,TitleColor,10);
+            float progress=Math.Clamp(_displayProgress,0f,1f);
+            DrawRight(batcher,$"{(int)(progress*100)}%",band,band.Y+8,GreenOkColor,10);
+            var bar=new Rectangle(band.X+10,band.Y+23,band.Width-20,9);
+            MsxScreen.Fill(batcher,bar,ButtonNormalColor);
+            MsxScreen.Fill(batcher,new Rectangle(bar.X,bar.Y,(int)(bar.Width*progress),bar.Height),TitleColor);
+            DrawCentered(batcher,Path.GetFileName(_targetRomPath??"YOUR CARTRIDGE"),band,band.Y+40,Color.White,10);
+            DrawWrapped(batcher,AudioBootstrap.Status.ToUpperInvariant(),band,band.Y+51,HintColor,8,3,true);
+            DrawCentered(batcher,"ESC: CANCEL EXTRACTION",band,band.Bottom-9,YellowReadyColor);
         }
 
         // ── text/fill helpers (every string is measured before it is drawn) ────────
 
         private static Rectangle Rect(LayoutRect r) => new(r.X, r.Y, r.Width, r.Height);
+
+        private void ShowRomGuide(int page)
+        {
+            bool last = page == SupportedCartridges.GuidePageCount - 1;
+            ShowDialog($"ACCEPTED ROMS {page + 1}/{SupportedCartridges.GuidePageCount}",
+                SupportedCartridges.GuidePage(page), last ? "START OVER" : "NEXT ROM",
+                () => ShowRomGuide(last ? 0 : page + 1), "CLOSE");
+        }
+
+        private void ShowDialog(string title,string message,string primary="OK",Action? action=null,string? secondary=null,bool primarySelected=true)
+        {
+            _dialog=new(title.ToUpperInvariant(),message.ToUpperInvariant(),primary,action,secondary);
+            _dialogPrimary=primarySelected;
+        }
+
+        private void UpdateDialog()
+        {
+            if(_dialog==null)return;
+            bool confirm=Nez.Input.IsKeyPressed(Keys.Enter) || Nez.Input.IsKeyPressed(Keys.Space);
+            bool cancel=Nez.Input.IsKeyPressed(Keys.Escape);
+            bool move=Nez.Input.IsKeyPressed(Keys.Left) || Nez.Input.IsKeyPressed(Keys.Right) || Nez.Input.IsKeyPressed(Keys.Tab);
+            foreach(var pad in Nez.Input.GamePads)
+            {
+                if(!pad.IsConnected())continue;
+                confirm|=pad.IsButtonPressed(Buttons.A);cancel|=pad.IsButtonPressed(Buttons.B);
+                move|=pad.IsButtonPressed(Buttons.DPadLeft) || pad.IsButtonPressed(Buttons.DPadRight);
+            }
+            if(cancel){_dialog=null;return;}
+            if(move && _dialog.Secondary!=null)_dialogPrimary=!_dialogPrimary;
+            if(Nez.Input.LeftMouseButtonPressed)
+            {
+                var mouse=Wagenheimer.MonoGameHelper.Layout.DesignViewport.ToDesign(Nez.Input.MousePosition);
+                if(FirstRunLayout.DialogPrimary.Contains((int)mouse.X,(int)mouse.Y)){_dialogPrimary=true;confirm=true;}
+                else if(_dialog.Secondary!=null && FirstRunLayout.DialogSecondary.Contains((int)mouse.X,(int)mouse.Y)){_dialogPrimary=false;confirm=true;}
+            }
+            if(!confirm)return;
+            var action=_dialogPrimary?_dialog.Action:null;
+            _dialog=null;action?.Invoke();
+        }
+
+        private void RenderDialog(Batcher batcher)
+        {
+            if(_dialog==null)return;
+            MsxScreen.Fill(batcher,new Rectangle(0,0,256,212),new Color(0,0,0,210));
+            var box=FirstRunLayout.Dialog;
+            DrawBox(batcher,box,new Color(12,24,72),TitleColor);
+            MsxScreen.Text(batcher,_dialog.Title,128-_dialog.Title.Length*4,box.Y+10,TitleColor);
+            DrawWrapped(batcher,_dialog.Message,FirstRunLayout.DialogBody,FirstRunLayout.DialogBody.Y,Color.White,9,8,false);
+            void Button(LayoutRect rectangle,string label,bool focused)
+            {
+                DrawBox(batcher,rectangle,focused?PrimaryFocusFillColor:ButtonNormalColor,focused?TitleColor:SubBorderColor);
+                DrawCentered(batcher,label,rectangle,rectangle.Y+5,focused?PrimaryTextColor:Color.White,4);
+            }
+            Button(FirstRunLayout.DialogPrimary,_dialog.Primary,_dialogPrimary);
+            if(_dialog.Secondary!=null)Button(FirstRunLayout.DialogSecondary,_dialog.Secondary,!_dialogPrimary);
+        }
 
         private static void DrawBox(Batcher batcher, LayoutRect rect, Color fill, Color border)
         {

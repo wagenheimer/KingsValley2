@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using Wagenheimer.MsxAudio.Extraction;
@@ -77,7 +77,7 @@ public sealed class RomStageState
         return Dump(machine, stage);
     }
 
-    private static RomStage Dump(MiniMsx machine, int stage)
+    internal static RomStage Dump(MiniMsx machine, int stage)
     {
         byte At(int address) => machine.Memory((ushort)address);
 

@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -191,14 +191,18 @@ public class KingsValleyGame : Nez.Core
         // 3.2 Free version: the audio (and, later, the other assets) comes from the player's ROM. Without a package,
         //     it asks for the ROM (native system dialog) and extracts in the background — the game goes on
         //     and the sound comes in when it finishes.
-        AudioBootstrap.AutoStart();
+        string? initialScene=Environment.GetEnvironmentVariable("KINGSVALLEY_START_SCENE")?.ToLowerInvariant();
+        if(initialScene is not ("firstrun" or "first_run" or "setup" or "rom"))AudioBootstrap.AutoStart();
 
         // 3.2.1 Universal plan B: dragging the .rom/.zip onto the window starts the extraction (works on
         //       any system, including Linux without zenity/kdialog).
         Window.FileDrop += (_, e) =>
         {
-            if (e.Files.Length > 0)
-                AudioBootstrap.AcceptDrop(e.Files[0]);
+            if(e.Files.Length>0)
+            {
+                if(Nez.Core.Scene is Scenes.FirstRunScene setup)setup.SelectCartridge(e.Files[0]);
+                else AudioBootstrap.AcceptDrop(e.Files[0]);
+            }
         };
 
         // 4. Initial scene. The normal flow is Splash -> MainMenu -> Loading -> Level.
@@ -358,6 +362,12 @@ public class KingsValleyGame : Nez.Core
                 Nez.Core.Scene = new Scenes.FirstRunScene(notice);
                 break;
 
+            case "campaign":
+                Nez.Core.Scene=new Scenes.CampaignSelectionScene();
+                break;
+            case "contest":
+                Nez.Core.Scene=new Scenes.CampaignSelectionScene(stages:true);
+                break;
             case "menu":
                 GameNavigation.GoTo(GameSceneId.MainMenu);
                 break;
@@ -497,6 +507,7 @@ public class KingsValleyGame : Nez.Core
 #if DEBUG
     private void CheckDebugShortcuts()
     {
+        if(!IsActive || Environment.GetEnvironmentVariable("KINGSVALLEY_IGNORE_INPUT")=="1")return;
         // F2: Sound Test / Music Stage Jukebox
         if (Nez.Input.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.F2))
         {

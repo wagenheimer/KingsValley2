@@ -6,6 +6,8 @@ namespace KingsValley.Core.Gameplay;
 /// </summary>
 public static class OriginalSounds
 {
+    /// <summary>Native secret passage/consumed golden ladder (Contest 908D → 42B4).</summary>
+    public const int GoldenLadder=0x40;
     /// <summary>Last stone: the door released (99E8 → 4212).</summary>
     public const int DoorUnlocked = 0x0B;
 

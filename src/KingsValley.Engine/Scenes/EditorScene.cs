@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,7 +55,7 @@ public class EditorScene : SceneBase
 
         var envStage = System.Environment.GetEnvironmentVariable("KINGSVALLEY_EDITOR_STAGE") ??
                        System.Environment.GetEnvironmentVariable("KINGSVALLEY_LEVEL");
-        var number = int.TryParse(envStage, out var n) ? Math.Clamp(n, 1, GameConstants.TotalStages) : LastEditedStageNumber;
+        var number = int.TryParse(envStage, out var n) ? Math.Clamp(n, 1, RomContent.StageCount) : LastEditedStageNumber;
         var def = StageLoader.Load(RomContent.LevelsDirectory, number);
         var autoSave = System.Environment.GetEnvironmentVariable("KINGSVALLEY_EDITOR_SAVE") == "1";
         AddEntity(new Entity("editor")).AddComponent(new EditorRenderer(def, number, LastEditedRoom, LastEditedCustomSlot, autoSave));
@@ -448,7 +448,7 @@ public class EditorScene : SceneBase
 
         public void LoadRomTemplate(int number)
         {
-            number = Math.Clamp(number, 1, GameConstants.TotalStages);
+            number = Math.Clamp(number, 1, RomContent.StageCount);
             var stage = StageLoader.Load(RomContent.LevelsDirectory, number);
             ApplyLoadedStage(stage, number, stage.PlayerStart.Room);
             _romTemplateStage = number;
@@ -484,9 +484,9 @@ public class EditorScene : SceneBase
             var json = BuildJson();
             var path = System.IO.Path.Combine(RomContent.CustomLevelsDirectory, $"custom_stage_{slot:D2}.json");
 
-            // MAXIMUM SAFETY: Guarantees that the 60 original ROM stages are NEVER overwritten
+            // MAXIMUM SAFETY: Guarantees that the cartridge stages are NEVER overwritten
             if (path.StartsWith(RomContent.LevelsDirectory, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Operation blocked: the 60 original ROM levels are protected from writing.");
+                throw new InvalidOperationException("Operation blocked: the cartridge levels are protected from writing.");
 
             System.IO.File.WriteAllText(path, json);
 
@@ -648,12 +648,12 @@ public class EditorScene : SceneBase
                 {
                     if (left || Nez.Input.IsKeyPressed(Keys.Q) || Nez.Input.IsKeyPressed(Keys.OemOpenBrackets))
                     {
-                        _romTemplateStage = _romTemplateStage <= 1 ? GameConstants.TotalStages : _romTemplateStage - 1;
+                        _romTemplateStage = _romTemplateStage <= 1 ? RomContent.StageCount : _romTemplateStage - 1;
                         GameAudio.PlayCursor();
                     }
                     if (right || Nez.Input.IsKeyPressed(Keys.E) || Nez.Input.IsKeyPressed(Keys.OemCloseBrackets))
                     {
-                        _romTemplateStage = _romTemplateStage >= GameConstants.TotalStages ? 1 : _romTemplateStage + 1;
+                        _romTemplateStage = _romTemplateStage >= RomContent.StageCount ? 1 : _romTemplateStage + 1;
                         GameAudio.PlayCursor();
                     }
 
@@ -679,13 +679,13 @@ public class EditorScene : SceneBase
                         {
                             if (pt.X >= ox + 24 && pt.X <= ox + 60)
                             {
-                                _romTemplateStage = _romTemplateStage <= 1 ? GameConstants.TotalStages : _romTemplateStage - 1;
+                                _romTemplateStage = _romTemplateStage <= 1 ? RomContent.StageCount : _romTemplateStage - 1;
                                 GameAudio.PlayCursor();
                                 return;
                             }
                             if (pt.X >= ox + 160 && pt.X <= ox + 200)
                             {
-                                _romTemplateStage = _romTemplateStage >= GameConstants.TotalStages ? 1 : _romTemplateStage + 1;
+                                _romTemplateStage = _romTemplateStage >= RomContent.StageCount ? 1 : _romTemplateStage + 1;
                                 GameAudio.PlayCursor();
                                 return;
                             }
@@ -1003,7 +1003,7 @@ public class EditorScene : SceneBase
             }
             if (Nez.Input.IsKeyPressed(Keys.OemCloseBrackets) || Nez.Input.IsKeyPressed(Keys.PageUp))
             {
-                if (_currentStageNumber < GameConstants.TotalStages)
+                if (_currentStageNumber < RomContent.StageCount)
                     LoadStage(_currentStageNumber + 1);
             }
 
@@ -1442,7 +1442,7 @@ public class EditorScene : SceneBase
         {
             // The loader reads the extractor's raw schema (rooms[].rows = 24 strings of 32 chars).
             // We use the matching ROM stage as the metadata template if it exists, or stage01 as fallback.
-            int templateNum = Math.Clamp(_currentStageNumber, 1, GameConstants.TotalStages);
+            int templateNum = Math.Clamp(_currentStageNumber, 1, RomContent.StageCount);
             var sourcePath = System.IO.Path.Combine(RomContent.LevelsDirectory, $"stage{templateNum:D2}.json");
             if (!System.IO.File.Exists(sourcePath))
                 sourcePath = System.IO.Path.Combine(RomContent.LevelsDirectory, "stage01.json");

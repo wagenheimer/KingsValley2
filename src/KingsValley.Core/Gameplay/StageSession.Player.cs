@@ -14,6 +14,7 @@ public sealed partial class StageSession
     private void UpdatePlayer(PlayerInput input)
     {
         var p = Player;
+        var previousState=p.State;
         switch (p.State)
         {
             case PlayerState.Dying:
@@ -74,6 +75,7 @@ public sealed partial class StageSession
         if (Status != StageStatus.Playing || p.State == PlayerState.Exiting)
             return;
 
+        if(previousState==PlayerState.Climbing && p.State!=PlayerState.Climbing)_goldenPulse=true;
         CollectAt(p.Bounds);
         if (AtOpenDoor())
         {
@@ -270,6 +272,7 @@ public sealed partial class StageSession
     /// <summary>A446: lands with Y rounded down to the cell (the feet stay on top of the block).</summary>
     private void LandSnapped()
     {
+        _goldenPulse=true;
         var p = Player;
         PlaySound(OriginalSounds.PlayerLand);
         p.Y &= ~(GameConstants.CellSize - 1);

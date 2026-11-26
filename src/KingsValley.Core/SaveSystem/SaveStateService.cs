@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.IO;
 using System.Text.Json;
@@ -32,16 +32,22 @@ public static class SaveStateService
         }
     }
 
-    public static string GetJsonPath(int slot) => Path.Combine(SaveStatesDirectory, $"slot{slot}.json");
-    public static string GetPngPath(int slot) => Path.Combine(SaveStatesDirectory, $"slot{slot}.png");
+    private static string DirectoryFor(string campaign)
+    {
+        _ = Campaigns.StageCount(campaign);
+        string path=campaign==Campaigns.Original?SaveStatesDirectory:Path.Combine(SaveStatesDirectory,campaign);
+        Directory.CreateDirectory(path);return path;
+    }
+    public static string GetJsonPath(int slot,string campaign=Campaigns.Original)=>Path.Combine(DirectoryFor(campaign),$"slot{slot}.json");
+    public static string GetPngPath(int slot,string campaign=Campaigns.Original)=>Path.Combine(DirectoryFor(campaign),$"slot{slot}.png");
 
-    public static bool SlotExists(int slot) => File.Exists(GetJsonPath(slot));
+    public static bool SlotExists(int slot,string campaign=Campaigns.Original)=>File.Exists(GetJsonPath(slot,campaign));
 
-    public static SaveStateData? Load(int slot)
+    public static SaveStateData? Load(int slot,string campaign=Campaigns.Original)
     {
         try
         {
-            var path = GetJsonPath(slot);
+            var path = GetJsonPath(slot,campaign);
             if (!File.Exists(path)) return null;
 
             string json = File.ReadAllText(path);
@@ -54,11 +60,11 @@ public static class SaveStateService
         }
     }
 
-    public static void Save(int slot, SaveStateData data, byte[]? pngBytes = null)
+    public static void Save(int slot, SaveStateData data, byte[]? pngBytes = null,string campaign=Campaigns.Original)
     {
         try
         {
-            var jsonPath = GetJsonPath(slot);
+            var jsonPath = GetJsonPath(slot,campaign);
             var tempJson = jsonPath + ".tmp";
             string json = JsonSerializer.Serialize(data, Options);
             File.WriteAllText(tempJson, json);
@@ -66,7 +72,7 @@ public static class SaveStateService
 
             if (pngBytes != null && pngBytes.Length > 0)
             {
-                var pngPath = GetPngPath(slot);
+                var pngPath = GetPngPath(slot,campaign);
                 var tempPng = pngPath + ".tmp";
                 File.WriteAllBytes(tempPng, pngBytes);
                 File.Move(tempPng, pngPath, overwrite: true);
@@ -78,14 +84,14 @@ public static class SaveStateService
         }
     }
 
-    public static void Delete(int slot)
+    public static void Delete(int slot,string campaign=Campaigns.Original)
     {
         try
         {
-            var jsonPath = GetJsonPath(slot);
+            var jsonPath = GetJsonPath(slot,campaign);
             if (File.Exists(jsonPath)) File.Delete(jsonPath);
 
-            var pngPath = GetPngPath(slot);
+            var pngPath = GetPngPath(slot,campaign);
             if (File.Exists(pngPath)) File.Delete(pngPath);
         }
         catch (Exception ex)

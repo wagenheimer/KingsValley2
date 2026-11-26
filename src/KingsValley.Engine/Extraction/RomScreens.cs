@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.IO;
 using System.Threading;
@@ -106,6 +106,25 @@ public static class RomScreens
 
         // The title blinks its cursor; keep the frame without it (the game draws its own marker).
         return CaptureWithoutCursor(machine);
+    }
+
+    /// <summary>Reaches the native intro through the title/start menu while preserving the cartridge main loop.</summary>
+    public static MiniMsx BootToIntro(byte[] rom,CancellationToken token=default)
+    {
+        MiniMsx machine=Boot(rom,TitleVariant.Japanese);
+        if(!WaitForScreen(machine,20000,int.MaxValue,1600,out _))
+            throw new InvalidDataException("The cartridge did not draw its title before intro capture.");
+        if(!TapUntilScreen(machine,0,5000,6))
+            throw new InvalidDataException("The cartridge did not reach its start menu before intro capture.");
+        machine.PressKey(SpaceRow,SpaceBit,true);
+        for(int frame=0;frame<400;frame++)
+        {
+            token.ThrowIfCancellationRequested();machine.Frame();
+            if(machine.Memory(0xE200)!=3 || machine.Memory(0xE201)!=6)continue;
+            machine.PressKey(SpaceRow,SpaceBit,false);
+            return machine;
+        }
+        throw new InvalidDataException("The cartridge did not enter its native intro within the frame bound.");
     }
 
     /// <summary>

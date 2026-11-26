@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using KingsValley.Engine.Assets;
+using Wagenheimer.MsxAudio.Extraction;
 
 namespace KingsValley.Engine.Extraction;
 
@@ -27,7 +28,11 @@ public sealed record ScannedRomInfo(
     string Sha1,
     ScannedRomFlavor Flavor,
     string DisplayTag,
-    string Description);
+    string Description)
+{
+    public bool IsSupported => RomFolderManager.SupportsSha1(Sha1);
+    public string? Variant=>CartridgeVariants.All.FirstOrDefault(v=>RomExtractionProfiles.FindByGameVariant("kings-valley-2",v)?.RomSha1.Contains(Sha1,StringComparer.OrdinalIgnoreCase)==true);
+}
 
 /// <summary>
 /// Manages the local ROMs folder (%APPDATA%\KingsValley\roms\), handles opening it in the OS file manager,
@@ -38,6 +43,9 @@ public static class RomFolderManager
     /// <summary>Standard SHA-1 for MSX1 King's Valley II (JP) [RC-760] (GoodMSX dump, 128 KB).</summary>
     public const string Msx1Rc760Sha1 = "CFD872D005B7BD4CDD6E06C4C0162191F0B0415D";
 
+    /// <summary>Verified MSX1 FRS v1.1 enhancement patch revision.</summary>
+    public const string Msx1FrsSha1 = "CB612CBFDF79DABE55164B386CA956A3E187BEF7";
+
     /// <summary>Standard SHA-1 for MSX2 King's Valley II (JP) [RC-761] (128 KB).</summary>
     public const string Msx2Rc761Sha1 = "F25628E474035E6BF0440B274C5DF04F94C49FB8";
 
@@ -46,6 +54,13 @@ public static class RomFolderManager
 
     /// <summary>SHA-1 for MSX2 King's Valley II boot hack (128 KB).</summary>
     public const string Msx2BootHackSha1 = "74EEAA99BFF38B332F64E9E9F7775F834D1842E7";
+
+    private static readonly Lazy<HashSet<string>> SupportedHashes = new(() =>
+        CartridgeVariants.All.SelectMany(variant =>
+            RomExtractionProfiles.FindByGameVariant("kings-valley-2", variant)?.RomSha1 ?? new List<string>())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase));
+
+    internal static bool SupportsSha1(string sha1) => SupportedHashes.Value.Contains(sha1);
 
     /// <summary>Default system directory for user ROMs: %APPDATA%\KingsValley\roms\</summary>
     public static string DefaultRomsDirectory { get; } = Path.Combine(
@@ -69,25 +84,24 @@ public static class RomFolderManager
         }
     }
 
-    /// <summary>Deletes the extracted content directory to allow a clean re-extraction.</summary>
-    public static bool PurgeExtractedContent()
+    /// <summary>Removes this game's extracted audio and graphics for both cartridges; preserves ROMs and reports.</summary>
+    public static bool PurgeExtractedContent() => PurgeExtractedContent(AudioBootstrap.CollectionRoot);
+
+    internal static bool PurgeExtractedContent(string collectionRoot)
     {
-        try
+        bool removed = false;
+        foreach (string variant in CartridgeVariants.All)
         {
-            string dir = AudioBootstrap.ExtractedDirectory;
-            if (Directory.Exists(dir))
+            foreach (string dir in new[] { Wagenheimer.MsxGraphics.Extraction.GraphicsLayout.GetRoot(collectionRoot,"kings-valley-2",variant),
+                Path.GetDirectoryName(Wagenheimer.MsxAudio.MsxAudioPaths.PackagePath("kings-valley-2",variant,collectionRoot))! })
             {
+                if (!Directory.Exists(dir)) continue;
                 Directory.Delete(dir, recursive: true);
-                Console.WriteLine($"[RomFolderManager] Purged extracted folder: {dir}");
-                return true;
+                Console.WriteLine($"[RomFolderManager] Removed extracted data: {dir}");
+                removed = true;
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[RomFolderManager] Failed to purge extracted folder: {ex.Message}");
-        }
-
-        return false;
+        return removed;
     }
 
     /// <summary>
@@ -129,17 +143,21 @@ public static class RomFolderManager
         var results = new List<ScannedRomInfo>();
         var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        var directories = new List<string> { DefaultRomsDirectory };
+        var directories = new List<string> { DefaultRomsDirectory, AppDomain.CurrentDomain.BaseDirectory };
         if (Directory.Exists(PortableRomsDirectory) &&
             !string.Equals(DefaultRomsDirectory, PortableRomsDirectory, StringComparison.OrdinalIgnoreCase))
         {
             directories.Add(PortableRomsDirectory);
         }
 
+        // An explicit diagnostic/custom root isolates discovery without moving the user's ROMs.
+        string? customDirectory=Environment.GetEnvironmentVariable("KINGSVALLEY_ROM_DIR");
+        if(!string.IsNullOrWhiteSpace(customDirectory))directories=new List<string>{Path.GetFullPath(customDirectory)};
+
         // Development fallback: check tools/kv2-extract/work/rom if present
         string devWorkRom = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..",
             "tools", "kv2-extract", "work", "rom");
-        if (Directory.Exists(devWorkRom))
+        if (string.IsNullOrWhiteSpace(customDirectory) && Directory.Exists(devWorkRom))
             directories.Add(Path.GetFullPath(devWorkRom));
 
         foreach (string dir in directories)
@@ -193,8 +211,9 @@ public static class RomFolderManager
             if (!fileInfo.Exists || fileInfo.Length == 0)
                 return null;
 
-            string sha1Hex = ComputeSha1(filePath);
-            long size = fileInfo.Length;
+            string cartridgePath = RomFile.Resolve(filePath);
+            string sha1Hex = ComputeSha1(cartridgePath);
+            long size = new FileInfo(cartridgePath).Length;
             string fileName = fileInfo.Name;
 
             // Match known SHA-1 hashes
@@ -234,6 +253,17 @@ public static class RomFolderManager
                     "MSX2 BOOT PATCHED DUMP");
             }
 
+            // Curated profile aliases are shared by discovery, audio and graphics. Do not
+            // infer compatibility from the filename or a generic MSX cartridge header.
+            foreach (string variant in CartridgeVariants.All)
+            {
+                var profile=RomExtractionProfiles.FindByGameVariant("kings-valley-2",variant);
+                if(profile?.RomSha1.Contains(sha1Hex,StringComparer.OrdinalIgnoreCase)!=true)continue;
+                return new ScannedRomInfo(filePath,fileName,size,sha1Hex,
+                    variant=="msx1"?ScannedRomFlavor.Msx1:ScannedRomFlavor.Msx2,
+                    "["+variant.ToUpperInvariant()+" VERIFIED REVISION]","VERIFIED EXTRACTION PROFILE");
+            }
+
             // Heuristic detection based on size and content
             ScannedRomFlavor flavor = ScannedRomFlavor.Unknown;
             string tag = "[UNKNOWN ROM]";
@@ -246,7 +276,7 @@ public static class RomFolderManager
             }
             else if (size is 131072 or 262144)
             {
-                byte[] header = ReadHeader(filePath, 32);
+                byte[] header = ReadHeader(cartridgePath, 32);
                 bool isMsxCart = header.Length >= 2 && header[0] == 0x41 && header[1] == 0x42; // "AB"
 
                 string upperName = fileName.ToUpperInvariant();

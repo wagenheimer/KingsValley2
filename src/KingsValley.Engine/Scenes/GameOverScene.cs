@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -79,7 +79,7 @@ public class GameOverScene : SceneBase
                     _continueChosen = true;
                     GameAudio.PlayConfirm();
                     // over_cont → goto_stage: score zerado e E240 = 1 (play_init do 6B24).
-                    GameNavigation.GoToGame(GameRun.New(_run.HiScore, _run.Stage, rest: 1,
+                    GameNavigation.GoToGame(RomContent.NewRun(_run.HiScore, _run.Stage, rest: 1,
                         _run.Invincible, continueEnabled: true));
                     Entity?.Destroy();
                     return;

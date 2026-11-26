@@ -184,6 +184,9 @@ public sealed partial class StageSession
         data.FallingWalls=_fallingWalls.Values.Select(s=>new FallingWallData {Room=s.Room,X=s.X,Y=s.Y,
             Triggered=s.Triggered,Finished=s.Finished,Rows=s.Rows,Countdown=s.Countdown}).ToList();
 
+        data.GoldenLadders=Definition.GoldenLadders.Select((ladder,index)=>new GoldenLadderData
+        {Index=index,Remaining=_goldenLadders[ladder].Remaining,Armed=_goldenLadders[ladder].Armed}).ToList();
+
         // Room maps
         foreach (var kvp in _rooms)
         {
@@ -372,6 +375,15 @@ public sealed partial class StageSession
                 rm.RestoreCells(cells);
             }
         }
+
+        foreach(var state in _goldenLadders.Values){state.Remaining=2;state.Armed=false;}
+        foreach(var saved in data.GoldenLadders)
+        {
+            if(saved.Index<0||saved.Index>=Definition.GoldenLadders.Count)continue;
+            var state=_goldenLadders[Definition.GoldenLadders[saved.Index]];
+            state.Remaining=Math.Clamp(saved.Remaining,0,2);state.Armed=saved.Armed;
+        }
+        _goldenPulse=false;
 
         // Clear and re-mark push stones
         foreach (var rm in _rooms.Values)
