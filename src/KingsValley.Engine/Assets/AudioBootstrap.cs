@@ -76,8 +76,8 @@ public static class AudioBootstrap
         {
             if (AudioValidation.TryGetValue(path, out var cached) && cached.Stamp == info.LastWriteTimeUtc && cached.Size == info.Length)
                 return cached.Valid;
-            var profile = RomExtractionProfiles.FindByGameVariant("kings-valley-2",variant);
-            bool valid = profile != null && RomExtractionProfiles.IsCurrentPackage(path, profile);
+            bool valid = System.Linq.Enumerable.Any(RomExtractionProfiles.FindAllByGameVariant("kings-valley-2",variant),
+                profile => RomExtractionProfiles.IsCurrentPackage(path, profile));
             AudioValidation[path] = (info.LastWriteTimeUtc, info.Length, valid);
             return valid;
         }
@@ -307,6 +307,7 @@ public static class AudioBootstrap
         string? reportGraphicsDirectory = null;
         string sourceName = Path.GetFileName(options.RomPath);
         string? preparationNotice = null;
+        string? pendingAudioPath = null;
         try
         {
 
@@ -316,7 +317,7 @@ public static class AudioBootstrap
                 line => { lock (Gate) _status = line; }, token);
             byte[] rom = File.ReadAllBytes(prepared);
             if (prepared != resolved)
-                preparationNotice = $"English translation by FRS and contributors (enhancement patch v1.1). Original cartridge preserved: SHA-1 {ContestEnglishPatch.SourceSha1}. Working cartridge SHA-1 {ContestEnglishPatch.EnglishSha1}. Complete original patch archive and license are bundled. Source: {ContestEnglishPatch.ArchiveUrl}";
+                preparationNotice = $"English translation by FRS and contributors (enhancement patch v1.1). Original cartridge preserved: SHA-1 {Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(File.ReadAllBytes(resolved))).ToLowerInvariant()}. Working cartridge SHA-1 {Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom)).ToLowerInvariant()}. Complete original patch archive and license are bundled. Source: {ContestEnglishPatch.ArchiveUrl}";
             options.RomPath = prepared;
             options.Profile = LoadProfile(rom);
             reportRom = rom;
@@ -342,8 +343,12 @@ public static class AudioBootstrap
                     }, cancellationToken: token);
 
                 token.ThrowIfCancellationRequested();
-                result.Library.Save(audioPath);
-                File.WriteAllText(Path.Combine(Path.GetDirectoryName(audioPath)!, "capture-report.json"),
+                string attemptDirectory = Path.Combine(Path.GetDirectoryName(audioPath)!, "attempts", Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(attemptDirectory);
+                pendingAudioPath = Path.Combine(attemptDirectory, "audio.pending");
+                result.Library.Save(pendingAudioPath);
+                reportAudioPath = pendingAudioPath;
+                File.WriteAllText(Path.Combine(attemptDirectory, "capture-report.json"),
                     JsonSerializer.Serialize(result.Diagnostics, new JsonSerializerOptions { WriteIndented = true }));
             }
             else
@@ -367,7 +372,18 @@ public static class AudioBootstrap
             reportGraphicsDirectory = graphics.Directory;
             LastGraphicsAttemptDirectory = graphics.Directory;
             outcome = graphics.Manifest.Outcome;
-            if (graphics.Manifest.Ready) GameAssets.Invalidate();
+            if (graphics.Manifest.Ready)
+            {
+                // A failed graphics attempt must not replace another revision's playable audio.
+                if (pendingAudioPath != null)
+                {
+                    File.Move(pendingAudioPath, audioPath, true);
+                    File.Move(Path.Combine(Path.GetDirectoryName(pendingAudioPath)!, "capture-report.json"),
+                        Path.Combine(Path.GetDirectoryName(audioPath)!, "capture-report.json"), true);
+                    reportAudioPath = audioPath;
+                }
+                GameAssets.Invalidate();
+            }
             lock (Gate)
             {
                 _progress = 1;
@@ -399,7 +415,7 @@ public static class AudioBootstrap
             {
                 string variant=options.Profile.Variant!;
                 string package = reportAudioPath ?? AudioPackageForVariant(variant);
-                string reportDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(package)!)!, "Report");
+                string reportDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(AudioPackageForVariant(variant))!)!, "Report");
                 string hash = reportRom == null ? string.Empty : Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(reportRom)).ToLowerInvariant();
                 string reportPath = ExtractionReportBuilder.Build(new(reportGraphicsDirectory ?? GraphicsDirectoryForVariant(variant), package, reportDirectory,
                     sourceName, hash, options.Profile.Variant ?? "unknown", outcome,
@@ -426,6 +442,8 @@ public static class AudioBootstrap
     /// <summary>Game-specific selection of the reusable library's curated cartridge profile.</summary>
     internal static RomExtractionProfile LoadProfile(byte[] rom)
     {
+        if (Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom)).Equals(SupportedCartridges.ConvertedIoSha1, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("This is the known I/O-mapped conversion, with reordered banks and no standard AB cartridge header. Its loader and custom port mapping are not implemented yet. Use a verified original cartridge revision; renaming this file will not change its format.");
         RomExtractionProfile profile = RomExtractionProfiles.FindForRom(rom)
             ?? throw new InvalidDataException("This cartridge revision is not supported yet (SHA-1 " +
                 Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom)) +

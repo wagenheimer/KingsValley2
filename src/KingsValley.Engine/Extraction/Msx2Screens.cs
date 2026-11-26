@@ -37,7 +37,7 @@ public static class Msx2Screens
             var pixels=V9938Sprites.DecodeRegion(machine.Vram,machine.VdpRegisters,attributes,colors,x,y,width,height);
             return new(width,height,true,machine.SnapshotScreen5().Palette,pixels);
         }
-        var title=new Msx2VdpRunner(rom);title.Boot();
+        var title=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));title.BootVerified();
         bool logo=false,finished=false;
         for(int tick=0;tick<650;tick++)
         {
@@ -55,15 +55,15 @@ public static class Msx2Screens
         title.SetMemory(0xE207,0);title.Invoke(0x6794);
         Save("Art/Native/arrow",Sprite(title,1,80,81,16,16));
 
-        var world=new Msx2VdpRunner(rom);world.Boot();world.SetMemory(0xE241,1);
+        var world=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));world.BootVerified();world.SetMemory(0xE241,1);
         world.Invoke(0x6F84);Save("Screens/world_map",world.SnapshotScreen5());
-        var intro=new Msx2VdpRunner(rom);intro.Boot();intro.Invoke(0x5BEB);
+        var intro=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));intro.BootVerified();intro.Invoke(0x5BEB);
         intro.Invoke(0x6807);Save("Screens/pyramid",intro.SnapshotScreen5());
         intro.Invoke(0x6945);Save("Screens/intro_msg",intro.SnapshotScreen5());
 
         // Hidden-room UIs inherit unchanged palette entries (including white 11)
         // from gameplay. Their own palette list intentionally updates only a subset.
-        var ui=new Msx2VdpRunner(rom);ui.Boot();ui.PrepareAndPaint(1);ui.Invoke(0x5BEB);
+        var ui=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));ui.BootVerified();ui.PrepareAndPaint(1);ui.Invoke(0x5BEB);
         ui.Invoke(0x41B5);ui.SetMemory(0xEF10,1);ui.SetMemory(0xEF11,0);ui.SetMemory(0xEF12,0);
         ui.Invoke(0xB534);Save("Screens/sound_select",ui.SnapshotScreen5());
         ui.Invoke(0x41B5);ui.Invoke(0xB534);

@@ -101,6 +101,15 @@ public static class RomScreens
         ArgumentNullException.ThrowIfNull(rom);
 
         MiniMsx machine = Boot(rom, variant);
+        if (IsJoySnes(rom))
+        {
+            for (int frame = 0; frame < 2400; frame++)
+            {
+                machine.Frame();
+                if (machine.Memory(0xE200) == 1) return CaptureWithoutCursor(machine);
+            }
+            throw new InvalidDataException("The JoySNES cartridge did not draw its native title.");
+        }
         if (!WaitForScreen(machine, minLit: 20000, maxLit: int.MaxValue, maxFrames: 1600, out _))
             throw new InvalidDataException("the cartridge never drew the title screen");
 
@@ -112,6 +121,20 @@ public static class RomScreens
     public static MiniMsx BootToIntro(byte[] rom,CancellationToken token=default)
     {
         MiniMsx machine=Boot(rom,TitleVariant.Japanese);
+        if (IsJoySnes(rom))
+        {
+            // This revision replaces keyboard input with a JoySNES peripheral reader.
+            // Enter through the same native initialization used for the intro timeline,
+            // rather than fabricating controller reads or waiting for an absent device.
+            token.ThrowIfCancellationRequested();
+            machine.CallAddress(0x5A3D, 2_000_000);
+            machine.CallAddress(0x4192);
+            machine.CallAddress(0x6611, 2_000_000);
+            machine.MainRunning = false;
+            machine.Write(0xE241, 1); machine.Write(0xE242, 1); machine.Write(0xE243, 1);
+            machine.Write(0xE200, 3); machine.Write(0xE201, 6); machine.Write(0xE24A, 0);
+            return machine;
+        }
         if(!WaitForScreen(machine,20000,int.MaxValue,1600,out _))
             throw new InvalidDataException("The cartridge did not draw its title before intro capture.");
         if(!TapUntilScreen(machine,0,5000,6))
@@ -135,13 +158,17 @@ public static class RomScreens
     {
         ArgumentNullException.ThrowIfNull(rom);
 
-        MiniMsx machine = Boot(rom, TitleVariant.Japanese);
-
-        if (!WaitForScreen(machine, minLit: 20000, maxLit: int.MaxValue, maxFrames: 1600, out _))
-            throw new InvalidDataException("the cartridge never drew the title screen");
-
-        TapUntilScreen(machine, minLit: 0, maxLit: 5000, attempts: 6); // title -> start select
-        Tap(machine, SpaceRow, SpaceBit);                              // start select -> stage intro
+        bool joySnes = IsJoySnes(rom);
+        MiniMsx machine;
+        if (joySnes) machine = BootToIntro(rom, token);
+        else
+        {
+            machine = Boot(rom, TitleVariant.Japanese);
+            if (!WaitForScreen(machine, minLit: 20000, maxLit: int.MaxValue, maxFrames: 1600, out _))
+                throw new InvalidDataException("the cartridge never drew the title screen");
+            TapUntilScreen(machine, minLit: 0, maxLit: 5000, attempts: 6);
+            Tap(machine, SpaceRow, SpaceBit);
+        }
 
         // Bound the transition by cartridge state and an active SCREEN 2 room. A blind wait
         // can run past gameplay into Game Over and replace the pattern tables with title art.
@@ -149,7 +176,7 @@ public static class RomScreens
         {
             token.ThrowIfCancellationRequested();
             machine.Frame();
-            if (frame < 650 || machine.Memory(0xE242) != 1 || machine.Memory(0xE243) != 1 || machine.Memory(0xE280) != 0) continue;
+            if ((!joySnes && frame < 650) || (joySnes && machine.Memory(0xE201) == 6) || machine.Memory(0xE242) != 1 || machine.Memory(0xE243) != 1 || machine.Memory(0xE280) != 0) continue;
             byte[] pixels = DecodeScreen2(machine.Vram, machine.VdpRegisters);
             int lit = 0; foreach (byte pixel in pixels) if (pixel >= 2) lit++;
             int sat = (machine.VdpRegisters[5] & 127) << 7;
@@ -324,6 +351,7 @@ public static class RomScreens
     public static ScreenData CaptureStageIntro(byte[] rom)
     {
         ArgumentNullException.ThrowIfNull(rom);
+        if (IsJoySnes(rom)) return ScreenOf(BootToIntro(rom));
 
         MiniMsx machine = Boot(rom, TitleVariant.Japanese);
 
@@ -410,7 +438,7 @@ public static class RomScreens
     /// <summary>Initializes the machine with the cartridge and the requested title variant.</summary>
     private static MiniMsx Boot(byte[] rom, TitleVariant variant)
     {
-        var machine = new MiniMsx(rom, RomMapper.KonamiScc);
+        var machine = CartridgeMachines.Create(rom);
         machine.SetBiosByte(0x002B, variant == TitleVariant.Japanese ? (byte)0x00 : (byte)0xC9);
 
         if (!machine.Boot(2_000_000))
@@ -418,6 +446,8 @@ public static class RomScreens
 
         return machine;
     }
+
+    private static bool IsJoySnes(byte[] rom) => Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(rom)) == "7F6C5EC94D35981547A277C308EA9C2D2AB92E0F";
 
     private static ScreenData ScreenOf(MiniMsx machine) =>
         new(Width, Height, false, TmsPalette, DecodeScreen2(machine.Vram, machine.VdpRegisters));

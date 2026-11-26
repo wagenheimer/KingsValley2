@@ -17,7 +17,7 @@ public static class Msx2MechanismFrames
         var profile=RomExtractionProfiles.FindForRom(rom);
         if(profile?.GameId!="kings-valley-2" || profile.Variant is not ("msx2" or Assets.CartridgeVariants.Contest))throw new InvalidDataException("The MSX2 mechanism recipe requires the verified MSX2 cartridge.");
         bool contest=ContestCartridge.Is(rom);
-        var machine=new Msx2VdpRunner(rom);if(contest)machine.BootContest();else machine.Boot();var frames=new Dictionary<string,byte[]>();
+        var machine=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));if(contest)machine.BootContest();else machine.BootVerified();var frames=new Dictionary<string,byte[]>();
         for(int pyramid=1;pyramid<=6;pyramid++)
         {
             token.ThrowIfCancellationRequested();if(contest)ContestCartridge.Prepare(machine,1,pyramid);else machine.PrepareAndPaint((pyramid-1)*10+1);

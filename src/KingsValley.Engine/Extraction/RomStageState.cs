@@ -52,7 +52,7 @@ public sealed class RomStageState
         if (stage is < 1 or > 60)
             throw new ArgumentOutOfRangeException(nameof(stage));
 
-        var machine = new MiniMsx(rom, RomMapper.KonamiScc);
+        var machine = CartridgeMachines.Create(rom);
         machine.Boot(2_000_000);
         ushort stageLoader = ResolveStageLoader(rom);
         return Read(machine, stageLoader, stage);

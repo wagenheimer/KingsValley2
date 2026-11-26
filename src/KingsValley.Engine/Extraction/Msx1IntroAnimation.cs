@@ -23,7 +23,7 @@ public static class Msx1IntroAnimation
             machine=RomScreens.BootToIntro(rom,token);
         else
         {
-            machine=new MiniMsx(rom,RomMapper.KonamiScc);machine.SetBiosByte(0x002B,0);
+            machine=CartridgeMachines.Create(rom);machine.SetBiosByte(0x002B,0);
             if(!machine.Boot(2_000_000))throw new InvalidDataException("The native intro machine did not boot.");
             machine.CallAddress(0x4192);machine.CallAddress(0x6611,2_000_000);
             // Original RC-760 advances inside H.TIMI. Direct setup returns the main CPU

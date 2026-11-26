@@ -870,10 +870,10 @@ public static class RomDirectExtractor
         sprites.Add(new DirectSprite("font_excl", 8, 8, Glyph(0xDB, 11)));
         // Draw only the native static HUD script (5EF2) after the original stage setup.
         // The number fields remain untouched; the port supplies the current score/lives later.
-        var hudMachine=new Msx2VdpRunner(romBytesForFont);
+        var hudMachine=new Msx2VdpRunner(Msx2ExecutionImage.For(romBytesForFont));
         bool contest=ContestCartridge.Is(romBytesForFont);
         if(contest){hudMachine.BootContest();ContestCartridge.Prepare(hudMachine,1);}
-        else {hudMachine.Boot();hudMachine.PrepareAndPaint(1);}
+        else {hudMachine.BootVerified();hudMachine.PrepareAndPaint(1);}
         hudMachine.Invoke(contest?(ushort)0x5679:(ushort)0x5BEB); // Native normal-font tiles, required before the HUD text stream.
         hudMachine.Invoke(contest?(ushort)0x4D99:(ushort)0x51D0,hl:contest?(ushort)0x5C1A:(ushort)0x5EF2);
         var hud=hudMachine.SnapshotScreen5();
@@ -1189,8 +1189,8 @@ public static class RomDirectExtractor
         if (identity?.GameId != "kings-valley-2" || identity.Variant != "msx2")
             throw new InvalidDataException("MSX2 block extraction requires a verified MSX2 cartridge.");
         Directory.CreateDirectory(roomsDir);
-        var runner = new Msx2VdpRunner(msx2Rom);
-        runner.Boot();
+        var runner = new Msx2VdpRunner(Msx2ExecutionImage.For(msx2Rom));
+        runner.BootVerified();
         var palettes = new Dictionary<string, List<int[]>>();
         for (int pyramid = 1; pyramid <= 6; pyramid++)
         {

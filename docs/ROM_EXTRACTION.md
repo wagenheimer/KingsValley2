@@ -4,6 +4,11 @@ Updated 2026-11-24. Production extraction uses only the user's verified ROM and 
 
 ## Identity and isolation
 
+The complete current revision matrix, acquisition sources and pending cases are in
+[ROM_COMPATIBILITY.md](ROM_COMPATIBILITY.md). The table below records the initial
+baseline profiles; it is not the complete set of accepted hashes. Hardware variants
+such as the ASCII8/external-SCC conversions now have separate recipes within MSX1/MSX2.
+
 | Cartridge | SHA-1 | Profile |
 | --- | --- | --- |
 | MSX1 RC-760 | `cfd872d005b7bd4cdd6e06c4c0162191f0b0415d` | Native TMS9918 graphics and isolated sound-driver execution |

@@ -78,7 +78,7 @@ public static class ContestCartridge
         var reader=new RomDirectExtractor.RomReader(rom);
         for(int pyramid=1;pyramid<=6;pyramid++)
         {
-            var machine=new Msx2VdpRunner(rom);machine.BootContest();Prepare(machine,1,pyramid);
+            var machine=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));machine.BootContest();Prepare(machine,1,pyramid);
             var blocks=new byte[8192];
             for(int tile=0;tile<256;tile++)for(int row=0;row<8;row++)
                 Array.Copy(machine.Vram,0x8000+((tile/32)*8+row)*128+(tile%32)*4,blocks,tile*32+row*4,4);
@@ -104,7 +104,7 @@ public static class ContestCartridge
             string path=Path.Combine(destination,name+".bin");Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllBytes(path,ScreenAssembler.Encode(screen.Width,screen.Height,screen.Palette,screen.Indices,screen.HasAlpha));
         }
-        var title=new Msx2VdpRunner(rom);title.BootContest();bool logo=false,finished=false;
+        var title=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));title.BootContest();bool logo=false,finished=false;
         for(int tick=0;tick<900;tick++)
         {
             title.Invoke(0x44BC);
@@ -120,7 +120,7 @@ public static class ContestCartridge
         // the cartridge's own selection marker; no authored cursor or translated art is used.
         for(int group=0;group<4;group++)
         {
-            var menu=new Msx2VdpRunner(rom);menu.BootContest();
+            var menu=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));menu.BootContest();
             menu.SetMemory(0xF0F6,0);menu.SetMemory(0xF0F7,0);
             menu.SetMemory(0xE21C,(byte)group);menu.SetMemory(0xE21D,0);
             menu.Invoke(0x4191);menu.Invoke(0x5270);menu.Invoke(0x41E1);
@@ -133,7 +133,7 @@ public static class ContestCartridge
                 Save($"Screens/contest_author_{group}_{entry}",menu.SnapshotScreen5());
             }
         }
-        var themes=new Msx2VdpRunner(rom);themes.BootContest();themes.Invoke(0x4A60);themes.Invoke(0x5888);
+        var themes=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));themes.BootContest();themes.Invoke(0x4A60);themes.Invoke(0x5888);
         for(int pyramid=1;pyramid<=6;pyramid++)
         {
             themes.SetMemory(0xE241,(byte)pyramid);themes.Invoke(0x59A9);
@@ -144,7 +144,7 @@ public static class ContestCartridge
     /// <summary>Contest 47CF: native congratulation text after the 48-call closing curtain.</summary>
     public static ScreenData CaptureCompletion(byte[] rom)
     {
-        var native=new Msx2VdpRunner(rom);native.BootContest();Prepare(native,1);
+        var native=new Msx2VdpRunner(Msx2ExecutionImage.For(rom));native.BootContest();Prepare(native,1);
         native.SetMemory(0xE243,3);native.Invoke(0x434F);
         native.Invoke(0x5679);native.Invoke(0x4D99,hl:0x5C1A);
         native.SetMemory(0xE200,9);native.SetMemory(0xE201,0);

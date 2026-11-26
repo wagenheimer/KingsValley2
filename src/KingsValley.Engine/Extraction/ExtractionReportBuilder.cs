@@ -32,10 +32,14 @@ public static class ExtractionReportBuilder
             RomSha1 = request.RomSha1, Outcome = request.Outcome, ElapsedSeconds = request.ElapsedSeconds
         };
         Directory.CreateDirectory(request.ReportDirectory);
+        var sourceRevision = SupportedCartridges.All.FirstOrDefault(entry => entry.Sha1.Equals(request.RomSha1, StringComparison.OrdinalIgnoreCase));
+        if (sourceRevision?.SourceWarning != null) report.Notices.Add("Source cartridge limitation: " + sourceRevision.SourceWarning);
         if (request.PreparationNotice != null) report.Notices.Add(request.PreparationNotice);
         if(request.Variant==Assets.CartridgeVariants.Contest)
             report.Notices.Add("Contest contains four publications with five independent author challenges each. Its native publication, author and SCREEN SELECT menus are extracted as thirty binary frames, including six visual themes. The native CONGRATULATION screen follows door entry and the closing curtain, preserves the live score HUD, and returns to publication selection after 360 logic calls. The framed artwork is the edition title, not a separate winner certificate.");
-        if(request.Variant=="msx2")report.Notices.Add("This validated MSX2 cartridge draws the Japanese title only. An English title is not extracted, fabricated or borrowed from MSX1; the title-language preference uses the available native title.");
+        if(request.Variant=="msx2")report.Notices.Add(request.RomSha1.Equals("89d96d4b92d9a1c220cae0240cf0c00f310d14aa",StringComparison.OrdinalIgnoreCase)
+            ? "The FRS MSX2 revision supplies its own English title artwork. The native title is extracted from this cartridge; no MSX1 title is borrowed."
+            : "This MSX2 revision supplies its native title artwork. Optional title-language selection uses only the screens available in the current cartridge generation.");
         if (request.Outcome == "existing") report.Notices.Add("This report was rebuilt from available files. No new extraction was performed to generate this view.");
         if (!string.IsNullOrWhiteSpace(request.Failure)) report.Notices.Add("The run did not finish: " + request.Failure);
         var manifest = GraphicsExtractionManifest.Read(request.GraphicsDirectory);

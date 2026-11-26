@@ -45,7 +45,7 @@ The setup footer opens **ROM GUIDE**: press **H**, gamepad **START**, or click t
 
 The **Edit Contest** cartridge is a special collection of custom-stage contest entries, also encountered under **Gold** naming. Its framed opening identifies it as the **Custom stage Contest — Best Entries Collection**. There are **20 challenges**, grouped into four publication award categories with five authors each: **MSX Magazine, Comptiq, MSX-FAN and Beep**.
 
-This is a separate stage collection, rather than an extra difficulty setting for the original 60 stages. The supported dump is the **MSX2 JoySNES revision** listed below; other ROMs labeled Gold or Contest are not automatically compatible.
+This is a separate stage collection, rather than an extra difficulty setting for the original 60 stages. Original GoodMSX, official FRS English, JoySNES and the locally validated JoySNES + FRS output are supported, each identified by its own SHA-1.
 
 <p align="center">
   <img src="docs/en/media/contest_title.png" width="65%" alt="English Edit Contest opening: Custom stage Contest, Best Entries Collection">
@@ -76,9 +76,9 @@ Completing a challenge plays the door and closing-curtain sequence, displays the
 
 ### Automatic English translation — offline
 
-Supply the supported **Japanese JoySNES ROM**. During extraction, the game verifies the complete bundled **FRS enhancement patch v1.1** archive, applies `KVAL2G.IPS` to a private working copy and checks the exact resulting SHA-1. English title/menu artwork and romanized author names are extracted from that copy. **Your selected ROM is never overwritten, and no download is needed.**
+Supply either supported **Japanese Contest ROM: original GoodMSX or JoySNES**. During extraction, the game verifies the complete bundled **FRS enhancement patch v1.1** archive, applies `KVAL2G.IPS` to a private working copy and checks the exact resulting SHA-1. English title/menu artwork and romanized author names are extracted from that copy. **Your selected ROM is never overwritten, and no download is needed.**
 
-This is the locally validated JoySNES + FRS combination, not the differently hashed official prepatched Gold revision. Its 20 extracted stage definitions match the Japanese source. Audio is captured from the effective cartridge's own driver. Reports record both ROM identities and patch attribution.
+The original GoodMSX source produces the official FRS English hash; JoySNES produces a separately validated hash. These identities are kept distinct. The 20 extracted stage definitions are checked against their Japanese sources. Audio is captured from the effective cartridge's own driver. Reports record both ROM identities and patch attribution.
 
 FRS documents the Gold translation on the [author's patch page](https://frs.badcoffee.info/patches.html). Credits, hashes, redistribution conditions and the original license are in the [bundled patch documentation](third_party/FRS/README.md). Set `KINGSVALLEY_CONTEST_LANGUAGE=jp` before starting the application for native Japanese diagnostic extraction.
 
@@ -90,24 +90,41 @@ See the [Contest guide](docs/CONTEST_EDITION.md) for stage mappings, native scre
 
 Every accepted image below is **131,072 bytes (128 KiB)**. SHA-1 refers to the **uncompressed ROM inside a ZIP**, not the ZIP itself. Filenames, region tags and cartridge numbers alone do not establish compatibility.
 
-| Exact edition/revision | SHA-1 of ROM | Recommendation |
+| Revision | ROM SHA-1 | Status |
 | --- | --- | --- |
-| MSX2 RC-761 **SCC patch revision** | `0c7e0b618c72e7ca08bd756c3103b46e5c580c04` | **Recommended for original MSX2.** This exact patch revision is required. |
-| MSX1 RC-760 original / GoodMSX dump | `cfd872d005b7bd4cdd6e06c4c0162191f0b0415d` | **Recommended for original MSX1.** |
-| MSX1 RC-760 **FRS enhancement v1.1** | `cb612cbfdf79dabe55164b386ca956a3e187bef7` | Accepted MSX1 alternative, already patched. No automatic MSX1 patching. |
-| MSX2 **Edit Contest, JoySNES revision** (Japanese) | `4a157e6e217f6af4ab3dec5d7dd5188e5cef7954` | **Recommended for Contest.** English translation is applied automatically offline to a private copy. |
-| **JoySNES Contest + FRS v1.1**, validated local combination | `e7b0a7b083d2f5bb12fb4ea6b2e822ee6330a15e` | Accepted translated working copy. The game generates it; you do not need to obtain it separately. |
+| MSX1 RC-760 original / GoodMSX | `cfd872d005b7bd4cdd6e06c4c0162191f0b0415d` | Supported |
+| MSX1 ASCII8 + external SCC slot-2 conversion | `f3306e6f25d111da21ce66db3404f5f48acb25a1` | Supported |
+| MSX1 FRS v1.1 | `cb612cbfdf79dabe55164b386ca956a3e187bef7` | Supported |
+| MSX1 JoySNES | `7f6c5ec94d35981547a277c308ea9c2d2ab92e0f` | Supported |
+| MSX2 RC-761 original / GoodMSX | `5ec8811254dc762c6852289a08acf22954404f0d` | Supported |
+| MSX2 ASCII8 + external SCC slot-2 conversion | `f25628e474035e6bf0440b274c5df04f94c49fb8` | Supported |
+| MSX2 Ulver crack | `b5acea41aeabb5daa4183953f800d47db0c39fb5` | Supported |
+| MSX2 FRS v1.1 | `89d96d4b92d9a1c220cae0240cf0c00f310d14aa` | Supported |
+| MSX2 alternate dump (3164) | `22704b82d159d963f1192d7a81810aa2be8b6042` | Supported |
+| MSX2 JoySNES | `9ef68fecc91bf5066b9eb9a796412ab00e5746bf` | Supported |
+| MSX2 Missing Text (damaged) | `fa750d3f622717fd1dfd0b2740fe69b49ba62ac8` | Partial only: source text is missing |
+| MSX2 I/O-mapped conversion (6768) | `c4e138d533525d4b9064b2c265c4d2fdc5fa898d` | Pending: custom loader / I/O mapping |
+| MSX2 Edit Contest original / GoodMSX | `2e0436303648097e8e936c5467574aff5e3f1517` | Supported |
+| MSX2 Edit Contest FRS v1.1 (English) | `376b4785cab7d60cc083f0c03bd5e8ea2fee8205` | Supported |
+| MSX2 Edit Contest JoySNES | `4a157e6e217f6af4ab3dec5d7dd5188e5cef7954` | Supported |
+| MSX2 SCC slot patch (project baseline) | `0c7e0b618c72e7ca08bd756c3103b46e5c580c04` | Supported |
+| MSX2 Contest JoySNES + FRS local output | `e7b0a7b083d2f5bb12fb4ea6b2e822ee6330a15e` | Supported |
+| Legacy boot-patch identity (image not located) | `74eeaa99bff38b332f64e9e9f7775f834d1842e7` | Pending: source image unavailable |
 
-Other revisions are not accepted for extraction, even when the scanner recognizes their edition name:
+**Recommended:** unmodified GoodMSX originals for MSX1/MSX2; the original GoodMSX
+Contest or its official FRS English output for Contest. The JoySNES Contest
+remains supported. Both Japanese Contest sources can be translated automatically
+offline, each with its own exact output hash.
 
-| Recognized or related revision — not supported | SHA-1 |
-| --- | --- |
-| Unpatched MSX2 RC-761 | `f25628e474035e6bf0440b274c5df04f94c49fb8` |
-| MSX2 boot hack | `74eeaa99bff38b332f64e9e9f7775f834d1842e7` |
-| Gold source specified in FRS's original instructions | `2e0436303648097e8e936c5467574aff5e3f1517` |
-| Official prepatched Gold revision | `376b4785cab7d60cc083f0c03bd5e8ea2fee8205` |
+The slot-2 dumps are ASCII8 conversions that use an external SCC; they now have
+separate hardware/audio recipes. The Missing Text dump is recognized and may be
+extracted for inspection, but its incomplete generation is not published for play.
+The custom I/O conversion and the unavailable legacy boot patch remain explicit
+pending cases. Unknown ROM hashes are still rejected until validated.
 
-Support for another revision requires its own extraction validation. Renaming a ROM does not bypass identification. King's Valley I is a different game and is not a cartridge for this port.
+See [the compatibility audit and source links](docs/ROM_COMPATIBILITY.md) for the
+complete catalogue, acquired revisions, validation method and remaining work.
+King's Valley I and disk images are not cartridge revisions of this port.
 
 ## Graphics, audio and extraction reports
 

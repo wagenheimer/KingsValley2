@@ -71,7 +71,7 @@ public static class Msx1SupplementalScreens
         }
         Save("Screens/puzzle_tiles",80,80,Crop(machine,88,48,80,80));
 
-        var logo=new MiniMsx(rom,RomMapper.KonamiScc);logo.SetBiosByte(0x002B,0);
+        var logo=CartridgeMachines.Create(rom);logo.SetBiosByte(0x002B,0);
         if(!logo.Boot(2_000_000)) throw new InvalidDataException("The MSX1 logo machine did not boot.");
         bool complete=false;
         for(int tick=0;tick<650;tick++)

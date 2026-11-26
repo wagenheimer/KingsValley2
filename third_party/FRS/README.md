@@ -25,18 +25,20 @@ in memory to a private copy of the user's supported Japanese Contest cartridge.
 It works offline, including on first use. The selected ROM is never overwritten.
 The full archive is also retained under `<MSXMusic>/.patches/FRS-KingsValleyII-1.1/`.
 
-The locally validated recipe is deliberately exact:
+Both locally validated recipes are deliberately exact:
 
 | Cartridge | SHA-1 |
 | --- | --- |
 | User-supplied Japanese JoySNES revision | `4a157e6e217f6af4ab3dec5d7dd5188e5cef7954` |
 | English working copy produced by this recipe | `e7b0a7b083d2f5bb12fb4ea6b2e822ee6330a15e` |
+| Original Japanese GoodMSX Contest revision | `2e0436303648097e8e936c5467574aff5e3f1517` |
+| Official FRS English output from that original | `376b4785cab7d60cc083f0c03bd5e8ea2fee8205` |
 
-This differs from the original Gold revision listed in FRS's instructions
-(`2e0436303648097e8e936c5467574aff5e3f1517`). The JoySNES combination was
+The JoySNES output differs from the official FRS English revision. Both combinations were
 validated locally: all 20 extracted stages remain identical, native English
-menus render correctly, and all 65 audio commands were captured. It must not be
-represented as the official prepatched Gold ROM. Other revisions require their
+menus render correctly, and all 65 audio commands were captured. The JoySNES output
+must not be represented as the official prepatched Gold ROM. The GoodMSX source now produces
+that official output, with independent identity checks. Other revisions require their
 own validation. Set `KINGSVALLEY_CONTEST_LANGUAGE=jp` before extraction to retain
 the Japanese presentation for diagnostics.
 

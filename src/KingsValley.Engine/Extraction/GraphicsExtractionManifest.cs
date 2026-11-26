@@ -39,8 +39,8 @@ public sealed class GraphicsExtractionManifest
         if(!Assets.CartridgeVariants.All.Contains(variant,StringComparer.Ordinal))return false;
         if(Checks==null || Artifacts==null || Checks.Any(c=>c==null) || Artifacts.Any(a=>a==null)) return false;
         if (Schema != 1 || ProfileRevision != KingsValleyGraphicsProfiles.Revision(variant) || GameId != "kings-valley-2" || Variant != variant || (sha1 != null && RomSha1 != sha1) || !Ready || Outcome != "completed" || StageLimit != Assets.CartridgeVariants.StageCount(variant) || Artifacts.Count == 0 || Checks.Any(c => c.State != "valid")) return false;
-        var profile=Wagenheimer.MsxAudio.Extraction.RomExtractionProfiles.FindByGameVariant(GameId,variant);
-        if(profile==null || !profile.RomSha1.Contains(RomSha1,StringComparer.OrdinalIgnoreCase)) return false;
+        if(!Wagenheimer.MsxAudio.Extraction.RomExtractionProfiles.FindAllByGameVariant(GameId,variant)
+            .Any(profile=>profile.RomSha1.Contains(RomSha1,StringComparer.OrdinalIgnoreCase))) return false;
         var components=Checks.Select(c=>c.Component).ToHashSet(StringComparer.Ordinal);
         if(!components.Contains("atlas") || Enumerable.Range(1,Assets.CartridgeVariants.StageCount(variant)).Any(n=>!components.Contains($"stage-{n:00}")) || KingsValleyGraphicsProfiles.RequiredScreens(variant).Any(n=>!components.Contains("screen-"+n))) return false;
         var paths=Artifacts.Select(a=>a.Path).ToHashSet(StringComparer.Ordinal);

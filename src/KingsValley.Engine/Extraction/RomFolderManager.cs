@@ -31,7 +31,7 @@ public sealed record ScannedRomInfo(
     string Description)
 {
     public bool IsSupported => RomFolderManager.SupportsSha1(Sha1);
-    public string? Variant=>CartridgeVariants.All.FirstOrDefault(v=>RomExtractionProfiles.FindByGameVariant("kings-valley-2",v)?.RomSha1.Contains(Sha1,StringComparer.OrdinalIgnoreCase)==true);
+    public string? Variant=>CartridgeVariants.All.FirstOrDefault(v=>RomExtractionProfiles.FindAllByGameVariant("kings-valley-2",v).Any(profile=>profile.RomSha1.Contains(Sha1,StringComparer.OrdinalIgnoreCase)));
 }
 
 /// <summary>
@@ -57,7 +57,7 @@ public static class RomFolderManager
 
     private static readonly Lazy<HashSet<string>> SupportedHashes = new(() =>
         CartridgeVariants.All.SelectMany(variant =>
-            RomExtractionProfiles.FindByGameVariant("kings-valley-2", variant)?.RomSha1 ?? new List<string>())
+            RomExtractionProfiles.FindAllByGameVariant("kings-valley-2", variant).SelectMany(profile=>profile.RomSha1))
             .ToHashSet(StringComparer.OrdinalIgnoreCase));
 
     internal static bool SupportsSha1(string sha1) => SupportedHashes.Value.Contains(sha1);
@@ -216,6 +216,16 @@ public static class RomFolderManager
             long size = new FileInfo(cartridgePath).Length;
             string fileName = fileInfo.Name;
 
+            var revision = SupportedCartridges.All.FirstOrDefault(entry => entry.Sha1.Equals(sha1Hex, StringComparison.OrdinalIgnoreCase));
+            if (revision != null)
+                return new ScannedRomInfo(filePath, fileName, size, sha1Hex,
+                    revision.Variant == "msx1" ? ScannedRomFlavor.Msx1 : ScannedRomFlavor.Msx2,
+                    "[" + revision.Name + "]", revision.Recommendation);
+
+            if (sha1Hex.Equals(SupportedCartridges.ConvertedIoSha1, StringComparison.OrdinalIgnoreCase))
+                return new ScannedRomInfo(filePath, fileName, size, sha1Hex, ScannedRomFlavor.Msx2,
+                    "[CUSTOM I/O CONVERSION]", "CUSTOM LOADER NOT IMPLEMENTED; SEE ROM GUIDE");
+
             // Match known SHA-1 hashes
             if (string.Equals(sha1Hex, Msx1Rc760Sha1, StringComparison.OrdinalIgnoreCase))
             {
@@ -257,8 +267,7 @@ public static class RomFolderManager
             // infer compatibility from the filename or a generic MSX cartridge header.
             foreach (string variant in CartridgeVariants.All)
             {
-                var profile=RomExtractionProfiles.FindByGameVariant("kings-valley-2",variant);
-                if(profile?.RomSha1.Contains(sha1Hex,StringComparer.OrdinalIgnoreCase)!=true)continue;
+                if(!RomExtractionProfiles.FindAllByGameVariant("kings-valley-2",variant).Any(profile=>profile.RomSha1.Contains(sha1Hex,StringComparer.OrdinalIgnoreCase)))continue;
                 return new ScannedRomInfo(filePath,fileName,size,sha1Hex,
                     variant=="msx1"?ScannedRomFlavor.Msx1:ScannedRomFlavor.Msx2,
                     "["+variant.ToUpperInvariant()+" VERIFIED REVISION]","VERIFIED EXTRACTION PROFILE");

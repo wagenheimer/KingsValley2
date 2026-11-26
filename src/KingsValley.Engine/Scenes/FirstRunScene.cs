@@ -689,7 +689,7 @@ public class FirstRunScene : SceneBase
         private void ShowRomGuide(int page)
         {
             bool last = page == SupportedCartridges.GuidePageCount - 1;
-            ShowDialog($"ACCEPTED ROMS {page + 1}/{SupportedCartridges.GuidePageCount}",
+            ShowDialog($"ROM GUIDE {page + 1}/{SupportedCartridges.GuidePageCount}",
                 SupportedCartridges.GuidePage(page), last ? "START OVER" : "NEXT ROM",
                 () => ShowRomGuide(last ? 0 : page + 1), "CLOSE");
         }

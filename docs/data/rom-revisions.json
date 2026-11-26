@@ -1,0 +1,354 @@
+{
+  "asOf": "2026-11-26",
+  "catalog": "https://raw.githubusercontent.com/openMSX/openMSX/master/share/softwaredb.xml",
+  "revisions": [
+    {
+      "sha1": "cfd872d005b7bd4cdd6e06c4c0162191f0b0415d",
+      "system": "MSX",
+      "edition": "original",
+      "catalogStatus": "GoodMSX",
+      "remark": "",
+      "profileId": "kings-valley-2-msx1",
+      "source": "https://download.file-hunter.com/Games/MSX1/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX1%20Version%20-%20Konami%20(1988)%20%5BRC-760%5D%20%5BGoodMSX%5D%20%5B1212%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 272,
+        "checks": 569
+      },
+      "mameStatus": "listed",
+      "mameDescription": "King's Valley II (Europe) ~ Ouke no Tani - El Giza no Fuuin (Japan)"
+    },
+    {
+      "sha1": "f3306e6f25d111da21ce66db3404f5f48acb25a1",
+      "system": "MSX",
+      "edition": "original",
+      "catalogStatus": "Bad",
+      "remark": "Needs SCC in slot 2",
+      "profileId": "kings-valley-2-msx1-slot2",
+      "source": "https://download.file-hunter.com/Games/BadDump/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX1%20Version%20-%20Konami%20(1988)%20%5BNeeds%20SCC%20in%20slot%202%5D%20%5BRC-760%5D%20%5BBadDump%5D%20%5B1211%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 273,
+        "checks": 571
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "cb612cbfdf79dabe55164b386ca956a3e187bef7",
+      "system": "MSX",
+      "edition": "original",
+      "catalogStatus": "Hack",
+      "remark": "FRS patch",
+      "profileId": "kings-valley-2-msx1",
+      "source": "https://download.file-hunter.com/Games/MSX1/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX1%20Version%20-%20Konami%20(1988)%20%5BFRS%20patch%5D%20%5BRC-760%5D%20%5B2641%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 273,
+        "checks": 571
+      }
+    },
+    {
+      "sha1": "7f6c5ec94d35981547a277c308ea9c2d2ab92e0f",
+      "system": "MSX",
+      "edition": "original",
+      "catalogStatus": "Hack",
+      "remark": "JoySNES",
+      "profileId": "kings-valley-2-msx1",
+      "source": "https://download.file-hunter.com/Games/MSX1/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX1%20Version%20-%20Konami%20(1988)%20%5BJoySNES%5D%20%5BRC-760%5D%20%5B5374%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 273,
+        "checks": 571
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "5ec8811254dc762c6852289a08acf22954404f0d",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "GoodMSX",
+      "remark": "",
+      "profileId": "kings-valley-2-msx2-scc",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BRC-761%5D%20%5BGoodMSX%5D%20%5B1215%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      },
+      "mameStatus": "baddump",
+      "mameDescription": "Ouke no Tani - El Giza no Fuuin (Japan)"
+    },
+    {
+      "sha1": "f25628e474035e6bf0440b274c5df04f94c49fb8",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Bad",
+      "remark": "Needs SCC in slot 2",
+      "profileId": "kings-valley-2-msx2-slot2",
+      "source": "https://download.file-hunter.com/Games/BadDump/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BNeeds%20SCC%20in%20slot%202%5D%20%5BRC-761%5D%20%5BBadDump%5D%20%5B1214%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "b5acea41aeabb5daa4183953f800d47db0c39fb5",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Hack",
+      "remark": "Ulver crack",
+      "profileId": "kings-valley-2-msx2-scc",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BUlver%20crack%5D%20%5BRC-761%5D%20%5B1216%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "89d96d4b92d9a1c220cae0240cf0c00f310d14aa",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Hack",
+      "remark": "FRS patch",
+      "profileId": "kings-valley-2-msx2-scc",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BFRS%20patch%5D%20%5BRC-761%5D%20%5B2642%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "22704b82d159d963f1192d7a81810aa2be8b6042",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Unclassified",
+      "remark": "",
+      "profileId": "kings-valley-2-msx2-scc",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BRC-761%5D%20%5B3164%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "9ef68fecc91bf5066b9eb9a796412ab00e5746bf",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Hack",
+      "remark": "JoySNES",
+      "profileId": "kings-valley-2-msx2-scc",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BJoySNES%5D%20%5BRC-761%5D%20%5B5375%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "fa750d3f622717fd1dfd0b2740fe69b49ba62ac8",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Bad",
+      "remark": "Missing Text",
+      "profileId": "kings-valley-2-msx2-scc",
+      "source": "https://download.file-hunter.com/Games/BadDump/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BMissing%20Text%5D%20%5BRC-761%5D%20%5BBadDump%5D%20%5B6704%5D.zip",
+      "status": "partial-source-data-loss",
+      "graphicsValidation": {
+        "outcome": "partial",
+        "ready": false,
+        "artifacts": 150,
+        "checks": 164
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "c4e138d533525d4b9064b2c265c4d2fdc5fa898d",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Bad",
+      "remark": "",
+      "profileId": null,
+      "source": "https://download.file-hunter.com/Games/BadDump/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Version%20-%20Konami%20(1988)%20%5BRC-761%5D%20%5BBadDump%5D%20%5B6768%5D.zip",
+      "status": "pending-custom-loader"
+    },
+    {
+      "sha1": "2e0436303648097e8e936c5467574aff5e3f1517",
+      "system": "MSX2",
+      "edition": "contest",
+      "catalogStatus": "GoodMSX",
+      "remark": "",
+      "profileId": "kings-valley-2-msx2-contest",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Edit%20Contest%20Version%20-%20Konami%20(1988)%20%5BRC-761%5D%20%5BGoodMSX%5D%20%5B1213%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 146,
+        "checks": 768
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      },
+      "mameStatus": "baddump",
+      "mameDescription": "Ouke no Tani - El Giza no Fuuin - Edit Contest Yuushuu Sakuhinshuu (Japan)"
+    },
+    {
+      "sha1": "376b4785cab7d60cc083f0c03bd5e8ea2fee8205",
+      "system": "MSX2",
+      "edition": "contest",
+      "catalogStatus": "Translated",
+      "remark": "FRS patch",
+      "profileId": "kings-valley-2-msx2-contest",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Edit%20Contest%20Version%20-%20Konami%20(1988)%20%5BFRS%20patch%5D%20%5BRC-761%5D%20%5BTranslated%5D%20%5B2643%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 146,
+        "checks": 768
+      },
+      "audioValidation": {
+        "commands": 65,
+        "audible": 59,
+        "silent": 6,
+        "captureLimits": 0
+      }
+    },
+    {
+      "sha1": "4a157e6e217f6af4ab3dec5d7dd5188e5cef7954",
+      "system": "MSX2",
+      "edition": "contest",
+      "catalogStatus": "Hack",
+      "remark": "JoySNES",
+      "profileId": "kings-valley-2-msx2-contest",
+      "source": "https://download.file-hunter.com/Games/MSX2/ROM/King's%20Valley%202%20-%20The%20Seal%20Of%20El%20Giza%20-%20MSX2%20Edit%20Contest%20Version%20-%20Konami%20(1988)%20%5BJoySNES%5D%20%5B5377%5D.zip",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 145,
+        "checks": 757
+      }
+    },
+    {
+      "sha1": "0c7e0b618c72e7ca08bd756c3103b46e5c580c04",
+      "system": "MSX2",
+      "edition": "original",
+      "catalogStatus": "Project-validated",
+      "remark": "SCC slot patch",
+      "profileId": "kings-valley-2-msx2-scc",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 165,
+        "checks": 779
+      }
+    },
+    {
+      "sha1": "e7b0a7b083d2f5bb12fb4ea6b2e822ee6330a15e",
+      "system": "MSX2",
+      "edition": "contest",
+      "catalogStatus": "Project-validated",
+      "remark": "JoySNES + FRS v1.1 local output",
+      "profileId": "kings-valley-2-msx2-contest",
+      "status": "supported",
+      "graphicsValidation": {
+        "outcome": "completed",
+        "ready": true,
+        "artifacts": 146,
+        "checks": 768
+      }
+    },
+    {
+      "sha1": "74eeaa99bff38b332f64e9e9f7775f834d1842e7",
+      "system": "MSX2",
+      "edition": "original",
+      "remark": "Legacy boot-patch identity; no image acquired in this audit",
+      "profileId": null,
+      "status": "pending-source-image"
+    }
+  ],
+  "secondaryCatalogs": [
+    "https://raw.githubusercontent.com/mamedev/mame/master/hash/msx1_cart.xml",
+    "https://raw.githubusercontent.com/mamedev/mame/master/hash/msx2_cart.xml"
+  ]
+}

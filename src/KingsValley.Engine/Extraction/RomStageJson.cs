@@ -148,7 +148,7 @@ public static class RomStageJson
     {
         int total = Math.Clamp(maxStages, 1, RomLevels.StageCount);
         var levels = new RomLevels(rom);
-        var machine = new Wagenheimer.MsxAudio.Extraction.MiniMsx(rom, Wagenheimer.MsxAudio.Extraction.RomMapper.KonamiScc);
+        var machine = CartridgeMachines.Create(rom);
         machine.Boot(2_000_000);
         ushort stageLoader = RomStageState.ResolveStageLoader(rom);
 
