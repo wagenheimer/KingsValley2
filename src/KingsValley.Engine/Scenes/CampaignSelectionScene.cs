@@ -19,6 +19,20 @@ public sealed class CampaignSelectionScene : SceneBase
     public CampaignSelectionScene(bool stages=false,bool showContestTitle=true){_stages=stages;_showContestTitle=showContestTitle;}
     protected override void OnInitialize()
     {
+        if (!RomContent.IsContestAvailable)
+        {
+            var originals = RomContent.Available.Where(set => set.CampaignId == Campaigns.Original && RomContent.IsVariantAvailable(set.Variant)).ToArray();
+            var original = originals.FirstOrDefault(set => set.Id == RomContent.Active.Id)
+                ?? originals.FirstOrDefault(set => set.Id == ProfileSaveService.Load().OriginalGfxRom)
+                ?? originals.FirstOrDefault();
+            if (original == null) Nez.Core.Scene = new FirstRunScene();
+            else
+            {
+                GfxVariant.Set(original.Id);
+                Nez.Core.Scene = new MainMenuScene(startSelect: true);
+            }
+            return;
+        }
         var entity=AddEntity(new Entity("campaign-selection"));
         if(_stages)entity.AddComponent(new ContestNativeMenu(_showContestTitle));
         else entity.AddComponent(new Menu(false));

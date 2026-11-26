@@ -1,6 +1,6 @@
 ﻿# ROM extraction: current implementation
 
-Updated 2026-11-24. Production extraction uses only the user's verified ROM and in-process C# execution. No openMSX executable, longplay frame, pre-recorded audio, companion cartridge or procedural artwork is required. Earlier emulator/video experiments are preserved in [ROM_EXTRACTION_HISTORY.md](ROM_EXTRACTION_HISTORY.md), explicitly as historical research.
+Updated 2026-11-26. Production extraction uses only the user's verified ROM and in-process C# execution. No openMSX executable, longplay frame, pre-recorded audio, companion cartridge or procedural artwork is required. Earlier emulator/video experiments are preserved in [ROM_EXTRACTION_HISTORY.md](ROM_EXTRACTION_HISTORY.md), explicitly as historical research.
 
 ## Identity and isolation
 
@@ -89,3 +89,24 @@ The MSX1 FRS v1.1 cartridge is independently verified. The [openMSX software dat
 For this revision the intro must enter through the cartridge's title/start menu and retain the main loop. Freezing it after direct setup calls leaves the FRS actor animation stalled. The FRS capture contains 824 vblanks and five source poses; the pose strip is byte-identical to the original RC-760 capture. The original cartridge retains its independent 764-vblank recipe.
 
 To run the optional FRS regression checks, set `KINGSVALLEY_TEST_FRS_ROM` to a locally owned cartridge. No ROM bytes or extracted assets are distributed with those tests.
+
+### MSX1 title capture, graphics profile revision 3
+
+Wait for native title mode `E200 = 1`, rather than accepting a stable or bright
+initialization image. FRS can leave a stable alphabet-pattern frame that passes
+those image heuristics. After reaching the title, stop the main continuation
+and execute the cartridge's own `5D84` and `5DA1` drawing routines with bounded
+instruction budgets and no intervening frames. This isolates title drawing from
+the minimal machine's separately scheduled hooks and removes map-frame glyphs
+observed along the export title's bottom three tile rows. The native routines
+also leave the selection cursor absent, ready for runtime animation.
+
+Japanese and English titles remain native 256 x 192 binary screens. The ROM is
+never modified. Regression checks cover all four accepted MSX1 revisions and
+use the independently booted Japanese floor as the common background reference
+for both locales. Existing revision-2 MSX1 graphics require re-extraction;
+previous immutable generations remain available on disk.
+
+The Original/Contest application chooser is available only while a validated
+Contest graphics generation is installed. With Original alone, GAME opens the
+native START SELECT page directly. ROM discovery alone does not unlock Contest.

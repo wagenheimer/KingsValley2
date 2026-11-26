@@ -36,11 +36,11 @@ public class GameScene : SceneBase
     private const int ClearedTicks = 1;
 
     /// <summary>
-    /// After the death animation the original still holds the screen (E246=0 → 4934: E204=0x20 and changes
-    /// mode) until Vick reappears: 222 ticks in state 5 against 100 for the animation. Measured in the
-    /// emulator (stage 3 trace, <c>tools/kv2-extract/emulator/trace_enemy.tcl</c>).
+    /// The native retry's remaining time includes its stage banner. It must not be
+    /// added as a frozen death hold followed by another intro. With REST 0, Game Over
+    /// follows the 100-call animation on the next logic call.
     /// </summary>
-    private const int DeathHoldTicks = 222 - 100;
+    private int _introTicks = IntroTicks;
 
     private enum Phase { NoData, Intro, Playing, Cleared, GameOver, Paused, DeathHold }
 
@@ -196,13 +196,14 @@ public class GameScene : SceneBase
         return int.TryParse(raw, out int stage) && stage > 0 ? RomContent.NewRun(hi, stage) : RomContent.NewRun(hi);
     }
 
-    private void StartStage()
+    private void StartStage(bool retryAfterDeath = false)
     {
         var def = GameNavigation.StageOverride ?? StageLoader.Load(RomContent.LevelsDirectory, _run.Stage);
         if(RomContent.IsContest)def=def.WithPyramid(_run.ContestPyramid);
         _session = new StageSession(def,_run.CampaignId) { Invincible = _run.Invincible };
         bool skipIntro = Environment.GetEnvironmentVariable("KINGSVALLEY_SKIP_LEVELSTART") == "1";
         _phase = skipIntro ? Phase.Playing : Phase.Intro;
+        _introTicks = retryAfterDeath ? NativeDeathTiming.RetryBannerTicks : IntroTicks;
         _phaseTicks = 0;
         _actionLatched = false;
         _navigator.Cancel();
@@ -453,7 +454,7 @@ public class GameScene : SceneBase
         switch (_phase)
         {
             case Phase.Intro:
-                if (++_phaseTicks >= IntroTicks)
+                if (++_phaseTicks >= _introTicks)
                     _phase = Phase.Playing;
                 break;
             case Phase.Playing:
@@ -465,7 +466,7 @@ public class GameScene : SceneBase
                     NextStage();
                 break;
             case Phase.DeathHold:
-                if (++_phaseTicks >= DeathHoldTicks)
+                if (++_phaseTicks >= NativeDeathTiming.DecisionTicks(_run.Rest))
                     OnDeath();
                 break;
             case Phase.GameOver:
@@ -678,7 +679,7 @@ public class GameScene : SceneBase
             return;
         }
 
-        StartStage();
+        StartStage(retryAfterDeath: true);
     }
 
     private bool TryHandleToolClick(StageSession session, int clickX, int clickY)

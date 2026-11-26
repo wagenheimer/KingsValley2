@@ -239,7 +239,7 @@ public class ExtractionSafetyTests : IDisposable
     }
 
     [Fact]
-    public void AudioBootstrap_Extracts_Msx1_Rom_Successfully()
+    public void AudioBootstrap_Msx1DiagnosticSubsetRemainsStagedAndGeneratesReport()
     {
         string msx1Rom = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -249,16 +249,6 @@ public class ExtractionSafetyTests : IDisposable
             return;
 
         while (AudioBootstrap.IsRunning) Thread.Sleep(50);
-
-        // If package and valid stages already exist, verify them directly
-        string stage01Path = Path.Combine(RomContent.LevelsDirectory, "stage01.json");
-        if (File.Exists(AudioBootstrap.ExtractedPackagePath) && File.Exists(stage01Path))
-        {
-            string json = File.ReadAllText(stage01Path);
-            Assert.Contains("\"coffins\": [", json);
-            Assert.DoesNotContain("\"playerStart\": {\n    \"room\": 1,\n    \"y\": 0,\n    \"x\": 0", json);
-            return;
-        }
 
         // Quick test: limit to id 3 (title) and 1 stage
         Environment.SetEnvironmentVariable("KINGSVALLEY_EXTRACT_IDS", "3");
@@ -276,7 +266,11 @@ public class ExtractionSafetyTests : IDisposable
         }
 
         Assert.False(AudioBootstrap.IsRunning, $"Extraction timed out: status={AudioBootstrap.Status}");
-        Assert.True(File.Exists(AudioBootstrap.AudioPackageFor(ArtFlavor.Msx1)), $"audio.msxaudio not created: status={AudioBootstrap.Status}");
+        Assert.False(File.Exists(AudioBootstrap.AudioPackageFor(ArtFlavor.Msx1)), "A diagnostic subset must not publish playable audio.");
+        string attempts = Path.Combine(Path.GetDirectoryName(AudioBootstrap.AudioPackageFor(ArtFlavor.Msx1))!, "attempts");
+        Assert.Single(Directory.GetFiles(attempts, "audio.pending", SearchOption.AllDirectories));
+        Assert.False(GraphicsExtractionManifest.Read(AudioBootstrap.LastGraphicsAttemptDirectory!)!.Ready);
+        Assert.Null(GraphicsGenerationStore.Current(AudioBootstrap.GraphicsRootFor(ArtFlavor.Msx1), "msx1"));
         Assert.False(RomExtractionProfiles.IsCurrentPackage(AudioBootstrap.AudioPackageFor(ArtFlavor.Msx1),
             RomExtractionProfiles.FindByGameVariant("kings-valley-2", "msx1")!), "A diagnostic subset must not replace a complete extraction.");
         Assert.NotNull(AudioBootstrap.LastReportPath);

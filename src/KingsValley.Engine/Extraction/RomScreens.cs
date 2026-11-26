@@ -101,20 +101,26 @@ public static class RomScreens
         ArgumentNullException.ThrowIfNull(rom);
 
         MiniMsx machine = Boot(rom, variant);
-        if (IsJoySnes(rom))
+        // Native mode 1 is reached only after the title drawing completes. FRS can
+        // leave a stable font/VRAM initialization frame that passes the old lit-pixel
+        // heuristic; capturing it produced repeated alphabet tiles instead of the title.
+        for (int frame = 0; frame < 2400; frame++)
         {
-            for (int frame = 0; frame < 2400; frame++)
+            machine.Frame();
+            if (machine.Memory(0xE200) == 1)
             {
-                machine.Frame();
-                if (machine.Memory(0xE200) == 1) return CaptureWithoutCursor(machine);
+                // Redraw with the cartridge's own title routines after stopping the
+                // main continuation. FRS moves drawing into the main program; the
+                // minimal machine's separately scheduled hooks can otherwise write
+                // map-frame characters while the title's mapper banks are selected.
+                // No frames are advanced during this isolated, bounded redraw.
+                machine.MainRunning = false;
+                machine.CallAddress(0x5D84, 2_000_000);
+                machine.CallAddress(0x5DA1, 2_000_000);
+                return ScreenOf(machine);
             }
-            throw new InvalidDataException("The JoySNES cartridge did not draw its native title.");
         }
-        if (!WaitForScreen(machine, minLit: 20000, maxLit: int.MaxValue, maxFrames: 1600, out _))
-            throw new InvalidDataException("the cartridge never drew the title screen");
-
-        // The title blinks its cursor; keep the frame without it (the game draws its own marker).
-        return CaptureWithoutCursor(machine);
+        throw new InvalidDataException("The cartridge did not complete its native title drawing within the frame bound.");
     }
 
     /// <summary>Reaches the native intro through the title/start menu while preserving the cartridge main loop.</summary>

@@ -11,18 +11,23 @@ namespace KingsValley.Core.Tests;
 /// discovery must find the built-ins, pick up a pack dropped in <c>Content/ArtSets/</c>, and let a
 /// pack inherit whatever it did not redo.
 /// </summary>
+[Collection(Msx1ExtractionTestCollection.Name)]
 public class ArtSetsTests : IDisposable
 {
     private readonly string _content;
+    private readonly string? _previousExtractionRoot = AudioBootstrap.ExtractedDirectoryOverrideForTests;
 
     public ArtSetsTests()
     {
         _content = Path.Combine(Path.GetTempPath(), "kv-artsets-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_content);
+        // Discovery must see only this fixture, never the developer's cartridges.
+        AudioBootstrap.ExtractedDirectoryOverrideForTests = Path.Combine(_content, "collection");
     }
 
     public void Dispose()
     {
+        AudioBootstrap.ExtractedDirectoryOverrideForTests = _previousExtractionRoot;
         try
         {
             if (Directory.Exists(_content))

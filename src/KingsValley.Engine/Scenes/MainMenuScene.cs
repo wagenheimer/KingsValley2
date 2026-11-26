@@ -251,7 +251,8 @@ public class MainMenuScene : SceneBase
                 return;
             }
 
-            Nez.Core.Scene=new CampaignSelectionScene();
+            if (RomContent.IsContestAvailable) Nez.Core.Scene = new CampaignSelectionScene();
+            else _page = Page.StartSelect;
         }
 
         private void UpdateTitle()

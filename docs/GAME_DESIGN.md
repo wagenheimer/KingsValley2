@@ -165,7 +165,7 @@ Each **sarcophagus** (`E2C0`, 5-byte record `[0x80|type][0x10|level][room][y][x]
 
 | Rule | Value | Source |
 | :--- | :--- | :--- |
-| Extra lives at the start | **REST 00** | Video |
+| Extra lives at the start | **REST 00**: one active life, zero spare lives | ROM MSX1 `4C02` initializes REST to 1; `48AF` consumes it before stage 1 |
 | Gain | **+1 REST per completed stage** (REST follows the stage in the longplay) | Video |
 | Soul stone | **+500** | Video |
 | Enemy | 200 | Estimated |
@@ -245,3 +245,13 @@ cutscene → map "DO YOUR BEST !!" → "STAGE nn / SOUL STONE nn" → game. The 
    not boot on C-BIOS (see ROM_EXTRACTION.md).
 4. Cutscene, map between pyramids, ending ("DANGER !!!" + credits).
 5. Extra stages and the `.elg` editor (the 2343-byte format is already identified).
+
+### Death and retry timing
+
+The MSX1 FRS RC-760 trace counts native `E203` logic calls, not presentation
+frames. The death animation takes 100 calls. With REST 00, mode 7 (Game Over)
+begins on call 101. With one spare life, the retry banner initializes on call
+102, consumes that spare, and gameplay mode 5 resumes on call 223. The retry
+banner's 121 calls belong to the retry presentation; they must not also be
+inserted as a frozen hold before a second banner. These measurements cover
+transitions, not every appearance pose or the patch's wall-clock pacing.
