@@ -20,7 +20,7 @@ public static class KingsValleyGraphicsProfiles
         }
         for(int theme=1;theme<=6;theme++)yield return $"contest_theme_{theme}";
     }
-    public static int Revision(string variant)=>3;
+    public static int Revision(string variant)=>variant == "msx1" ? 4 : 3;
     public static string MechanismPath(string variant,int pyramid,string file)=>variant!="msx1"?$"Mechanisms/p{pyramid}/{file}":file;
     public static IEnumerable<string> RequiredSprites(string variant = "msx2")
     {

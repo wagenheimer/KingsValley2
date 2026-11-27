@@ -58,6 +58,18 @@ public static class GraphicsArtifactValidator
             { using var json=System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(directory,"Rooms",name+".json"))); if(json.RootElement.ValueKind!=System.Text.Json.JsonValueKind.Object) throw new InvalidDataException("Invalid room table."); });
         }
         else Check("murals",()=> { if(File.ReadAllBytes(Path.Combine(directory,"Rooms","murals.bin")).Length!=6144) throw new InvalidDataException("Expected six native mural tables."); });
+        if (context.Variant == "msx1") Check("editor-backgrounds", () =>
+        {
+            for (int theme = 1; theme <= 6; theme++)
+            {
+                string root = Path.Combine(directory, "Rooms", "Backgrounds");
+                if (File.ReadAllBytes(Path.Combine(root, $"p{theme}.vdp")).Length != 16392)
+                    throw new InvalidDataException("Invalid native editor VDP snapshot.");
+                foreach (string name in animationRooms.Concat(new[] { "odd", "even" }))
+                    if (File.ReadAllBytes(Path.Combine(root, $"p{theme}", name + ".names")).Length != 768)
+                        throw new InvalidDataException("Invalid native editor name table.");
+            }
+        });
         Check("atlas",()=>
         {
             var image=PngRgba.Decode(File.ReadAllBytes(Path.Combine(directory,"Art","kv2.png")));

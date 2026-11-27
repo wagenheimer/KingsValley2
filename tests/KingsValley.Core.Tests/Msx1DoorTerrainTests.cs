@@ -35,6 +35,7 @@ public class Msx1DoorTerrainTests
             for(int pyramid=1;pyramid<=6;pyramid++)
             {
                 machine.Write(0xE241,(byte)pyramid);machine.Write(0xE242,(byte)(1+(pyramid-1)*10));
+                RomStageState.LoadMsx1Theme(machine,rom);
                 machine.CallAddress(RomStageState.ResolveStageLoader(rom),2_000_000);machine.Write(0xE243,1);
                 machine.CallAddress(0x4192);
                 machine.Write(0xE2F1,64);machine.Write(0xE2F2,64);machine.Write(0xE2F3,1);machine.Write(0xE2F5,0);

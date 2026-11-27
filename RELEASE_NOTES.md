@@ -1,38 +1,42 @@
-# King's Valley II v1.1.0
+# King's Valley II v1.1.2
 
-## More cartridges, independent native extraction
+## A full desktop level editor
 
-- Fifteen ROM identities have complete graphics generations, up from five. Added original GoodMSX, JoySNES, Ulver, alternate MSX2, official Contest and ASCII8/external-SCC conversions.
-- Separate hardware/audio profiles execute each cartridge's own driver. Updated discovery, package validation and generation publication support several hardware recipes within one edition.
-- Added native boot handling for FRS MSX2 and native initialization for the MSX1 JoySNES revision, without changing the original fast MSX2 runner.
-- Audio is staged until matching graphics are ready. A partial extraction preserves the previous playable audio and graphics generation.
+- Framed Toolbox, native tile/enemy palettes, Inspector, room map and compact view controls.
+- Edit directly in Full stage: paint, erase and place objects without entering isolated room view.
+- Cursor-anchored zoom, Space + drag or middle-button panning, Fit Stage and clipped rendering.
+- Continuous brush strokes across room borders with one-step Undo/Redo. Selection, fills and individual stamps remain room-bounded.
+- Play-test and return with the document, undo history, view mode, zoom and camera position retained.
+- From Game creates editable copies of installed MSX1/MSX2 Original stages and the twenty Contest challenges.
 
-## Edit Contest and offline English translation
+## Portable levels and native artwork
 
-- Twenty independent Contest challenges, four publication awards, five authors per publication and six selectable visual themes.
-- Native title, publication, author and SCREEN SELECT screens, native completion flow, independent progress/high scores and save-state slots.
-- Automatic offline FRS English translation for both original GoodMSX and JoySNES Contest sources. Original ROMs are preserved; exact source/output hashes are checked separately.
+- Open and Save As portable `.kv2level` documents with cartridge identity, validated stage data and protected atomic writes.
+- Retained ten local slots, migration of legacy slots without overwriting existing copies, unsaved-change confirmation and periodic recovery.
+- Native MSX1 editor room assembly fixes the EDIT crash and supports edited/new rooms without borrowing MSX2 graphics.
+- Complete native backgrounds and animation in preview and play-test. Theme changes use valid cartridge decoration layouts instead of interpreting another theme's block codes.
+- Restored full-height decorative columns and corrected MSX1 theme/common graphics loading during extraction.
+- Corrected Guard/Rock poses and readable enemy palette rows.
+- Fixed Windows Open/Save dialog structure marshalling and Unicode path handling.
 
-## Setup, UI and gameplay
+## Maximized-window performance and diagnostics
 
-- Clear BROWSE / EXTRACT SELECTED / PLAY flow, ROM discovery beside the executable and a paginated ROM GUIDE with exact hashes and recommendations.
-- Revised system menu spacing and graphics selection. MSX1 uses its native object backdrop by default.
-- Golden ladders follow their measured use counters, disappear after use and retain their state in saves.
-- Rewritten README with five Contest runtime screenshots, an eighteen-identity compatibility matrix, source links and explicit evidence/limitations.
+The editor now renders UI text and controls in physical pixels with Gum camera zoom one. This fixes repeated high-resolution font rasterization that caused approximately 1.5-second Draw stalls and multi-gigabyte temporary allocations after room changes. Gameplay retains its existing font rendering contract.
 
-## Validation and remaining cases
+Automatic, bounded background-written performance logs include input actions, UI construction, room assembly, drawing, frame intervals, allocations and GC counts. Logs are stored in the application's user data `Diagnostics` folder.
 
-The local corpus checks exact hardware selection, all 60 original or 20 Contest stage definitions, source immutability, both English patch outputs and unchanged Contest stages. Full 65-command captures for eleven acquired revisions produced 59 audible entries, six expected silent commands and no capture-limit terminations. Native graphics inventory checks are not exhaustive gameplay or listening acceptance.
+## Validation and known limits
 
-- **Missing Text:** recognized for partial extraction; absent source text is not invented and the partial generation is not published for play.
-- **Custom I/O conversion:** identified, but its custom loader/mapping is still pending.
-- **Legacy boot-patch hash:** source image not located in the audited corpus.
-- **MSX1 Contest:** separately documented edition; no verified dump/hash located in this audit.
+The local suite passed 326 tests with 8 optional tests skipped. Validation covers all 140 installed stage templates, native file-dialog ABI/buffer handling, document saves, camera picking, zoom/pan and stroke routing. Isolated runtime probes exercised cross-room Undo/Redo and actual Test/return cycles in MSX1, MSX2 and Contest; maximized/4K captures were reviewed. Automated probes do not replace manual mouse-gesture acceptance.
+
+- MSX1 graphics require extraction again for profile revision 4. Native theme tables, complete decorations and eye/torch animations are now captured independently for all six themes. Previously extracted immutable generations are preserved.
+- Full-stage selections and flood fills operate within one room.
+- Native file dialogs on Linux/macOS have not received hands-on validation here.
 
 ## Packages and credits
 
-Windows x64, Linux x64, macOS Intel and macOS Apple Silicon packages contain the application, dependencies and the complete original FRS patch archive. No cartridge ROM or extracted game asset package is distributed. Supply a supported ROM; extraction needs no external openMSX installation or MSX BIOS.
+Windows x64, Linux x64, macOS Intel and macOS Apple Silicon packages contain the application and dependencies. No cartridge ROM or extracted game asset package is distributed. Supply a supported ROM; extraction does not require an external openMSX installation or MSX BIOS.
 
-The bundled FRS enhancement patches v1.1 retain their author's separate **non-commercial license**. Keep the original archive intact; commercial use requires FRS's permission and patched ROMs must not be redistributed. See `third_party/FRS/README.md` and the original `README.TXT` inside the archive for credits and terms.
+The bundled FRS enhancement patches v1.1 retain their author's separate non-commercial license. Keep the original archive intact; commercial use requires FRS's permission and patched ROMs must not be redistributed. See `third_party/FRS/README.md` and the original `README.TXT` inside the archive.
 
-Windows runtime captures were reviewed locally. Other platforms are packaged by GitHub Actions; packaging and signing do not establish hands-on gameplay validation.
+Windows runtime behavior was checked locally. GitHub Actions packaging on other operating systems does not establish hands-on gameplay validation.

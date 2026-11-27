@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -39,6 +39,7 @@ public sealed class Msx1PatternAnimator
     private sealed class TorchAnim
     {
         public int Period = 4;
+        public int BasePattern = 0x98;
         public byte[][][] Frames = Array.Empty<byte[][]>(); // [8 frames][4 patterns][8 rows]
         public int Counter;
         public int Frame; // 0..7
@@ -128,6 +129,7 @@ public sealed class Msx1PatternAnimator
             if (root.TryGetProperty("torch", out var torchEl))
             {
                 _torch.Period = torchEl.GetProperty("period").GetInt32();
+                _torch.BasePattern = torchEl.GetProperty("base_pattern").GetInt32();
                 var framesList = new List<byte[][]>();
                 foreach (var fEl in torchEl.GetProperty("frames").EnumerateArray())
                 {
@@ -181,6 +183,23 @@ public sealed class Msx1PatternAnimator
         catch (Exception ex)
         {
             Console.WriteLine($"[Msx1PatternAnimator] Failed to parse animations.json: {ex.Message}");
+        }
+    }
+
+    /// <summary>Updates native color bytes before decoding the complete editor background.</summary>
+    public void ApplyToVram(int pyramid, byte[] vram, byte[] regs)
+    {
+        if (_pyramids.TryGetValue(pyramid, out var eye) && eye.Frames.Length > 0)
+            Apply(eye.BasePattern, eye.Frames[eye.Frame % eye.Frames.Length]);
+        if (_torch.Frames.Length > 0) Apply(_torch.BasePattern, _torch.Frames[_torch.Frame % _torch.Frames.Length]);
+        void Apply(int pattern, byte[][] colors)
+        {
+            int colorBase = (regs[3] & 0x80) << 6;
+            int mask = ((regs[3] & 0x7F) << 6) | 0x3F;
+            for (int third = 0; third < 3; third++)
+                for (int p = 0; p < colors.Length; p++)
+                    for (int row = 0; row < 8; row++)
+                        vram[(colorBase + ((third * 0x800 + (pattern + p) * 8 + row) & mask)) & 0x3FFF] = colors[p][row];
         }
     }
 
@@ -304,4 +323,5 @@ public sealed class Msx1PatternAnimator
 
         return true;
     }
+
 }

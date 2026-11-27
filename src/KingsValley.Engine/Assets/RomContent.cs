@@ -162,9 +162,18 @@ public static class RomContent
     {
         get
         {
-            var dir = Path.Combine(Base, "CustomLevels");
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
+            var dir = Path.Combine(Path.GetDirectoryName(Core.SaveSystem.ProfileSaveService.SaveFilePath)!, "CustomLevels");
+            Directory.CreateDirectory(dir);
+            string legacy=Path.Combine(Base,"CustomLevels");
+            if(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KINGSVALLEY_USER_DATA")) && Directory.Exists(legacy))
+                foreach(string source in Directory.EnumerateFiles(legacy,"custom_stage_*.json"))
+                {
+                    string destination=Path.Combine(dir,Path.GetFileName(source));
+                    if(File.Exists(destination))continue;
+                    try { Core.Stages.StageLoader.LoadFile(source); File.Copy(source,destination,overwrite:false); }
+                    catch(Exception error) when(error is IOException or System.Text.Json.JsonException or InvalidOperationException or KeyNotFoundException or ArgumentException or FormatException)
+                    { Console.WriteLine("[Editor] Legacy slot import: "+error.Message); }
+                }
             return dir;
         }
     }

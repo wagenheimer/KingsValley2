@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Perf = KingsValley.Engine.Diagnostics.EditorPerformanceLog;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -427,11 +428,20 @@ public class KingsValleyGame : Nez.Core
 
     protected override void Update(GameTime gameTime)
     {
-        base.Update(gameTime);
+        Perf.Frame(Nez.Core.Scene?.GetType().Name??"none",IsActive);
+        using var updateTiming=Perf.Measure("game.update");
+        using(Perf.Measure("scene.update")) base.Update(gameTime);
 
         // System menu (ESC): input read HERE, after base.Update, so the frame already has the
         // new keyboard/gamepad state. In the menus ESC keeps the scene's function.
-        UI.SystemMenu.Update();
+        if (Nez.Core.Scene is Scenes.GameScene && GameNavigation.StageOverride != null &&
+            (Nez.Input.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Escape) || Nez.Input.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.F5)))
+        {
+            GameNavigation.StageOverride = null;
+            UI.SystemMenu.Close();
+            GameNavigation.GoTo(GameSceneId.Editor);
+        }
+        else UI.SystemMenu.Update();
 
         // Diagnostics: KINGSVALLEY_SYSMENU=1 opens the system menu at frame 60 (screenshot/CI gate);
         // "demo" also navigates through it, proving the menu logic without a human at the keyboard.
@@ -497,7 +507,7 @@ public class KingsValleyGame : Nez.Core
         UpdateGumViewport();
 
         // Updates the Gum UI (input, hover, pending layout)
-        GumUI.Update(gameTime);
+        using(Perf.Measure("gum.update")) GumUI.Update(gameTime);
 
 #if DEBUG
         CheckDebugShortcuts();
@@ -577,14 +587,16 @@ public class KingsValleyGame : Nez.Core
     protected override void Draw(GameTime gameTime)
     {
         // Nez renders the scene (and blits it to the back buffer) inside base.Draw.
-        base.Draw(gameTime);
+        using var drawTiming=Perf.Measure("game.draw");
+        using(Perf.Measure("nez.draw")) base.Draw(gameTime);
 
         // Transition curtain: covers the WORLD, but stays BELOW the UI (that is why the loading
         // stays visible through it) and BELOW PostUiOverlay (the cursor stays in view).
         ScreenFade.Instance.Draw();
 
         // Gum draws ALWAYS afterwards: that is what guarantees the UI on top of the scene.
-        GumUI.Draw();
+        using(Perf.Measure("gum.draw")) GumUI.Draw();
+        Perf.DrawCompleted();
 
         // After the UI: virtual cursor, episodic effects and floating texts.
         PostUiOverlay.Draw();
@@ -658,29 +670,31 @@ public class KingsValleyGame : Nez.Core
     }
 
     /// <summary>
-    /// Synchronizes the Gum canvas and zoom with the world's design coordinate space.
-    ///
-    /// The canvas stays in **design units** (height 768, dynamic width) and the Gum camera
-    /// zoom is the same <see cref="DesignViewport.Scale"/>. That way a UI element at `x = 700`
-    /// falls exactly over a scene object at `x = 700`.
-    ///
-    /// Only reapplies when the back buffer size changes (avoids relayout per frame) — that covers
-    /// the window resize, including in real time.
+    /// Synchronizes Gum with the active surface. Gameplay uses the design viewport;
+    /// the desktop editor uses physical pixels and explicitly sized text with camera zoom one.
+    /// This prevents high-DPI editor labels from being rasterized a second time during Draw.
+    /// Canvas changes are applied only when the surface or back buffer changes.
     /// </summary>
+    private bool _lastGumEditorWorkspace;
+
     private void UpdateGumViewport()
     {
         if (!GumUI.IsInitialized)
             return;
 
         var pixelSize = new Point(DesignViewport.PixelWidth, DesignViewport.PixelHeight);
-        if (pixelSize == _lastGumPixelSize)
+        bool editorWorkspace = Nez.Core.Scene is Scenes.EditorScene;
+        if (pixelSize == _lastGumPixelSize && editorWorkspace == _lastGumEditorWorkspace)
             return;
 
         _lastGumPixelSize = pixelSize;
+        _lastGumEditorWorkspace = editorWorkspace;
 
-        GumUI.Renderer.Camera.Zoom = DesignViewport.Scale;
-        GumUI.CanvasWidth = DesignViewport.DesignWidth;
-        GumUI.CanvasHeight = DesignViewport.DesignHeight;
+        // The editor supplies physical UI coordinates and font sizes. Keeping camera zoom
+        // at one avoids oversampling every newly created label again after maximization.
+        GumUI.Renderer.Camera.Zoom = editorWorkspace ? 1 : DesignViewport.Scale;
+        GumUI.CanvasWidth = editorWorkspace ? pixelSize.X : DesignViewport.DesignWidth;
+        GumUI.CanvasHeight = editorWorkspace ? pixelSize.Y : DesignViewport.DesignHeight;
 
         // The zoom changed: the font materials (Unity gradient) have their atlas rasterized at
         // the size with zoom, so they must be redone for the new scale — otherwise the oversampling

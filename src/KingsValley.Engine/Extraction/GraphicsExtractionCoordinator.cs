@@ -68,7 +68,11 @@ internal static class Msx1GraphicsPipeline
     public static void Extract(GraphicsExtractionContext context,string destination,Action<string,Action> step,Action<string>? log,CancellationToken token)
     {
         step("msx1 screens",()=>RomScreens.WriteAll(context.Rom,destination,log,token));
-        step("msx1 rooms",()=>RomRoomDumps.WriteAll(context.Rom,System.IO.Path.Combine(destination,"Levels"),destination,log,token,context.StageLimit));
+        step("msx1 rooms",()=>
+        {
+            RomRoomDumps.WriteAll(context.Rom,System.IO.Path.Combine(destination,"Levels"),destination,log,token,context.StageLimit);
+            Msx1EditorBackgrounds.Write(context.Rom,destination,context.StageLimit,token);
+        });
         step("msx1 mechanisms",()=>Msx1MechanismFrames.Write(context.Rom,destination,log,token));
         step("msx1 atlas",()=>RomSpriteAtlas.Build(context.Rom,destination,log,token:token));
     }

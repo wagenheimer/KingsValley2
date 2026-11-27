@@ -27,6 +27,7 @@ public static class Msx1MechanismFrames
         {
             machine.Write(0xE241,(byte)pyramid); machine.Write(0xE242,(byte)(1+(pyramid-1)*10));
             machine.Write(0xE243,1);
+            RomStageState.LoadMsx1Theme(machine, rom);
             machine.CallAddress(RomStageState.ResolveStageLoader(rom),2_000_000);
             for(int type=1;type<=4;type++)
             {

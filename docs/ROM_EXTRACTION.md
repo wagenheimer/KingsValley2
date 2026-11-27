@@ -110,3 +110,21 @@ previous immutable generations remain available on disk.
 The Original/Contest application chooser is available only while a validated
 Contest graphics generation is installed. With Original alone, GAME opens the
 native START SELECT page directly. ROM discovery alone does not unlock Contest.
+
+### MSX1 editor room assembly
+
+The editor uses `Msx1EditorRoomAssembler` for MSX1, loading that variant's native
+`Rooms/murals.bin` and terrain atlas. It adapts the decoded pixels to the shared
+room compositor without requiring MSX2 block tables, JSON palettes or artwork.
+Opaque black terrain pixels remain opaque. Edited and newly added rooms are
+assembled from their current cell maps, independently of original room dumps.
+The MSX1 editor's terrain/mural output is compared against native `44FA` / `453D`
+in all six pyramids. Graphics reload discards the cached MSX1 editor assets.
+
+### MSX1 editor background tables (graphics profile revision 4)
+
+The shortened stage-loader entry skips the three initialization calls immediately before it. Per-theme captures must explicitly execute the first call (native `52FD` in RC-760), loading the selected pyramid and common character graphics before drawing. This applies to room dumps, murals, terrain/object tiles and mechanisms. The graphics entry is resolved from the verified loader prefix rather than assumed for every accepted revision.
+
+`Rooms/Backgrounds/pN.vdp` stores eight VDP registers plus 16 KiB VRAM. Each theme folder contains 768-byte native name tables for cartridge room compositions and odd/even mural-only maps. Clean backgrounds execute `41D4`, `44FA`, `4607`, then restore gameplay banks with `4192`; terrain and collectibles are composed separately. Decorations remain in their own theme: changing a template's theme uses the selected pyramid's first stage placement, while preserving the source stage mural parity. Newly added room numbers use only the native mural. Runtime animation updates extracted color bytes before shared TMS9918 decoding. No PNG room/screen asset or external openMSX process is required.
+
+The TMS9918 table masks remain independently implemented against openMSX `VDP::updatePatternBase` / `updateColorBase`: <https://github.com/openMSX/openMSX/blob/master/src/video/VDP.cc>. Native routine comparisons are separate evidence from manifest structural checks.

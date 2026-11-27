@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Perf = KingsValley.Engine.Diagnostics.EditorPerformanceLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,16 +33,25 @@ namespace KingsValley.Engine.Scenes;
 ///
 /// The ROM help texts (bank D, table <c>0xBCBB</c>) are in <see cref="Help"/>.
 /// </summary>
-public class EditorScene : SceneBase
+public partial class EditorScene : SceneBase
 {
+    internal static bool IsRecoverableEditorAction(Exception ex) =>
+        ex is System.IO.IOException or System.IO.InvalidDataException or UnauthorizedAccessException or
+        InvalidOperationException or ArgumentException or System.Text.Json.JsonException or FormatException;
     /// <summary>Stage definition in memory, preserved during play-tests.</summary>
     public static StageDefinition? LastEditedStageDef { get; set; }
     public static int LastEditedStageNumber { get; set; } = 1;
     public static int LastEditedRoom { get; set; } = 1;
     public static int LastEditedCustomSlot { get; set; } = 1;
 
+    private bool _loadingTemplate;
+    private bool _resumeWorkspace;
+
     protected override void OnInitialize()
     {
+        Perf.Start("variant="+RomContent.Variant);
+        using var timing=Perf.Measure("scene.editor_initialize");
+        _resumeWorkspace = LastEditedStageDef != null;
         if (LastEditedStageDef != null)
         {
             var stage = LastEditedStageDef;
@@ -63,11 +73,12 @@ public class EditorScene : SceneBase
 
     public override void OnGfxVariantChanged()
     {
+        if (_loadingTemplate) return;
         var renderer = FindEntity("editor")?.GetComponent<EditorRenderer>();
         renderer?.ReloadGraphics();
     }
 
-    private sealed class EditorRenderer : RenderableComponent, IUpdatable
+    private sealed partial class EditorRenderer : RenderableComponent, IUpdatable
     {
         private const int Columns = GameConstants.RoomColumns;
         private const int Rows = GameConstants.RoomRows;
@@ -109,27 +120,26 @@ public class EditorScene : SceneBase
         private TerrainKind[][] _rooms;
         private int _currentStageNumber = 1;
         private int _currentMusicIndex = -1;
+        private string? _jsonTemplatePath, _jsonTemplate;
 
         private RoomBackgroundBuilder? _bgBuilder;
         private readonly Dictionary<int, Texture2D> _roomTextures = new();
+        private readonly HashSet<int> _invalidRooms = new();
 
         private void EnsureRoomTextures()
         {
-            if (_bgBuilder == null)
-                _bgBuilder = new RoomBackgroundBuilder(Nez.Core.GraphicsDevice);
-
-            for (int i = 0; i < _rooms.Length; i++)
-            {
-                int roomId = i + 1;
-                _roomTextures.TryGetValue(roomId, out var existing);
-                _roomTextures[roomId] = _bgBuilder.BuildCustomRoomTexture(
-                    Pyramid, _stage.Number, roomId, _rooms[i],
-                    _stage.Ladders, _stage.GoldenLadders, _mechs, existing);
-            }
+            bool invalid = _invalidRooms.Remove(RoomNumber);
+            if (!_roomTextures.ContainsKey(RoomNumber) || invalid) BuildRoomTexture(RoomNumber);
         }
 
         private void UpdateRoomTexture(int roomId)
         {
+            _invalidRooms.Add(roomId);_workspace?.InvalidateWorldRoom(roomId);
+        }
+
+        private void BuildRoomTexture(int roomId)
+        {
+            using var timing=Perf.Measure("room.assemble_upload",$"stage={_currentStageNumber} room={roomId} pyramid={Pyramid}");
             if (_bgBuilder == null)
                 _bgBuilder = new RoomBackgroundBuilder(Nez.Core.GraphicsDevice);
 
@@ -149,6 +159,7 @@ public class EditorScene : SceneBase
                 tex?.Dispose();
             _roomTextures.Clear();
             EnsureRoomTextures();
+            _workspace?.OnGraphicsReloaded();
         }
 
         private int _room;
@@ -336,7 +347,9 @@ public class EditorScene : SceneBase
             Console.WriteLine($"[Editor] New room {newRoomId} created at position ({gridX}, {gridY})");
         }
 
-        private int Pyramid => Math.Clamp((_currentStageNumber - 1) / 10 + 1, 1, 6);
+        private int _editorPyramid = 1;
+        private int _editorMusic;
+        private int Pyramid => _editorPyramid;
 
         /// <summary>Edited positions and rooms (written to the JSON along with the cells).</summary>
         private int _startRoom;
@@ -361,6 +374,8 @@ public class EditorScene : SceneBase
         public EditorRenderer(StageDefinition stage, int stageNumber = 1, int initialRoom = 1, int customSlot = 1, bool autoSave = false)
         {
             _stage = stage;
+            _editorPyramid = stage.Pyramid;
+            _editorMusic = stage.MusicIndex;
             _currentStageNumber = stageNumber;
             _autoSave = autoSave;
             _customSlot = Math.Clamp(customSlot, 1, 10);
@@ -407,7 +422,11 @@ public class EditorScene : SceneBase
         /// <summary>Applies a loaded stage by updating all rooms, entities and textures.</summary>
         private void ApplyLoadedStage(StageDefinition stage, int stageNumber, int room = 1)
         {
+            foreach (var texture in _roomTextures.Values) texture.Dispose();
+            _roomTextures.Clear(); _invalidRooms.Clear();
             _stage = stage;
+            _editorPyramid = stage.Pyramid;
+            _editorMusic = stage.MusicIndex;
             _currentStageNumber = stageNumber;
             _rooms = stage.Rooms.Select(r => (TerrainKind[])r.Cells.Clone()).ToArray();
             if (_rooms.Length == 0)
@@ -494,7 +513,7 @@ public class EditorScene : SceneBase
             _saveDialogOpen = false;
             ShowStatus($"SAVED CUSTOM SLOT {slot:D2} OK!");
             GameAudio.PlayConfirm();
-            Console.WriteLine($"[Editor] Salvo em {path} ({json.Length} bytes, slot {slot})");
+            Console.WriteLine($"[Editor] Saved to {path} ({json.Length} bytes, slot {slot})");
         }
 
         public override RectangleF Bounds => new(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight);
@@ -507,6 +526,7 @@ public class EditorScene : SceneBase
 
         public void Update()
         {
+            if (_workspace != null) { _workspace.Update(); return; }
             if (_autoSave)
             {
                 _autoSave = false;
@@ -1408,6 +1428,20 @@ public class EditorScene : SceneBase
             _ => "knife",
         };
 
+        // The ROM shares an atlas across kinds: frame 0 is a mummy, not a
+        // generic enemy pose. GuardGround uses 9 and RockRoll uses 17.
+        private static string EditorEnemySprite(EnemyKind kind)
+        {
+            bool msx1=RomContent.Flavor==ArtFlavor.Msx1;
+            return kind switch
+            {
+                EnemyKind.Guard=>$"enemy_t{(msx1?3:2)}_09",
+                EnemyKind.Rock=>$"enemy_t{(msx1?4:6)}_17",
+                EnemyKind.GoldMummy=>"enemy_t2_00",
+                _=>"enemy_t1_00"
+            };
+        }
+
         private static string CoffinSprite(int pyramid) => $"coffin_p{pyramid}";
 
         /// <summary>
@@ -1440,6 +1474,7 @@ public class EditorScene : SceneBase
         /// <summary>Builds the edited stage JSON in the **extractor schema** (the same the loader reads).</summary>
         private string BuildJson()
         {
+            using var timing=Perf.Measure("document.snapshot",$"rooms={_rooms.Length}");
             // The loader reads the extractor's raw schema (rooms[].rows = 24 strings of 32 chars).
             // We use the matching ROM stage as the metadata template if it exists, or stage01 as fallback.
             int templateNum = Math.Clamp(_currentStageNumber, 1, RomContent.StageCount);
@@ -1447,9 +1482,24 @@ public class EditorScene : SceneBase
             if (!System.IO.File.Exists(sourcePath))
                 sourcePath = System.IO.Path.Combine(RomContent.LevelsDirectory, "stage01.json");
 
-            var root = JsonNode.Parse(System.IO.File.ReadAllText(sourcePath))!;
+            if (_jsonTemplatePath != sourcePath)
+            {
+                _jsonTemplatePath = sourcePath;
+                using var read=Perf.Measure("document.template_read");
+                _jsonTemplate = System.IO.File.ReadAllText(sourcePath);
+            }
+            var root = JsonNode.Parse(_jsonTemplate!)!;
             root["stage"] = _currentStageNumber;
+            root["editorSourceVariant"] = RomContent.Variant;
             root["pyramid"] = Pyramid;
+            root["music"] = _editorMusic;
+            // Terrain cells are authoritative; stale ladder tables must not resurrect erased cells.
+            root["ladders"] = new JsonArray();
+            root["goldenLadders"] = new JsonArray(_stage.GoldenLadders.Where(g => g.Room >= 1 && g.Room <= _rooms.Length &&
+                g.Column >= 0 && g.Column <= Columns-2 && g.Row >= 0 && g.Row < Rows && g.Length >= 1 && g.Length <= Rows && g.Row+g.Length <= Rows &&
+                Enumerable.Range(0, g.Length).All(y => Enumerable.Range(0, 2).All(x =>
+                    _rooms[g.Room - 1][(g.Row + y) * Columns + g.Column + x] == TerrainKind.Ladder)))
+                .Select(g => (JsonNode)new JsonObject { ["room"] = g.Room, ["col"] = g.Column, ["row"] = g.Row, ["length"] = g.Length }).ToArray());
 
             var rooms = root["rooms"]!.AsArray();
 
@@ -1473,6 +1523,8 @@ public class EditorScene : SceneBase
                     ["rows"] = new JsonArray(),
                 });
             }
+
+            while (rooms.Count > _rooms.Length) rooms.RemoveAt(rooms.Count - 1);
 
             for (int i = 0; i < _rooms.Length && i < rooms.Count; i++)
             {
@@ -1513,7 +1565,7 @@ public class EditorScene : SceneBase
                 {
                     ["room"] = mech.Position.Room, ["x"] = mech.Position.X, ["y"] = mech.Position.Y,
                     ["type"] = (int)mech.Kind,
-                    ["raw"] = $"0000000000{mech.InitialPhase:X2}0000{mech.HeightCells:X2}",
+                    ["raw"] = $"0000000000{mech.InitialPhase:X2}00{(mech.Direction << 1):X2}{mech.HeightCells:X2}",
                 });
             root["mechanisms"] = mechs;
 
@@ -1548,6 +1600,7 @@ public class EditorScene : SceneBase
         {
             var json = BuildJson();
             var def = StageLoader.Parse(json);
+            _workspace?.RememberForTest();
             LastEditedStageDef = def;
             LastEditedStageNumber = _currentStageNumber;
             LastEditedRoom = RoomNumber;
@@ -1569,9 +1622,11 @@ public class EditorScene : SceneBase
 
         public override void Render(Batcher batcher, Camera camera)
         {
+            if (_workspace != null && !_renderWorkspaceRoom) return;
+            EnsureRoomTextures();
             int p = Pyramid;
 
-            if (_worldViewOpen)
+            if (_worldViewOpen && !_renderWorkspaceRoom)
             {
                 DrawWorldView(batcher, p);
                 return;
@@ -1621,12 +1676,12 @@ public class EditorScene : SceneBase
                 }
                 else if (c.Kind == EnemyKind.Guard)
                 {
-                    MsxScreen.Draw(batcher, "enemy_t3_00", c.Position.X, c.Position.Y);
+                    MsxScreen.Draw(batcher, EditorEnemySprite(EnemyKind.Guard), c.Position.X, c.Position.Y);
                     MsxScreen.Text(batcher, "P", c.Position.X + 4, c.Position.Y, Color.Yellow);
                 }
                 else // Rock
                 {
-                    MsxScreen.Draw(batcher, "enemy_t4_00", c.Position.X, c.Position.Y);
+                    MsxScreen.Draw(batcher, EditorEnemySprite(EnemyKind.Rock), c.Position.X, c.Position.Y);
                     MsxScreen.Text(batcher, "R", c.Position.X + 4, c.Position.Y, Color.Yellow);
                 }
             }
@@ -1642,7 +1697,7 @@ public class EditorScene : SceneBase
             // Mecanismos e Armadilhas
             foreach (var m in _mechs.Where(m => m.Position.Room == RoomNumber))
             {
-                if (m.Kind == MechanismKind.RotatingDoor)
+                if (m.Kind == MechanismKind.RotatingDoor && !_renderWorkspaceRoom)
                 {
                     MsxScreen.Fill(batcher, new Rectangle(m.Position.X, m.Position.Y, 16, 16), new Color(40, 40, 80));
                     Outline(batcher, new Rectangle(m.Position.X, m.Position.Y, 16, 16), Color.Cyan);
@@ -1663,6 +1718,12 @@ public class EditorScene : SceneBase
             {
                 MsxScreen.Draw(batcher, "vick_s0_00", _startX, _startY - 8);
                 Outline(batcher, new Rectangle(_startX - 1, _startY - 9, 18, 26), Color.Cyan);
+            }
+
+            if (_renderWorkspaceRoom)
+            {
+                _workspace?.DrawCanvasOverlay(batcher);
+                return;
             }
 
             // 3.5 Visual indicators for multiple rooms and edge portals
@@ -1760,9 +1821,9 @@ public class EditorScene : SceneBase
                         if (_sub[4] is 0 or 1)
                             MsxScreen.Draw(batcher, CoffinSprite(p), curX, curY - 8, color: ghostColor);
                         else if (_sub[4] == 2)
-                            MsxScreen.Draw(batcher, "enemy_t3_00", curX, curY, color: ghostColor);
+                            MsxScreen.Draw(batcher, EditorEnemySprite(EnemyKind.Guard), curX, curY, color: ghostColor);
                         else
-                            MsxScreen.Draw(batcher, "enemy_t4_00", curX, curY, color: ghostColor);
+                            MsxScreen.Draw(batcher, EditorEnemySprite(EnemyKind.Rock), curX, curY, color: ghostColor);
                         break;
                     case 6:
                         MsxScreen.Draw(batcher, ItemSprite((ItemKind)(_sub[6] + 1)), curX, curY, color: ghostColor);
@@ -2226,8 +2287,8 @@ public class EditorScene : SceneBase
                     {
                         string spr = c.Kind switch
                         {
-                            EnemyKind.Guard => "enemy_t3_00",
-                            EnemyKind.Rock => "enemy_t4_00",
+                            EnemyKind.Guard => EditorEnemySprite(EnemyKind.Guard),
+                            EnemyKind.Rock => EditorEnemySprite(EnemyKind.Rock),
                             _ => CoffinSprite(p)
                         };
                         float cOffsetY = 0f;

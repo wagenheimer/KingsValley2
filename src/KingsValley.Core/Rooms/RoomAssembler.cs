@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using KingsValley.Core.Common;
 using KingsValley.Core.Stages;
@@ -45,9 +46,14 @@ public static class RoomAssembler
         IReadOnlyList<DecorationEntry> decorations,
         TerrainKind[] map,
         IReadOnlyList<LadderDefinition> ladders,
-        IReadOnlyList<LadderDefinition> goldenLadders)
+        IReadOnlyList<LadderDefinition> goldenLadders,
+        byte[]? background = null)
     {
-        var img = new byte[Width * Height];
+        if (background != null && background.Length != Width * Height)
+            throw new ArgumentException("The background must have native room dimensions.", nameof(background));
+        var img = background is null ? new byte[Width * Height] : (byte[])background.Clone();
+        if (background is null)
+        {
 
         // 1) mural (opaque): 6 strips of 4 rows, 4x8 codes, repeated 4x horizontally and 6x vertically.
         for (int by = 0; by < 6; by++)
@@ -66,15 +72,18 @@ public static class RoomAssembler
         {
             if (dec.Room != room)
                 continue;
-            int rows = dec.Rows, cols = dec.Cols;
+            int rows = dec.Shape == "pillar" ? dec.Height : dec.Rows, cols = dec.Cols;
             for (int r = 0; r < rows; r++)
                 for (int c = 0; c < cols; c++)
                 {
-                    int code = dec.Blocks[r * cols + c];
+                    int index = dec.Shape == "pillar" ? (r == 0 ? 0 : r == rows - 1 ? 2 : 1) + c : r * cols + c;
+                    int code = dec.Blocks[index];
                     int x = dec.X + c * BlockSize;
                     int y = dec.Y + r * BlockSize;
                     BlitBlock(img, blocks, code, x, y, opaque: false);
                 }
+        }
+
         }
 
         // 3) map (transparent): 0=nothing, 2=block 5, 3=block 0x5E, 1=ladder (3 in the 1st cell, 4 in the 2nd).
@@ -114,8 +123,17 @@ public static class RoomAssembler
                 {
                     int cx = x + c * BlockSize;
                     int cy = y + r * BlockSize;
-                    int muralCode = MuralCode(muralCodes, cx, cy);
-                    BlitBlock(img, blocks, muralCode, cx, cy, opaque: false);
+                    if (background != null)
+                    {
+                        if (cx < 0 || cy < 0 || cx + 8 > Width || cy + 8 > Height) continue;
+                        for (int row = 0; row < 8; row++)
+                            Array.Copy(background, (cy + row) * Width + cx, img, (cy + row) * Width + cx, 8);
+                    }
+                    else
+                    {
+                        int muralCode = MuralCode(muralCodes, cx, cy);
+                        BlitBlock(img, blocks, muralCode, cx, cy, opaque: false);
+                    }
                 }
             // blocks 1 (left) and 2 (right) per row
             for (int r = 0; r < height; r++)

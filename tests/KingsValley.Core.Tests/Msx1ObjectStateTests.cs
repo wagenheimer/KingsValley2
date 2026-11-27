@@ -20,6 +20,7 @@ public class Msx1ObjectStateTests
             for(int pyramid=1;pyramid<=6;pyramid++)
             {
                 machine.Write(0xE241,(byte)pyramid);machine.Write(0xE242,(byte)(1+(pyramid-1)*10));
+                RomStageState.LoadMsx1Theme(machine,rom);
                 machine.CallAddress(RomStageState.ResolveStageLoader(rom),2_000_000);
                 machine.Write(0xE243,1);
                 for(int address=0xE300;address<0xE780;address++) machine.Write((ushort)address,0);

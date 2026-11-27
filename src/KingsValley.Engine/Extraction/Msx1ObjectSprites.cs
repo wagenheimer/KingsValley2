@@ -28,6 +28,7 @@ internal static class Msx1ObjectSprites
         {
             token.ThrowIfCancellationRequested();
             machine.Write(0xE241,(byte)pyramid);machine.Write(0xE242,(byte)(1+(pyramid-1)*10));machine.Write(0xE243,1);
+            RomStageState.LoadMsx1Theme(machine, rom);
             machine.CallAddress(RomStageState.ResolveStageLoader(rom),2_000_000);
             machine.CallAddress(0x4192,100_000);
             for(int frame=0;frame<3;frame++)

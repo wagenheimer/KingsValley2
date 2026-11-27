@@ -28,7 +28,8 @@ public static class ProfileSaveService
         get
         {
             var root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var dir = Path.Combine(root, GameConstants.CompanyFolder, GameConstants.GameTitle);
+            var userData = Environment.GetEnvironmentVariable("KINGSVALLEY_USER_DATA");
+            var dir = string.IsNullOrWhiteSpace(userData) ? Path.Combine(root, GameConstants.CompanyFolder, GameConstants.GameTitle) : Path.GetFullPath(userData);
             Directory.CreateDirectory(dir);
             return Path.Combine(dir, "save.json");
         }

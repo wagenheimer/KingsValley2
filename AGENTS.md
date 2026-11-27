@@ -420,7 +420,36 @@ twice.
 > outline. If the quality is not enough for a specific case, then evaluate
 > **FontStashSharp** (native stroked text).
 
-### ⚠️ Text crispness: use the NATIVE oversampling (never rasterize at the design size)
+### MANDATORY: desktop editor font scaling and maximized-window performance
+
+The desktop level editor is a **physical-pixel UI**, not the gameplay design-resolution UI.
+Keep these two rendering contracts separate:
+
+- **Editor:** Gum camera zoom is **1**, canvas dimensions are the physical back-buffer dimensions,
+  positions and sizes go through the workspace's `Position` helper, and font sizes are
+  `logicalFontSize * uiScale`. Icons also use the physical UI scale. Mouse hit testing stays in
+  logical workspace coordinates through `EditorWorkspaceLayout.ToUiPoint`.
+- **Gameplay and other design-resolution screens:** retain their existing design viewport and
+  native Gum font oversampling. Do not disable `TextRuntime.UseFontOversampling` globally.
+- **Never restore editor camera zoom = `uiScale`.** With reconstructed editor labels at zoom 2,
+  maximizing caused repeated font rasterization during `GumUI.Draw`: measured **1.49–1.64 seconds**
+  and about **2.22 GB of temporary managed allocations** after room changes. Room assembly and UI
+  rebuilding were only a few milliseconds; changing ROM extraction or room logic would not fix it.
+- Do not compensate with `FontScale = 1 / zoom`. The editor's coordinates and font sizes already
+  describe physical pixels; applying another camera/oversampling scale repeats the work.
+- Relevant code: `KingsValleyGame.UpdateGumViewport`, `EditorScene.Workspace` (`Rebuild`, `Label`,
+  `Position`, `Icon`) and `EditorWorkspaceLayout.ToUiPoint`. New editor controls must follow this
+  same contract, including dialogs and overview previews.
+- Verify font/layout changes at the normal window size **and maximized/4K**, including room
+  switches, dialogs and returning from Test. Inspect automatic `Diagnostics/editor-performance-*.jsonl`
+  logs: `gum.draw`, `ui.rebuild`, `frame.interval`, allocations and `input_to_draw`. A fast room-preview
+  average alone is **not** evidence that the whole interface is responsive.
+- Separate cold initialization from repeated interaction. The controlled
+  `KINGSVALLEY_EDITOR_REBUILD_PROBE=1` test in 3840 × 2160 measured a warm rebuild around **4.45 ms**
+  after the correction, without the multi-gigabyte Draw allocation. The user confirmed that
+  maximizing was responsive again on 2026-11-26.
+
+### ⚠️ Text crispness: use the NATIVE oversampling (design-resolution screens)
 
 Gum is drawn with `Renderer.Camera.Zoom = DesignViewport.Scale` — **2.813× on a 4K monitor**. A
 glyph rasterized at the *design* size (24 px) and **upscaled** by the camera blurs. Gum

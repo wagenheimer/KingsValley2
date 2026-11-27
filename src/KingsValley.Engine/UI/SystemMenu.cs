@@ -238,7 +238,7 @@ public static class SystemMenu
     private static bool CanOpen()
     {
         // Native Contest/campaign selectors own ESC as their back action.
-        if(Nez.Core.Scene is Scenes.CampaignSelectionScene)return false;
+        if(Nez.Core.Scene is Scenes.CampaignSelectionScene or Scenes.EditorScene)return false;
         if (Nez.Core.Scene is Scenes.FirstRunScene fr && (fr.IsExtracting || fr.HasDialog))
             return false;
 

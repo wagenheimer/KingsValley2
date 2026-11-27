@@ -43,6 +43,15 @@ public sealed class RomStageState
         return 0x5AAB;
     }
 
+    /// <summary>Loads the selected MSX1 theme before entering the stage loader's shortened entry.</summary>
+    public static void LoadMsx1Theme(MiniMsx machine, byte[] rom)
+    {
+        int prefix = ResolveStageLoader(rom) - 0x4000 - 9;
+        if (prefix < 0 || rom[prefix] != 0xCD || rom[prefix + 3] != 0xCD || rom[prefix + 6] != 0xCD)
+            throw new System.IO.InvalidDataException("The MSX1 theme loader prefix is not recognized.");
+        machine.CallAddress((ushort)(rom[prefix + 1] | rom[prefix + 2] << 8), 2_000_000);
+    }
+
     /// <summary>Loads a stage and returns what the game put in RAM.</summary>
     /// <param name="rom">128 KB cartridge image.</param>
     /// <param name="stage">1..60.</param>

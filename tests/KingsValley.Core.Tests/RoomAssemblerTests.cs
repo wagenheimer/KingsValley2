@@ -11,6 +11,19 @@ namespace KingsValley.Core.Tests;
 /// </summary>
 public class RoomAssemblerTests
 {
+    [Fact]
+    public void PillarUsesNativeOverlappingTopMiddleAndBottomPairs()
+    {
+        byte[] blocks=new byte[8192];
+        for(int code=1;code<=4;code++)Array.Fill(blocks,(byte)(code*17),code*32,32);
+        var decoration=new DecorationEntry(6,"pillar",1,8,8,1,2,5,new[]{1,2,3,4});
+        var image=RoomAssembler.Assemble(1,1,1,blocks,new int[32],new[]{decoration},new TerrainKind[768],Array.Empty<LadderDefinition>(),Array.Empty<LadderDefinition>());
+        Assert.Equal(1,image[8*256+8]);Assert.Equal(2,image[8*256+16]);
+        for(int row=1;row<4;row++){Assert.Equal(2,image[(8+row*8)*256+8]);Assert.Equal(3,image[(8+row*8)*256+16]);}
+        Assert.Equal(3,image[40*256+8]);Assert.Equal(4,image[40*256+16]);
+        Assert.Equal(0,image[48*256+8]);
+    }
+
     private static string RepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

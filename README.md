@@ -180,6 +180,8 @@ The contextual action follows the player's state and held tool. In the **ESC sys
 
 The application includes three save-state slots with viewport thumbnails, a stage editor and access to the original ending puzzle. These tools are separate from the Contest cartridge's native stage-selection flow.
 
+The [level editor](docs/en/LEVEL_EDITOR.md) provides a desktop workspace with native room previews, six pyramid themes, room creation, terrain fill, selection, undo/redo and play-testing. **From Game** loads editable copies of all installed Original stages (60 per MSX version) and Contest stages (20). **Save As** exports portable `.kv2level` documents; the ten local slots remain available. Shared levels require the matching cartridge extraction and contain no ROM assets.
+
 ## Build from source
 
 Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and Git, then:

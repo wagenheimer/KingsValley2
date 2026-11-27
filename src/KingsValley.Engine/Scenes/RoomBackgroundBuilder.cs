@@ -35,6 +35,9 @@ public sealed class RoomBackgroundBuilder
     private Texture2D? _msx1Texture;
     private int _msx1Stage = -1;
     private int _msx1Room = -1;
+    private Texture2D? _customTexture;
+    private (int Room, int Version, int Phase) _customKey = (-1,-1,-1);
+    private Msx1EditorRoomAssembler? _msx1Editor;
     private (int Stage, int Room) _msx1Warned = (-1, -1);
 
     /// <summary>
@@ -42,6 +45,7 @@ public sealed class RoomBackgroundBuilder
     /// </summary>
     public void Reset()
     {
+        _customAnimationTime=0;
         _blocks = null;
         _murals?.Dispose();
         _murals = null;
@@ -55,11 +59,13 @@ public sealed class RoomBackgroundBuilder
 
         _texture?.Dispose();
         _texture = null;
+        _customTexture?.Dispose(); _customTexture=null; _customKey=(-1,-1,-1);
 
         _msx1Texture?.Dispose();
         _msx1Texture = null;
         _msx1Stage = -1;
         _msx1Room = -1;
+        _msx1Editor = null;
         _msx1BasePixels = null;
         _msx1Pixels = null;
         _msx1Palette = null;
@@ -444,6 +450,20 @@ public sealed class RoomBackgroundBuilder
         var def = s.Definition;
         int stage = def.Number;
         int room = s.CurrentRoom;
+        if (Navigation.GameNavigation.StageOverride != null)
+        {
+            bool animationChanged=TickCustomAnimations(def.Pyramid,Nez.Time.DeltaTime);
+            int phase = 0;
+            foreach (var mechanism in s.RoomMechanisms) phase = HashCode.Combine(phase, s.MechanismPhase(mechanism), s.IsMechanismSpent(mechanism));
+            var key = (room, s.MapVersion, phase);
+            if (_customTexture == null || _customKey != key || animationChanged)
+            {
+                var mechanisms = s.RoomMechanisms.Where(m => !s.IsMechanismSpent(m)).ToArray();
+                _customTexture = BuildCustomRoomTexture(def.Pyramid,stage,room,s.Map.Snapshot(),def.Ladders,s.ActiveGoldenLadders,mechanisms,_customTexture,s.MechanismPhase);
+                _customKey=key;
+            }
+            return _customTexture;
+        }
 
         // MSX1 variant: the room comes from an emulator dump (SCREEN 2), not from the MSX2 assembly.
         if (RomContent.Flavor == ArtFlavor.Msx1)
@@ -506,6 +526,29 @@ public sealed class RoomBackgroundBuilder
     /// Builds the 256x192 texture with the REAL ROM graphics (mural, decorations, 4bpp blocks, ladders and palette)
     /// for an arbitrary cell map (used in the editor and the world view at every zoom level).
     /// </summary>
+    private float _customAnimationTime;
+    public bool TickCustomAnimations(int pyramid, float elapsed)
+    {
+        if (RomContent.Flavor == ArtFlavor.Msx1)
+        {
+            if (_msx1Animator == null)
+            {
+                _msx1Animator=new Msx1PatternAnimator();
+                _msx1Animator.EnsureLoaded(Path.GetDirectoryName(RomContent.RoomSupportPath("animations.json")) ?? RoomsDir);
+            }
+            return _msx1Animator.Update(elapsed,pyramid);
+        }
+        EnsureLoaded();
+        if (_animations == null || _palettes == null) return false;
+        if (_animator == null || _animatorPyramid != pyramid)
+        {
+            _animator=new PaletteAnimator(); _animator.Load(_device,pyramid,_animations,_palettes); _animatorPyramid=pyramid;
+        }
+        _customAnimationTime+=elapsed; bool changed=false;
+        while (_customAnimationTime>=1f/60f) { _customAnimationTime-=1f/60f; changed|=_animator.Tick(); }
+        return changed;
+    }
+
     public Texture2D BuildCustomRoomTexture(
         int pyramid,
         int stage,
@@ -514,8 +557,41 @@ public sealed class RoomBackgroundBuilder
         IReadOnlyList<LadderDefinition>? ladders = null,
         IReadOnlyList<LadderDefinition>? goldenLadders = null,
         IReadOnlyList<MechanismDefinition>? mechanisms = null,
-        Texture2D? targetTexture = null)
+        Texture2D? targetTexture = null,
+        Func<MechanismDefinition,int>? phaseFor = null)
     {
+        if(_mechanismPyramid!=pyramid)
+        {
+            _mechanismPyramid=pyramid;
+            _mechanismPhaseTilesLoaded=false;_mechanismPhaseTiles=null;
+            _mechanism2PhaseTilesLoaded=false;_mechanism2PhaseTiles=null;
+            _mechanismTile4Loaded=false;_mechanismTile4=null;
+        }
+        if (RomContent.Flavor == ArtFlavor.Msx1)
+        {
+            _msx1Editor ??= new Msx1EditorRoomAssembler(RomContent.AtlasPath, RomContent.RoomSupportPath("murals.bin"));
+            var background = _msx1Editor.Background(pyramid, stage, room, _msx1Animator);
+            var screen = _msx1Editor.Assemble(pyramid, room, map, mechanisms, phaseFor != null ? goldenLadders : null, background);
+            var colors = screen.Indices.Select(index =>
+            {
+                var color = screen.Palette[index];
+                return new Color(color.R, color.G, color.B, color.A);
+            }).ToArray();
+            var nativePalette = screen.Palette.Select(c => new Color(c.R,c.G,c.B,c.A)).ToArray();
+            foreach(var mechanism in mechanisms ?? Array.Empty<MechanismDefinition>())
+            {
+                if(mechanism.Position.Room!=room)continue;
+                int phase=Math.Clamp(phaseFor?.Invoke(mechanism) ?? mechanism.InitialPhase,0,3);
+                var tiles=mechanism.Kind==MechanismKind.RotatingDoor?MechanismPhaseTiles():mechanism.Kind==MechanismKind.Unknown2?Mechanism2PhaseTiles(mechanism.Direction):null;
+                if(tiles is {Length:>0} && tiles[phase].Length>0) BlitMsx1Tile(colors,tiles[phase],mechanism.Position.X,mechanism.Position.Y,nativePalette);
+                else if(mechanism.Kind==MechanismKind.Unknown4 && MechanismTile4() is {} tile) BlitMsx1TileWide(colors,tile,mechanism.Position.X,mechanism.Position.Y,32,nativePalette);
+            }
+            var nativeTexture = targetTexture;
+            if (nativeTexture is null || nativeTexture.IsDisposed)
+                nativeTexture = new Texture2D(_device, screen.Width, screen.Height);
+            nativeTexture.SetData(colors);
+            return nativeTexture;
+        }
         EnsureLoaded();
         if (_blocks is null || _murals is null || _decorations is null || _palettes is null)
             throw new InvalidOperationException("Room assets not loaded.");
@@ -525,7 +601,7 @@ public sealed class RoomBackgroundBuilder
         Array.Copy(_blocks, (pyr - 1) * 8192, blocks, 0, 8192);
 
         var muralCodes = GetMuralCodes(pyr, stage);
-        var decs = GetDecorations(stage);
+        var decs = GetEditorDecorations(pyr, stage);
 
         var mapClone = (TerrainKind[])map.Clone();
         if (mechanisms != null && mechanisms.Count > 0)
@@ -560,12 +636,12 @@ public sealed class RoomBackgroundBuilder
             foreach (var m in mechanisms.Where(m => m.Position.Room == room))
             {
                 if (m.Kind == MechanismKind.RotatingDoor && tiles is not null)
-                    BlitTile(assembled, tiles[0], m.Position.X, m.Position.Y);
+                    BlitTile(assembled, tiles[Math.Clamp(phaseFor?.Invoke(m) ?? m.InitialPhase,0,3)], m.Position.X, m.Position.Y);
                 else if (m.Kind == MechanismKind.Unknown2)
                 {
                     var tiles2 = Mechanism2PhaseTiles(m.Direction);
                     if (tiles2 is not null)
-                        BlitTile(assembled, tiles2[0], m.Position.X, m.Position.Y);
+                        BlitTile(assembled, tiles2[Math.Clamp(phaseFor?.Invoke(m) ?? 0,0,3)], m.Position.X, m.Position.Y);
                 }
                 else if (m.Kind == MechanismKind.Unknown4 && tile4 is not null)
                     BlitTileWide(assembled, tile4, m.Position.X, m.Position.Y, 32);
@@ -577,6 +653,9 @@ public sealed class RoomBackgroundBuilder
         int i = 0;
         foreach (var c in palEl.EnumerateArray())
             palette[i++] = new Color(c[0].GetInt32(), c[1].GetInt32(), c[2].GetInt32());
+
+        if (_animator != null && _animatorPyramid == pyr)
+            for(int ci=0;ci<16;ci++) palette[ci]=_animator.GetColor(ci,palette[ci]);
 
         var texture = targetTexture;
         if (texture is null || texture.IsDisposed)
@@ -599,6 +678,15 @@ public sealed class RoomBackgroundBuilder
         if (_murals.RootElement.TryGetProperty($"p{pyramid}_{parity}", out var flatEl))
             return flatEl.EnumerateArray().Select(e => e.GetInt32()).ToArray();
         return new int[32];
+    }
+
+    private List<DecorationEntry> GetEditorDecorations(int pyramid, int stage)
+    {
+        if (RomContent.IsContest) return GetDecorations(stage);
+        // Decoration kinds have theme-specific dimensions. Retain the cartridge layout
+        // in its own theme; another theme uses its first native stage's composition.
+        int nativeStage = (stage - 1) / 10 + 1 == pyramid ? stage : (pyramid - 1) * 10 + 1;
+        return GetDecorations(nativeStage);
     }
 
     private List<DecorationEntry> GetDecorations(int stage)

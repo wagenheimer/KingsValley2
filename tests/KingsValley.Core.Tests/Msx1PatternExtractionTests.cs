@@ -32,6 +32,7 @@ public class Msx1PatternExtractionTests
             {
                 int stage=1+(pyramid-1)*10;
                 machine.Write(0xE241,(byte)pyramid); machine.Write(0xE242,(byte)stage);
+                RomStageState.LoadMsx1Theme(machine,rom);
                 machine.CallAddress(RomStageState.ResolveStageLoader(rom),2_000_000);
                 machine.Write(0xE243,1);machine.CallAddress(0x5AEC,2_000_000);
                 data.CaptureRoom(machine.Vram,machine.VdpRegisters,stage,1); data.Save(root);

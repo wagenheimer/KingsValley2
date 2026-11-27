@@ -132,7 +132,8 @@ public static class RomRoomDumps
         machine.Write(PyramidVariable, (byte)definition.Pyramid);
         machine.Write(StageVariable, (byte)stage);
         machine.Write(RoomVariable, (byte)room);
-        machine.CallAddress(RomStageState.ResolveStageLoader(rom), 2_000_000);
+        RomStageState.LoadMsx1Theme(machine, rom);
+            machine.CallAddress(RomStageState.ResolveStageLoader(rom), 2_000_000);
         // State 14 is the native entrance animation. Use its neutral living state for a static room capture.
         if(machine.Memory(0xE280)==14) machine.Write(0xE280,0);
         // 5AAB initializes a stage and its starting room. 5AEC redraws the explicitly selected room.
@@ -229,6 +230,7 @@ public static class RomRoomDumps
             machine.Write(StageVariable, (byte)stage);
             machine.Write(RoomVariable, 1);
             ushort loader = RomStageState.ResolveStageLoader(rom);
+            RomStageState.LoadMsx1Theme(machine, rom);
             machine.CallAddress(loader, 2_000_000);
             machine.Write(RoomVariable, 1);
             machine.CallAddress(0x5AEC, 2_000_000);
