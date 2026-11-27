@@ -47,6 +47,10 @@ Use [GraphicsAudit](../tools/GraphicsAudit/README.md) with a user-supplied ROM a
 
 Run `dotnet build KingsValley.slnx` and `dotnet test tests/KingsValley.Core.Tests`. Local-ROM tests report a skip when their cartridge is absent. Static screenshots, native-routine comparisons, independent emulator comparisons and interactive acceptance are different evidence levels.
 
-## Next work
+## Current limitations
 
-Follow [the current completion plan](superpowers/plans/2026-11-24-documentation-msx2-completion.md). The future reusable skill/repository proposal is saved in [the toolkit plan](superpowers/plans/2026-11-24-msx-reconstruction-toolkit.md).
+Both validated cartridges have a complete required graphics inventory. Fidelity limits, unsupported
+revisions and the evidence level behind each claim are recorded in
+[GRAPHICS_EXTRACTION_AUDIT.md](GRAPHICS_EXTRACTION_AUDIT.md) and
+[AUDIO_EXTRACTION_AUDIT.md](AUDIO_EXTRACTION_AUDIT.md). A generated fallback or an existing file is
+never proof of native fidelity.

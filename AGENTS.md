@@ -676,9 +676,9 @@ Tool useful — dragging a container moves its children.
 | **Dialog container** | The screen declares a `DialogLayer` container (center-anchor, size 0) and C# **re-attaches** it to `GumDialog.Layer` (`GumScreens.CreateLayer`) — the open/close animation now applies to the content |
 | **Hit-test anchored on the element** | `AbsoluteLeft`/`AbsoluteTop` **already discount the origin** (`XOrigin`). Use them instead of duplicating offsets: the slider derives the offset from the track, the button from the normal sprite, the option row from the `Box` frame. Moving it in the Tool moves the clickable area with it |
 | **C# navigates the tree** | `GetGraphicalUiElementByName` is **recursive** — the search works from any level. Navigating (`Background` → `MusicSound` → `MusicVolume`) is living documentation of where each control comes from |
-| **Prove the layout did not change** | Compare the frame's **bounding box** with the reference shot (`docs/progress/shots/ui-dialog-*.png`) and log the derived absolute positions against the old constants |
+| **Prove the layout did not change** | Compare the frame's **bounding box** with a capture taken before the change and log the derived absolute positions against the old constants |
 
-Implemented example: `OptionsDialog` (85 instances, 27 containers) — see `docs/NEXT_SESSION.md`, Task 5.
+Implemented example: `OptionsDialog` (85 instances, 27 containers).
 
 #### Screen texts: English default in the `.gusx`, **key in C#**
 
@@ -1256,7 +1256,7 @@ among `gum-layout`, `gum-forms-controls` and `gum-file-format`.
 1. escrever/editar o .gusx (ou o C#)
 2. dotnet gumcli check      <GumProject.gumx>       # 2. valida o XML (pega enum/instância errada)
 3. dotnet gumcli screenshot <GumProject.gumx> <Tela># 3. PNG da tela — o agente OLHA o resultado
-4. comparar com a referência do jogo real           # docs/progress/shots/ui-dialog-*.png
+4. comparar com a captura anterior da mesma tela
 ```
 
 > ⚠️ `screenshot` **does not** have `KernSmith` (the game's dynamic font): without **step 0** all text
@@ -1312,7 +1312,6 @@ an existing screen can be done by hand with `check` at the end.
 
 ## Documentation
 
-- [docs/AI_MIGRATION_SPEC.md](docs/AI_MIGRATION_SPEC.md) — migration and architecture guide.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — architecture and Unity -> Nez mapping.
 - [docs/ART_SETS.md](docs/ART_SETS.md) — art sets (MSX2 / MSX1 / **remaster**: a single folder is enough).
 - [src/KingsValley.Engine/RenderLayers.cs](src/KingsValley.Engine/RenderLayers.cs) — render layers.

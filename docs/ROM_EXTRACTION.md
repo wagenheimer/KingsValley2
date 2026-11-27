@@ -78,7 +78,7 @@ The supported profiles enumerate IDs 1..65: 11 music entries, 48 effects and six
 
 Use [GraphicsAudit](../tools/GraphicsAudit/README.md), two isolated roots, manifest verification and artifact path/hash comparison. Build with `dotnet build KingsValley.slnx`; run `dotnet test tests/KingsValley.Core.Tests`. Native glyph/table comparisons and runtime screenshots supplement structural checks. Independent original-emulator comparison and interactive gameplay acceptance are separate evidence levels.
 
-The automatic English offline report is described in [EXTRACTION_REPORT.md](EXTRACTION_REPORT.md). Current counts, source revisions, validation and limitations live in [GRAPHICS_EXTRACTION_AUDIT.md](GRAPHICS_EXTRACTION_AUDIT.md). The reusable skill/repository proposal is saved in [the toolkit plan](superpowers/plans/2026-11-24-msx-reconstruction-toolkit.md).
+The automatic English offline report is described in [EXTRACTION_REPORT.md](EXTRACTION_REPORT.md). Current counts, source revisions, validation and limitations live in [GRAPHICS_EXTRACTION_AUDIT.md](GRAPHICS_EXTRACTION_AUDIT.md).
 
 ## Patched cartridges and compatibility
 

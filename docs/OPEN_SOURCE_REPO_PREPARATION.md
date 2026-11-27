@@ -18,4 +18,5 @@ Both supported cartridges have their own audio packages. Both validated cartridg
 - Validate per-flavor isolation, failed/cancelled attempts, immutable publication and the English offline report.
 - Record missing fidelity checks and unsupported cartridge revisions explicitly.
 
-The reusable knowledge repository is planned separately in [MSX Reconstruction Toolkit](superpowers/plans/2026-11-24-msx-reconstruction-toolkit.md). No public repository has been created as part of this documentation update.
+Keep this review current until the repository is published: tracked files, history, dependency notices,
+a clean-checkout build and a first run with a locally supplied supported cartridge.

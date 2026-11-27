@@ -47,7 +47,7 @@ namespace KingsValley.Engine.UI.Gum;
 /// (`BmfcSave.IsFontFilePath`). Since the atlas is generated with the initial ranges (ASCII) and the CJK
 /// glyphs are added **on demand** (<see cref="TextRuntime.UseAutomaticFontGrowth"/>), the
 /// CJK fonts are assigned as a relative path (`Fonts/<file>.ttf`). That is why the Unity
-/// CJK fonts (`.otf` CFF) were converted to **TrueType** (`tools/otf_to_ttf.py`) — KernSmith's
+/// CJK fonts (`.otf` CFF) were converted to **TrueType** during asset preparation — KernSmith's
 /// FreeType rasterizes both, but Gum does not recognize `.otf` as a font file.
 ///
 /// ## How to use it on a screen

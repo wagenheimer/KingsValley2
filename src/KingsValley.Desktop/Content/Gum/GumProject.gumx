@@ -63,7 +63,6 @@
   <ComponentReference Name="Controls/ButtonStandard" />
   <ComponentReference Name="Controls/ButtonStandardIcon" />
   <ComponentReference Name="Controls/ButtonTab" />
-  <ComponentReference Name="Controls/BuyPowerUpSlot" />
   <ComponentReference Name="Controls/CheckBox" />
   <ComponentReference Name="Controls/ColorPickerStandard" />
   <ComponentReference Name="Controls/ComboBox" />
@@ -71,12 +70,10 @@
   <ComponentReference Name="Controls/ExpanderStandard" />
   <ComponentReference Name="Controls/GameButton" />
   <ComponentReference Name="Controls/GameCheckBox" />
-  <ComponentReference Name="Controls/GameGoalCard" />
   <ComponentReference Name="Controls/GameHitArea" />
   <ComponentReference Name="Controls/GameIconButton" />
   <ComponentReference Name="Controls/GameMenuButton" />
   <ComponentReference Name="Controls/GameMessage" />
-  <ComponentReference Name="Controls/GamePowerUpSlot" />
   <ComponentReference Name="Controls/GameRadio" />
   <ComponentReference Name="Controls/GameSlider" />
   <ComponentReference Name="Controls/GameSlot" />

@@ -4,7 +4,7 @@
 # Por que e necessario: no Gum, o `CustomFontFile` e o fluxo antigo de bitmap `.fnt` (o file picker
 # do "Use Custom Font" so aceita `.fnt`). O caminho com WYSIWYG no editor e o dropdown `Font` com
 # uma FAMILIA INSTALADA. As telas/componentes do projeto usam `Font` = o nome da familia
-# (ver a secao de fontes no docs/NEXT_SESSION.md).
+# (see the Fonts section in AGENTS.md).
 #
 # Como funciona: copia o TTF/OTF para %LOCALAPPDATA%\Microsoft\Windows\Fonts e registra em
 # HKCU\Software\Microsoft\Windows NT\CurrentVersion\Fonts. Nao precisa de administrador e e

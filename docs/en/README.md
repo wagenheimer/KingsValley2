@@ -146,12 +146,10 @@ No static PNG image files are used for any background or screen in King's Valley
 
 ## Legal
 
-The game, its art, music and the ROM data derived from it belong to **Konami**. This repository only
-ships derived data while it is private; the open-source version ships **without** any ROM-derived
-content and expects you to extract it from your own cartridge dump. See
-[tools/kv2-extract/README.md](../../tools/kv2-extract/README.md) and
-[docs/ROM_EXTRACTION.md](../ROM_EXTRACTION.md) (Portuguese) for the extraction rules.
+The game, its art, music and the ROM data derived from it belong to **Konami**. This repository ships
+**no** ROM-derived content: the game extracts everything at runtime from a cartridge dump supplied by
+the user. See [ROM_EXTRACTION.md](../ROM_EXTRACTION.md) for the extraction rules and
+[EXTRACTION_HANDOFF.md](../EXTRACTION_HANDOFF.md) for the current engineering checkpoint.
 
-The Portuguese documents under `docs/` (`GAME_DESIGN.md`, `ROM_PORT_HANDOFF.md`, `NEXT_SESSION.md`, …)
-are the working notes and stay canonical for the ongoing port; this `docs/en` tree is the polished,
-illustrated reference.
+The `docs/en` tree is the illustrated reference; `docs/*.md` keeps the engineering notes about the
+ROM port. Both are written in English.

@@ -42,9 +42,6 @@
                                    }
                       },
     "fileBindings":  {
-                         "GameGoalCard.gucx":  {
-                                                   "Token":  "levelhud/shovel"
-                                               },
                          "GameIconButton.gucx":  {
                                                      "Disabled":  "levelhud/btn_ingame_menu",
                                                      "Focused":  "levelhud/btn_ingame_menu.focused",
@@ -54,14 +51,5 @@
                                                      "Focused":  "menu/btn_quit.focused",
                                                      "Normal":  "menu/btn_quit"
                                                  },
-                         "GamePowerUpSlot.gucx":  {
-                                                      "Badge":  "levelhud/powerup_more",
-                                                      "Icon":  "levelhud/shovel"
-                                                  },
-                         "LevelPowerUpBar.gusx":  {
-                                                      "slotShovel.Icon":  "levelhud/shovel",
-                                                      "slotWheelbarrow.Icon":  "levelhud/wheelbarrow_big",
-                                                      "slotWhirlwind.Icon":  "levelhud/whirlwind_big"
-                                                  }
                      }
 }

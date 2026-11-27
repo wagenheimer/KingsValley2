@@ -8,7 +8,7 @@ namespace KingsValley.Engine.UI.Gum;
 
 /// <summary>
 /// Instantiates the Gum project's **`.gusx` screens** at runtime — the "UI in the `.gusx`, logic in C#"
-/// pattern (see `docs/NEXT_SESSION.md`). The layout lives in the file, editable in the **Gum Tool**, and C# only
+/// pattern. The layout lives in the file, editable in the **Gum Tool**, and C# only
 /// finds the elements **by name** and wires the behavior.
 ///
 /// ## Why attach a container, and not the whole screen

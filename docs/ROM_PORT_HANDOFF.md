@@ -343,9 +343,6 @@ opening** — `46A4` draws `0x93AC` while the enemy is dormant and the `AD53` of
 `4690` draws **`C − 1` rows** and only uses `gfx[0..3]` (row 0 with `gfx[0..1]`, the following ones with
 `gfx[2..3]`) — the old note about a "bottom row" with `gfx[4..5]` was wrong.
 
-> 📋 **Resume plan:** [NEXT_SESSION.md](NEXT_SESSION.md) — open tasks with
-> step by step, where to change and how to prove.
-
 ### To do (in order)
 
 1. **End-of-stage screen — closed**: the `!` glyph (0xDB) entered the atlas (Oct/2026 repack) and the
