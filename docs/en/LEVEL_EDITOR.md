@@ -24,6 +24,8 @@ Use **New** for an empty room. Select an existing cell in the right-hand room ma
 
 The left palette groups **Terrain**, **Objects**, **Enemies**, **Tools**, and **Mechanisms**. Choose **Brush** to place the selected content, **Fill** for connected terrain, or **Select** to select and copy an area. Clicking an object with Select picks its type and contextual settings.
 
+**Inspector > Settings > Graphics** switches between extracted MSX1 and MSX2 artwork while keeping the current stage, room, edits and history. Only installed flavors in the current campaign appear. Contest shows its own **MSX2 Contest** set and cannot switch to an Original cartridge through this selector. **F11** remains available as a shortcut. Loading another campaign uses **From Game**.
+
 **Inspector → Settings → Pyramid** selects one of the six native pyramid themes. It changes the room's mural, terrain and palette using the active cartridge's extracted graphics. A stage has one theme shared by its rooms. A loaded game template retains its original theme. MSX1 and MSX2 artwork remain separate. On narrow windows, use the **Properties** button to open the panel.
 
 Properties also contains brush size, music, enemy level and mechanism height where applicable. Preview changes before testing the stage. **Undo** groups a paint stroke into one action; making a new edit after Undo clears Redo.

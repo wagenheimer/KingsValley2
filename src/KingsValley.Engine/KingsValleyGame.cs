@@ -87,6 +87,10 @@ public class KingsValleyGame : Nez.Core
         return (GameConstants.DefaultWindowWidth, GameConstants.DefaultWindowHeight);
     }
 
+    private static bool IsBackgroundCapture =>
+        Environment.GetEnvironmentVariable("KINGSVALLEY_CAPTURE_BACKGROUND") == "1" &&
+        !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("KINGSVALLEY_CAPTURE_DIR"));
+
     public KingsValleyGame() : base(
         width: InitialWidth,
         height: InitialHeight,
@@ -95,6 +99,9 @@ public class KingsValleyGame : Nez.Core
         contentDirectory: "Content")
     {
         Window.AllowUserResizing = true;
+        // Explicit unattended capture keeps advancing when another application has focus.
+        if (IsBackgroundCapture)
+            Nez.Core.PauseOnFocusLost = false;
         Window.ClientSizeChanged += OnClientSizeChanged;
 
         // MSX2 pixel art (256x212 magnified by the camera zoom): POINT filter, so the pixel
@@ -113,7 +120,7 @@ public class KingsValleyGame : Nez.Core
         ExitOnEscapeKeypress = false;
         Nez.Core.ExitOnEscapeKeypress = false;
 
-        if (OperatingSystem.IsWindows() && Window.Handle != IntPtr.Zero)
+        if (!IsBackgroundCapture && OperatingSystem.IsWindows() && Window.Handle != IntPtr.Zero)
         {
             try
             {

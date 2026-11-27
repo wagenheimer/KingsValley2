@@ -37,6 +37,13 @@ public partial class EditorScene
             }
             private void Undo() { FinishStroke(); RestoreJson(_state.History.Undo(_editor.BuildJson())); _status = "Undo"; }
             private void Redo() { FinishStroke(); RestoreJson(_state.History.Redo(_editor.BuildJson())); _status = "Redo"; }
+            private void SetEditorGraphics(string id)
+            {
+                FinishStroke();
+                GfxVariant.Set(id);
+                _status="Graphics: "+RomContent.Active.Name;
+                _rebuild=true;
+            }
             private void SetPyramid(int pyramid)
             {
                 _editor._editorPyramid = pyramid; _editor._stage = _editor._stage.WithPyramid(pyramid);

@@ -9,6 +9,7 @@ using KingsValley.Core.Stages;
 
 namespace KingsValley.Core.Tests;
 
+[Collection("Isolated save storage")]
 public class SaveStateTests
 {
     [Fact]
@@ -106,11 +107,20 @@ public class SaveStateTests
         };
 
         byte[] fakePng = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        string testDirectory = Path.Combine(Path.GetTempPath(), "KingsValleySaveStateTests", Guid.NewGuid().ToString("N"));
+        string? previousUserData = Environment.GetEnvironmentVariable("KINGSVALLEY_USER_DATA");
+        bool isolated = false;
 
         try
         {
+            // A persistence test must never overwrite or delete the player's real slot.
+            Environment.SetEnvironmentVariable("KINGSVALLEY_USER_DATA", testDirectory);
+            isolated = SaveStateService.SaveStatesDirectory == Path.Combine(testDirectory, "savestates");
+            Assert.True(isolated, "Save-state storage must honor the isolated user-data directory before any write.");
             SaveStateService.Save(testSlot, originalData, fakePng);
 
+            Assert.True(File.Exists(Path.Combine(testDirectory, "savestates", "slot1.json")));
+            Assert.True(File.Exists(Path.Combine(testDirectory, "savestates", "slot1.png")));
             Assert.True(SaveStateService.SlotExists(testSlot));
             Assert.True(File.Exists(SaveStateService.GetPngPath(testSlot)));
 
@@ -131,8 +141,22 @@ public class SaveStateTests
         }
         finally
         {
-            SaveStateService.Delete(testSlot);
-            Assert.False(SaveStateService.SlotExists(testSlot));
+            try
+            {
+                if (isolated)
+                {
+                    SaveStateService.Delete(testSlot);
+                    Assert.False(SaveStateService.SlotExists(testSlot));
+                }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("KINGSVALLEY_USER_DATA", previousUserData);
+                if (Directory.Exists(testDirectory)) Directory.Delete(testDirectory, recursive: true);
+            }
         }
     }
 }
+
+[CollectionDefinition("Isolated save storage", DisableParallelization = true)]
+public sealed class IsolatedSaveStorageCollection;

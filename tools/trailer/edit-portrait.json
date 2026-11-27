@@ -1,0 +1,25 @@
+{
+  "shots": [
+    {"clip":"door","start":0,"duration":3,"section":"King's Valley II","title":"The adventure returns","subtitle":"The Seal of El Giza"},
+    {"clip":"boomerang","start":1,"duration":3,"section":"Think fast","title":"Make every throw count","subtitle":"Tools, weapons and enemies."},
+    {"clip":"dig","start":0.5,"duration":3,"section":"Find your way","title":"Break through","subtitle":"Every room is a puzzle."},
+    {"clip":"trap","start":0,"duration":3,"section":"Watch your step","title":"Outsmart the danger","subtitle":"Explore. Collect. Escape."},
+    {"clip":"msx1","start":0,"duration":4,"section":"Native MSX1 graphics","title":"Two classic looks","subtitle":"Crisp pixels. Authentic cartridge artwork."},
+    {"clip":"action","start":0,"duration":4,"section":"Native MSX2 graphics","title":"60 original stages","subtitle":"The same classic campaign in MSX1 and MSX2."},
+    {"clip":"contest","start":0,"duration":6,"section":"Edit Contest edition","title":"20 more challenges","subtitle":"Discover the original contest collection."},
+    {"clip":"editor_test","start":0,"duration":4,"section":"Level editor","title":"Build. Test. Play.","subtitle":"Play your own edited stages."},
+    {"clip":"editor_overview","start":0,"duration":4,"section":"Level editor","title":"Create your own adventure","subtitle":"Connected rooms. Portable .kv2level files."},
+    {"clip":"theme6","start":0,"duration":4,"section":"The challenge awaits","title":"Rediscover the classic","subtitle":"Keyboard and gamepad support."},
+    {"clip":"title","start":0,"duration":7,"section":"King's Valley II","title":"Explore the remake","subtitle":"github.com/wagenheimer/KingsValley2\nOriginal game © Konami. Supported user-supplied ROM required."}
+  ],
+  "music": [
+    {"id":"stage_c","at":0,"duration":38},
+    {"id":"title","at":38,"duration":7}
+  ],
+  "effects": [
+    {"id":"push_door","at":0.3},
+    {"id":"boomerang_spin","at":3.05},
+    {"id":"dig_pickaxe","at":6.1},
+    {"id":"trap","at":9.5}
+  ]
+}

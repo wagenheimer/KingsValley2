@@ -25,6 +25,59 @@ Explore connected pyramid rooms, collect every soulstone and reach the exit. Too
 
 For the original campaign, extract MSX2 or MSX1, or both. **F11** and **ESC → GRAPHICS** cycle compatible extracted art sets within the current campaign. Contest keeps its own cartridge assets; it does not borrow the original campaign's graphics or audio.
 
+## See it in action
+
+### Explore, collect and escape
+
+Read the room before making your move. Climb ladders, cross connected rooms, collect every soulstone and find the exit. Shovels, pickaxes, hammers and drills reshape the route; knives and boomerangs help you deal with the creatures guarding it. Rotating doors, pushable stones, traps and disappearing golden ladders make movement part of the puzzle.
+
+<p align="center">
+  <img src="docs/en/media/showcase_action.gif" width="512" alt="Vick moving through the first stage past ladders, tools and soulstones">
+  <img src="docs/en/media/showcase_tools.gif" width="512" alt="Cartridge gameplay using a pickaxe and throwing a knife">
+  <br><em>Plan a route, use what the room gives you, and leave with every soulstone.</em>
+</p>
+
+### One original campaign, two native presentations
+
+**MSX1 and MSX2 offer the same 60 original stages**, with their own extracted artwork, palette and screen presentation. Switch compatible installed graphics with **F11** or the system menu. Native mural animation and MSX2 palette cycling bring the six pyramid themes to life; MSX1 retains square pixels and its original 256 × 192 image.
+
+<p align="center">
+  <img src="docs/en/media/showcase_msx.gif" width="512" alt="The original campaign shown with native MSX1 and MSX2 graphics">
+  <img src="docs/en/media/showcase_contest.gif" width="512" alt="Gameplay from the separate Edit Contest challenge collection">
+  <br><em>The original 60-stage campaign and the separate 20-challenge Edit Contest collection.</em>
+</p>
+
+**Contest adds 20 separate challenges**, selected by publication and author, with a choice of six visual themes. It has its own cartridge assets, records and save slots. Supported Japanese Contest cartridges can receive the bundled English enhancement automatically during offline extraction; see [Edit Contest](#edit-contest-edition).
+
+### Build a stage, then step inside it
+
+Open **EDIT** from the title menu to create a stage or start from an installed Original or Contest stage. Debug builds also provide **F8**. Paint terrain, place tools, enemies and mechanisms, add connected rooms and choose one of six pyramid themes. Work in a focused room or zoom and pan across the **Full stage** view; brush strokes can cross room boundaries and undo as one action.
+
+<p align="center">
+  <img src="docs/en/media/showcase_editor.gif" width="800" alt="Desktop level editor with tile palettes, Inspector and connected full-stage workspace">
+  <br><em>Room and full-stage views share the same editable document.</em>
+</p>
+
+Choose **Test** or press **F5** to play your changes in the game. Return with **Escape/F5** and keep your edits, undo history, zoom and camera position. **Save As** exports a portable **`.kv2level`** document to share; recipients need the matching cartridge extraction. Files contain level data without ROM artwork or audio. Ten local level slots, undo/redo, unsaved-change prompts and periodic recovery support longer editing sessions.
+
+<p align="center">
+  <img src="docs/en/media/showcase_test.gif" width="800" alt="An edited stage being play-tested in the game">
+  <br><em>Edit, test and return to the same workspace. See the <a href="docs/en/LEVEL_EDITOR.md">level editor guide</a> for controls and document handling.</em>
+</p>
+
+### Keep your place and tune your session
+
+The **ESC system menu** provides three save-state slots with viewport thumbnails, music and effects controls, audio mix, compatible graphics, window mode and available title language. Original and Contest saves remain separate. Use the menu to save, inspect and load slots.
+
+<p align="center">
+  <img src="docs/en/media/showcase_options.png" width="512" alt="System menu with graphics, audio and window options">
+  <img src="docs/en/media/showcase_saves.png" width="512" alt="Save-state slots with captured gameplay thumbnails">
+</p>
+
+Beyond the stages, explore cartridge music and effects in **Sound Test** or play the original **5 × 5 sliding puzzle** through the campaign's ending flow. Debug builds also provide direct **F2/F3** shortcuts. Keyboard and gamepad controls are supported, with mouse selection in the desktop menus and editor. [Controls and tools](#controls-and-tools) lists the shortcuts.
+
+Cartridge Setup manages extraction and readiness for each edition. Every extraction attempt produces an offline English HTML report with previews, source identities, inventory checks and limitations. The game extracts from your supplied ROM inside the application; [setup](#get-started) and [reports](#graphics-audio-and-extraction-reports) explain the workflow.
+
 ## Get started
 
 Download a package from [Releases](https://github.com/wagenheimer/KingsValley2/releases), or [build from source](#build-from-source). Release packages target Windows x64, Linux x64, macOS Intel and macOS Apple Silicon. Check the release's commit: an older tagged package may not contain the latest changes on `main`.
@@ -168,13 +221,14 @@ The contextual action follows the player's state and held tool. In the **ESC sys
 
 | Shortcut | Tool |
 | --- | --- |
-| F2 | Sound Test |
-| F5 | Restart the current stage |
-| F6 | Quick save state |
-| F7 | Ending puzzle diagnostic |
-| F8 | Stage editor |
-| F9 | Game Over diagnostic |
-| F10 | Main menu |
+| F2 | Sound Test (debug build) |
+| F3 | Sliding puzzle (debug build) |
+| F5 | Return from an editor play-test |
+| F6 | Music ending diagnostic (debug build) |
+| F7 | Puzzle ending diagnostic (debug build) |
+| F8 | Stage editor (debug build) |
+| F9 | Game Over diagnostic (debug build) |
+| F10 | Main menu (debug build) |
 | F11 | Cycle compatible graphics within the current campaign |
 | F12 | Cartridge Setup |
 

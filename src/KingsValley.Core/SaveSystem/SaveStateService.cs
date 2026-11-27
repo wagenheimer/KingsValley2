@@ -26,7 +26,11 @@ public static class SaveStateService
         get
         {
             var root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var dir = Path.Combine(root, GameConstants.CompanyFolder, GameConstants.GameTitle, "savestates");
+            var userData = Environment.GetEnvironmentVariable("KINGSVALLEY_USER_DATA");
+            var userDirectory = string.IsNullOrWhiteSpace(userData)
+                ? Path.Combine(root, GameConstants.CompanyFolder, GameConstants.GameTitle)
+                : Path.GetFullPath(userData);
+            var dir = Path.Combine(userDirectory, "savestates");
             Directory.CreateDirectory(dir);
             return dir;
         }

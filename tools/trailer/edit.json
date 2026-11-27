@@ -1,0 +1,449 @@
+{
+  "shots": [
+    {
+      "clip": "door",
+      "start": 0,
+      "duration": 3,
+      "section": "The adventure returns",
+      "title": "Return to the pyramids",
+      "subtitle": "King's Valley II — The Seal of El Giza"
+    },
+    {
+      "clip": "boomerang",
+      "start": 1,
+      "duration": 3,
+      "section": "The adventure returns",
+      "title": "Outsmart the danger",
+      "subtitle": "Weapons. Tools. Timing."
+    },
+    {
+      "clip": "dig",
+      "start": 0.5,
+      "duration": 3,
+      "section": "The adventure returns",
+      "title": "Find your own way",
+      "subtitle": "Break through. Keep moving."
+    },
+    {
+      "clip": "enemies",
+      "start": 1,
+      "duration": 3,
+      "section": "The adventure returns",
+      "title": "Stay one step ahead",
+      "subtitle": "A classic puzzle platformer, reconstructed."
+    },
+    {
+      "clip": "action",
+      "start": 1,
+      "duration": 3,
+      "section": "The adventure returns",
+      "title": "The challenge lives on",
+      "subtitle": "Real gameplay from the remake."
+    },
+    {
+      "clip": "title",
+      "start": 0,
+      "duration": 5,
+      "section": "King's Valley II",
+      "title": "The Seal of El Giza",
+      "subtitle": "A new way to revisit an MSX classic."
+    },
+    {
+      "clip": "worldmap",
+      "start": 0,
+      "duration": 5,
+      "section": "Explore · Collect · Escape",
+      "title": "Enter the labyrinth",
+      "subtitle": "Six pyramids. Connected rooms."
+    },
+    {
+      "clip": "door",
+      "start": 1,
+      "duration": 5,
+      "section": "Explore · Collect · Escape",
+      "title": "Every room is a puzzle",
+      "subtitle": "Read the terrain. Plan your route."
+    },
+    {
+      "clip": "theme2",
+      "start": 3,
+      "duration": 5,
+      "section": "Explore · Collect · Escape",
+      "title": "Collect every soulstone",
+      "subtitle": "Clear the way to the exit."
+    },
+    {
+      "clip": "intro",
+      "start": 0,
+      "duration": 5,
+      "section": "Explore · Collect · Escape",
+      "title": "Step into the adventure",
+      "subtitle": "Classic presentation and cartridge artwork."
+    },
+    {
+      "clip": "exit",
+      "start": 0,
+      "duration": 5,
+      "section": "Explore · Collect · Escape",
+      "title": "Make your escape",
+      "subtitle": "Then take on the next challenge."
+    },
+    {
+      "clip": "dig",
+      "start": 0,
+      "duration": 6,
+      "section": "Tools and tactics",
+      "title": "Reshape your route",
+      "subtitle": "Use tools to break through the terrain."
+    },
+    {
+      "clip": "boomerang",
+      "start": 0,
+      "duration": 6,
+      "section": "Tools and tactics",
+      "title": "Make every throw count",
+      "subtitle": "Knives and returning boomerangs."
+    },
+    {
+      "clip": "trap",
+      "start": 0,
+      "duration": 6,
+      "section": "Tools and tactics",
+      "title": "Watch your step",
+      "subtitle": "Traps turn safe ground into danger."
+    },
+    {
+      "clip": "enemies",
+      "start": 0,
+      "duration": 6,
+      "section": "Tools and tactics",
+      "title": "Keep the chase alive",
+      "subtitle": "Enemies force you to think on the move."
+    },
+    {
+      "clip": "door",
+      "start": 0,
+      "duration": 6,
+      "section": "Tools and tactics",
+      "title": "Turn the puzzle around",
+      "subtitle": "Discover moving mechanisms and new paths."
+    },
+    {
+      "clip": "theme6",
+      "start": 0,
+      "duration": 5,
+      "section": "Tools and tactics",
+      "title": "Keep exploring",
+      "subtitle": "New rooms. New combinations."
+    },
+    {
+      "clip": "msx1",
+      "start": 0,
+      "duration": 6,
+      "section": "Original campaign · MSX1",
+      "title": "Two classic looks",
+      "subtitle": "Native MSX1 graphics. Crisp square pixels."
+    },
+    {
+      "clip": "action",
+      "start": 0,
+      "duration": 6,
+      "section": "Original campaign · MSX2",
+      "title": "One legendary adventure",
+      "subtitle": "60 original stages, with MSX2 presentation."
+    },
+    {
+      "clip": "theme2",
+      "start": 0,
+      "duration": 4,
+      "section": "Six pyramid themes",
+      "title": "A world of color",
+      "subtitle": "Native artwork and animated palettes."
+    },
+    {
+      "clip": "theme3",
+      "start": 0,
+      "duration": 3,
+      "section": "Six pyramid themes",
+      "title": "Explore deeper",
+      "subtitle": "Every pyramid has its own atmosphere."
+    },
+    {
+      "clip": "theme4",
+      "start": 0,
+      "duration": 3,
+      "section": "Six pyramid themes",
+      "title": "Face the next challenge",
+      "subtitle": "Original cartridge stages and graphics."
+    },
+    {
+      "clip": "theme5",
+      "start": 0,
+      "duration": 3,
+      "section": "Six pyramid themes",
+      "title": "Discover what lies ahead",
+      "subtitle": "Classic puzzles, room after room."
+    },
+    {
+      "clip": "contest_publication",
+      "start": 0,
+      "duration": 5,
+      "section": "Edit Contest edition",
+      "title": "The Contest collection",
+      "subtitle": "Four publication award categories."
+    },
+    {
+      "clip": "contest_author",
+      "start": 0,
+      "duration": 5,
+      "section": "Edit Contest edition",
+      "title": "Meet the creators",
+      "subtitle": "Choose from the original winning entries."
+    },
+    {
+      "clip": "contest_theme",
+      "start": 0,
+      "duration": 5,
+      "section": "Edit Contest edition",
+      "title": "Choose your atmosphere",
+      "subtitle": "Six visual themes for each challenge."
+    },
+    {
+      "clip": "contest",
+      "start": 0,
+      "duration": 10,
+      "section": "Edit Contest edition",
+      "title": "20 additional challenges",
+      "subtitle": "A separate collection. A fresh test of skill."
+    },
+    {
+      "clip": "editor_overview",
+      "start": 0,
+      "duration": 8,
+      "section": "Level editor",
+      "title": "Create your own challenges",
+      "subtitle": "Start from a game stage or build your own."
+    },
+    {
+      "clip": "editor_edit",
+      "start": 0,
+      "duration": 10,
+      "section": "Level editor",
+      "title": "Build beyond one room",
+      "subtitle": "Paint connected rooms in the full-stage view."
+    },
+    {
+      "clip": "editor_history",
+      "start": 0,
+      "duration": 6,
+      "section": "Level editor",
+      "title": "Experiment freely",
+      "subtitle": "Undo and redo as you refine your ideas."
+    },
+    {
+      "clip": "editor_theme",
+      "start": 0,
+      "duration": 6,
+      "section": "Level editor",
+      "title": "Set the scene",
+      "subtitle": "Choose a native pyramid theme."
+    },
+    {
+      "clip": "editor_test",
+      "start": 0,
+      "duration": 6,
+      "section": "Build · Test · Play",
+      "title": "Play what you create",
+      "subtitle": "Test your edited stage in the game."
+    },
+    {
+      "clip": "editor_return",
+      "start": 0,
+      "duration": 4,
+      "section": "Build · Test · Play",
+      "title": "Keep building",
+      "subtitle": "Return to your workspace. Share .kv2level files."
+    },
+    {
+      "clip": "saves",
+      "start": 0,
+      "duration": 6,
+      "section": "Your session, your way",
+      "title": "Save your progress",
+      "subtitle": "Three save-state slots with preview thumbnails."
+    },
+    {
+      "clip": "options",
+      "start": 0,
+      "duration": 6,
+      "section": "Your session, your way",
+      "title": "Make it your own",
+      "subtitle": "Graphics. Audio mix. Music. Effects. Window mode."
+    },
+    {
+      "clip": "soundtest",
+      "start": 0,
+      "duration": 5,
+      "section": "More to discover",
+      "title": "Hear the classics",
+      "subtitle": "Explore cartridge music and effects in Sound Test."
+    },
+    {
+      "clip": "setup",
+      "start": 0,
+      "duration": 5,
+      "section": "Get ready to play",
+      "title": "Bring your cartridge",
+      "subtitle": "In-app extraction from a supported user-supplied ROM."
+    },
+    {
+      "clip": "puzzle",
+      "start": 0,
+      "duration": 3,
+      "section": "More to discover",
+      "title": "One more puzzle",
+      "subtitle": "The original sliding puzzle is here too."
+    },
+    {
+      "clip": "theme6",
+      "start": 1,
+      "duration": 4,
+      "section": "The challenge awaits",
+      "title": "Explore",
+      "subtitle": "Keyboard and gamepad support."
+    },
+    {
+      "clip": "theme4",
+      "start": 1,
+      "duration": 4,
+      "section": "The challenge awaits",
+      "title": "Create",
+      "subtitle": "Build your own connected stages."
+    },
+    {
+      "clip": "theme5",
+      "start": 1,
+      "duration": 4,
+      "section": "The challenge awaits",
+      "title": "Play",
+      "subtitle": "Original and Contest campaigns."
+    },
+    {
+      "clip": "door",
+      "start": 1,
+      "duration": 4,
+      "section": "The challenge awaits",
+      "title": "Rediscover the classic",
+      "subtitle": "Reconstructed with MonoGame, Nez and Gum."
+    },
+    {
+      "clip": "exit",
+      "start": 3,
+      "duration": 4,
+      "section": "The challenge awaits",
+      "title": "Your next adventure",
+      "subtitle": "Is just beyond the door."
+    },
+    {
+      "clip": "title",
+      "start": 1,
+      "duration": 5,
+      "section": "King's Valley II",
+      "title": "Explore the remake",
+      "subtitle": "github.com/wagenheimer/KingsValley2 · Original game © Konami. Supported user-supplied ROM required."
+    }
+  ],
+  "music": [
+    {
+      "id": "stage_a",
+      "at": 0,
+      "duration": 32
+    },
+    {
+      "id": "stage_b",
+      "at": 32,
+      "duration": 30
+    },
+    {
+      "id": "stage_c",
+      "at": 62,
+      "duration": 44
+    },
+    {
+      "id": "stage_d",
+      "at": 106,
+      "duration": 28
+    },
+    {
+      "id": "stage_e",
+      "at": 134,
+      "duration": 67
+    },
+    {
+      "id": "ending_final",
+      "at": 201,
+      "duration": 10
+    },
+    {
+      "id": "title",
+      "at": 211,
+      "duration": 9
+    }
+  ],
+  "effects": [
+    {
+      "id": "push_door",
+      "at": 0.3,
+      "gain": 1.15,
+      "duration": 2.5
+    },
+    {
+      "id": "boomerang_spin",
+      "at": 3.05,
+      "gain": 1.15,
+      "duration": 2.5
+    },
+    {
+      "id": "dig_pickaxe",
+      "at": 6.15,
+      "gain": 1.15,
+      "duration": 2.5
+    },
+    {
+      "id": "pick_soulstone",
+      "at": 33.5,
+      "gain": 1.15,
+      "duration": 1.5
+    },
+    {
+      "id": "door_enter",
+      "at": 40.05,
+      "gain": 0.65,
+      "duration": 2.5
+    },
+    {
+      "id": "dig_pickaxe",
+      "at": 45.65,
+      "gain": 1.15,
+      "duration": 2.5
+    },
+    {
+      "id": "boomerang_spin",
+      "at": 52.05,
+      "gain": 1.15,
+      "duration": 2.5
+    },
+    {
+      "id": "trap",
+      "at": 60.25,
+      "gain": 1.15,
+      "duration": 2.5
+    },
+    {
+      "id": "push_door",
+      "at": 69.3,
+      "gain": 1.15,
+      "duration": 2.5
+    }
+  ]
+}

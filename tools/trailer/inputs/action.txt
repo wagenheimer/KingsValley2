@@ -1,0 +1,19 @@
+# Run, jump, turn and use the held tool. One tick is one game logic call.
+0-15 .
+16-38 R
+39-40 RA
+41-62 R
+63-75 .
+76-90 L
+91 A
+92-135 .
+136-160 R
+161-162 RA
+163-190 R
+191-220 L
+221 A
+222-270 .
+271-310 R
+311-312 RA
+313-350 L
+351-450 .

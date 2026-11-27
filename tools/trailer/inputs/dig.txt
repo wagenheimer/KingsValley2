@@ -1,0 +1,10 @@
+# Allow a clean handle, then use the tool and move through the changed terrain.
+0-20 .
+21 A
+22-70 .
+71-100 R
+101-102 RA
+103-140 R
+141-170 L
+171 A
+172-400 .

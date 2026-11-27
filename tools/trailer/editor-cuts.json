@@ -1,0 +1,11 @@
+{
+  "source": "artifacts/trailer/editor-live/session.mkv",
+  "description": "Real interactive editor session: create room, paint platforms, undo/redo, change theme, test and return. UI history footage is edited at 2x; gameplay stays at normal speed.",
+  "cuts": [
+    {"id":"editor_overview","start":8,"source_duration":8,"speed":1},
+    {"id":"editor_edit","start":46,"source_duration":10,"speed":1},
+    {"id":"editor_history","start":110,"source_duration":12,"speed":2},
+    {"id":"editor_theme","start":119,"source_duration":6,"speed":1},
+    {"id":"editor_test","start":139,"source_duration":6,"speed":1}
+  ]
+}

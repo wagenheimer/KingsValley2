@@ -411,22 +411,38 @@ public partial class EditorScene
                 Frame(new(rect.X+14,rect.Y+43,rect.Width-28,34),new Color(42,39,29));
                 Label(toolName,new(x+8,rect.Y+45,width-16,30),17,Gold,centered:true);
                 SectionHeader("SETTINGS",new(rect.X+7,rect.Y+82,rect.Width-14,24));
-                Button("<", new(x, rect.Y + 108, 34, 30), ()=>Change(()=>SetPyramid((_editor.Pyramid+4)%6+1)));
-                Box(new(x+39,rect.Y+108,width-78,30),new Color(11,18,29));
-                Label($"Pyramid {_editor.Pyramid}", new(x + 43, rect.Y + 110, width - 86, 24), 16, centered:true);
-                Button(">", new(rect.Right - 52, rect.Y + 108, 34, 30), ()=>Change(()=>SetPyramid(_editor.Pyramid%6+1)));
-                Label("Brush size", new(x, rect.Y + 151, width, 23), 16, Muted);
-                Button($"{_brush} x {_brush}", new(x + 112, rect.Y + 146, width - 112, 30), ()=>{_brush=_brush==1?2:_brush==2?4:1;_rebuild=true;});
-                Label("Music", new(x, rect.Y + 187, 84, 23), 16, Muted);
-                Button($"Track {_editor._editorMusic+1}", new(x + 90, rect.Y + 182, width - 90, 30), ()=>Change(()=>_editor._editorMusic=(_editor._editorMusic+1)%5));
+                Label("Graphics",new(x,rect.Y+112,68,23),15,Muted);
+                var graphicsSets=RomContent.Available
+                    .Where(set=>set.CampaignId==RomContent.CampaignId && RomContent.IsVariantAvailable(set.Variant))
+                    .GroupBy(set=>set.Flavor)
+                    .Select(group=>group.FirstOrDefault(set=>set.Id==RomContent.Active.Id) ?? group.First())
+                    .OrderBy(set=>set.Flavor==ArtFlavor.Msx1?0:1).ToArray();
+                int graphicsWidth=(width-72)/Math.Max(1,graphicsSets.Length);
+                for(int index=0;index<graphicsSets.Length;index++)
+                {
+                    var set=graphicsSets[index];
+                    string caption=RomContent.IsContest?"MSX2 Contest":set.Flavor==ArtFlavor.Msx1?"MSX1":"MSX2";
+                    Button(caption,new(x+72+index*graphicsWidth,rect.Y+108,graphicsWidth-3,30),
+                        ()=>SetEditorGraphics(set.Id),selected:set.Id==RomContent.Active.Id,enabled:graphicsSets.Length>1,
+                        diagnosticName:"graphics."+set.Variant);
+                }
+                Button("<", new(x, rect.Y + 144, 34, 30), ()=>Change(()=>SetPyramid((_editor.Pyramid+4)%6+1)));
+                Box(new(x+39,rect.Y+144,width-78,30),new Color(11,18,29));
+                Label($"Pyramid {_editor.Pyramid}", new(x + 43, rect.Y + 146, width - 86, 24), 16, centered:true);
+                Button(">", new(rect.Right - 52, rect.Y + 144, 34, 30), ()=>Change(()=>SetPyramid(_editor.Pyramid%6+1)));
+                Label("Brush size", new(x, rect.Y + 187, width, 23), 16, Muted);
+                Button($"{_brush} x {_brush}", new(x + 112, rect.Y + 182, width - 112, 30), ()=>{_brush=_brush==1?2:_brush==2?4:1;_rebuild=true;});
+                Label("Music", new(x, rect.Y + 223, 84, 23), 16, Muted);
+                Button($"Track {_editor._editorMusic+1}", new(x + 90, rect.Y + 218, width - 90, 30), ()=>Change(()=>_editor._editorMusic=(_editor._editorMusic+1)%5));
                 if (_category == 2)
-                    Button($"Enemy level: {_enemyLevel}", new(x,rect.Y+220,width,30),()=>{_enemyLevel=_enemyLevel%3+1;_rebuild=true;});
+                    Button($"Enemy level: {_enemyLevel}", new(x,rect.Y+256,width,30),()=>{_enemyLevel=_enemyLevel%3+1;_rebuild=true;});
                 else if (_category == 4)
-                    Button($"Height: {_mechanismHeight} cells",new(x,rect.Y+220,width,30),()=>{_mechanismHeight=_mechanismHeight%12+1;_rebuild=true;});
-                else Label("Snap to grid: 8 px", new(x, rect.Y + 220, width, 25), 15, Muted);
-                SectionHeader("ROOM MAP",new(rect.X+7,rect.Y+258,rect.Width-14,24));
-                int mapY = rect.Y + 288;
-                int cell = Math.Min(26, Math.Min(width / 8,Math.Max(14,(rect.Bottom-mapY-92)/8)));
+                    Button($"Height: {_mechanismHeight} cells",new(x,rect.Y+256,width,30),()=>{_mechanismHeight=_mechanismHeight%12+1;_rebuild=true;});
+                else Label("Snap to grid: 8 px", new(x, rect.Y + 256, width, 25), 15, Muted);
+                SectionHeader("ROOM MAP",new(rect.X+7,rect.Y+294,rect.Width-14,24));
+                int mapY = rect.Y + 324;
+                bool compactMap = rect.Height < 540;
+                int cell = Math.Min(26, Math.Min(width / 8,Math.Max(8,(rect.Bottom-mapY-(compactMap?44:92))/8)));
                 for (int row = 0; row < 8; row++) for (int col = 0; col < 8; col++)
                 {
                     int gx = col, gy = row, id = _editor._stage.RoomGrid[row, col];
@@ -435,11 +451,12 @@ public partial class EditorScene
                         if (id > 0) { FinishStroke();SelectWorldRoom(id,center:true);_selection=null;_rebuild=true; }
                         else Change(()=>{_editor.AddRoomAt(gx,gy);if(_overview){_worldCamera.CenterRoom(_editor.RoomNumber,_editor._stage.RoomGrid);RefreshWorldBounds();}});
                     }, id == _editor.RoomNumber,diagnosticName:$"room_map.{gx},{gy}.room_{id}");
-                    if (id > 0) Label(id.ToString("00"), new(x + col * cell + 3, mapY + row * cell + 3, cell - 5, cell - 4), cell < 22 ? 9 : 11, id == _editor.RoomNumber ? Gold : TextColor);
+                    if (id > 0) Label(id.ToString("00"), new(x + col * cell + 1, mapY + row * cell + 1, cell - 2, cell - 2), cell < 16 ? 6 : cell < 22 ? 9 : 11, id == _editor.RoomNumber ? Gold : TextColor);
                 }
-                Label("Empty cell: add a room", new(x, mapY + cell * 8 + 8, width, 42), 13, Muted);
-                Button("Copy", new(x, mapY + cell * 8 + 51, width / 2 - 4, 30), CopySelection, enabled: _selection != null);
-                Button("Paste", new(x + width / 2 + 4, mapY + cell * 8 + 51, width / 2 - 4, 30), ()=>Change(Paste), enabled: _clipboard != null);
+                if(!compactMap)Label("Empty cell: add a room", new(x, mapY + cell * 8 + 8, width, 42), 13, Muted);
+                int footerY=mapY+cell*8+(compactMap?8:51);
+                Button("Copy", new(x, footerY, width / 2 - 4, 30), CopySelection, enabled: _selection != null);
+                Button("Paste", new(x + width / 2 + 4, footerY, width / 2 - 4, 30), ()=>Change(Paste), enabled: _clipboard != null);
             }
 
             private void Frame(Rectangle rect,Color fill)
